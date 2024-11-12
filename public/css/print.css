@@ -1,0 +1,63 @@
+/* vista previa de impresion*/
+    .dt-print-view{
+        width: 260mm;
+        margin: 0 auto;
+    }
+    
+    .dt-print-view thead th{
+        border-top: 2px double#777!important;
+        border-bottom: 2px double #777!important;
+        background-color: #777;
+        color:#ffffff;
+        font-size: 1rem;
+    }
+    .dt-print-view .acciones{
+        display: none;
+    }
+    .dt-print-view .table {
+        border: 1px solid #888!important;
+    }
+
+   .dt-print-view h1{
+        font-size: 25px;
+    }
+    .dt-print-view tbody td{
+        background-color: #ffffff;
+        border-bottom: 2px solid #888!important;
+
+        
+    }    
+    .dt-print-view table {
+        border-left: 2px solid #888;
+        border-right: 2px solid #888;
+        border-bottom: 1px solid #888;
+    }
+    
+    
+
+    @media print {
+        * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+         }
+  
+    @page {
+      size: A4;
+      margin-top: 10mm;
+      margin-left: 15mm;
+      margin-right: 15mm;
+      margin-bottom: 15mm;
+    }
+  
+    
+    .dt-print-view tbody tr{
+        background-color: #ffffff;
+        
+    }  
+         
+
+
+    
+     
+    
+  }

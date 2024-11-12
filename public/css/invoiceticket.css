@@ -1,0 +1,181 @@
+/*
+Theme Name: Invoice V1
+Theme URI: https://templatesjungle.com/
+Author: TemplatesJungle
+Author URI: https://templatesjungle.com/
+Description: Invoice V1 is specially designed product packaged for Invoice.
+Version: 1.1
+*/
+
+/*--------------------------------------------------------------
+Styles
+--------------------------------------------------------------*/
+
+@page {
+    size: 72mm 297mm;
+    margin: 0px;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    color: #000;
+    margin: 0;
+    padding: 0 18px 0 5px; /* para centrar la impresora*/
+   /*  background-color:aqua; */
+}
+.cabecera {
+    
+    padding: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: center;
+   
+}
+
+.cabecera .logo {
+  padding: 0;
+    
+}
+.cabecera .logo img {
+    width: 100%;
+    height: auto;
+}
+.cabecera .empresa {
+    padding: 0;
+    margin-top: 10px; 
+    font-size: 0.8rem;  
+    
+}
+
+.cabecera .empresa .razon-social {
+   
+    font-size: 0.9Rem;
+    font-weight: bold;
+    color: #000;
+    text-transform: uppercase;
+}
+.cabecera .descripcion{
+    
+    margin-bottom: 0px;
+    
+}
+.cabecera .empresa .ruc {
+   
+    
+    margin-bottom: 0px;
+}
+.cabecera .empresa .direccion {
+ 
+    
+    margin-bottom: 0px;
+}
+.cabecera .empresa .telefono {
+  
+    margin-bottom: 0px;
+}
+
+.cabecera .invoice{
+    padding: 7px;
+    margin-top: 10px;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+  
+    text-align: center;
+}
+.cabecera .invoice .title{
+    font-size: 1.2em;
+    font-weight: bold;
+   
+   
+}
+.cabecera .invoice-number{
+    font-size: 1.2em;
+    font-weight: bold;
+    
+}
+.cabecera .cliente{
+    margin-top: 10px;
+    font-size: 0.8rem;
+}
+.table-cliente td {
+    padding: 0px 2px;
+}
+.cliente .tag{
+    vertical-align: top;
+    font-weight: bold;
+}
+.cliente .data{
+    padding-left: 0px;
+}
+
+
+
+.table-lines{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.table-lines th {
+    padding: 3px 2px;
+    text-align: left;
+    font-weight: bold;
+    
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+   
+}
+
+.table-lines td {
+    padding: 0px 2px;
+}
+
+
+
+.table-lines .cantidad{
+    text-align: center;
+    vertical-align: top;
+
+
+}
+.table-lines .totalline, .table-lines .preciounitario{
+    text-align: right;
+    vertical-align: top;
+   
+}
+
+.grantotal{
+ border-top: 1px solid #000;
+
+}
+.grantotal-lines{
+    text-align: right;
+    font-weight: bold;
+       
+}
+ .totalamount{
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: right;
+}
+.precioenletras{
+    font-size: 0.7rem;
+    text-align: left;
+}
+.qr{
+    text-align: center;
+    margin-top: 6px;
+ 
+}
+.hash{
+    font-size: 0.7em;
+    color: #000;
+    margin-top: 10px;
+    
+}
+.footer{
+    font-size: 0.8em;
+    color: #000;
+    margin-top: 10px;
+    text-align: center;
+}
