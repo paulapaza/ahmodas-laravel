@@ -2,8 +2,8 @@
     <x-slot name="menu">
         <x-menuOdoocpe />
     </x-slot>
-    <x-slot name="pagetitle">Cotizaciones Odoo</x-slot>
-    <x-slot name="titulo">Cotizaciones Odoo</x-slot>
+    <x-slot name="titulo">Odoo +Plus</x-slot>
+    <x-slot name="pagetitle">Print Barcode by product</x-slot>
 
 
     <div class="row justify-content-center pt-2">
@@ -17,11 +17,9 @@
                         <th>Nro</th>
                         <th>id</th>
                         <th>Nombre de Producto</th>
-
                         <th>Cod Barras</th>
+                        <th>Precio s/.</th>
                         <th>Cantidad</th>
-
-
                         <th>Edicion</th>
 
                     </tr>
@@ -39,8 +37,9 @@
         </div>
     </div>
 
-   //modal
-    <div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+ 
+    <div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-xprimary text-white">
@@ -51,25 +50,26 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-8">
-            
-                            <input type="text" class="form-control mb-3" id="product-search-box" placeholder="Buscar Producto">
+
+                            <input type="text" class="form-control mb-3" id="product-search-box"
+                                placeholder="Buscar Producto">
                         </div>
                         <div class="col-4">
                             <div id="loading" style="display: none;">
                                 Cargando...
-            
+
                                 <i class="fa-solid fa-spinner fa-spin ml-3"></i>
                             </div>
                         </div>
                     </div>
-            
+
                     <table id="tbl_productos" class="table table-striped">
                         <thead class="bg-secondary">
                             <tr>
                                 <th>id</th>
                                 <th>Nombre de Producto</th>
                                 <th>Cod Barras</th>
-                                <th>Precio</th>
+                                <th>Precio s/.</th>
                                 <th>Edicion</th>
                             </tr>
                         </thead>
@@ -175,6 +175,13 @@
                         "data": "barcode"
                     },
                     {
+                        "data": "precio",
+                        render: function(data, type, row) {
+                            return data.toFixed(2);
+                        }
+                    },
+                    
+                    {
                         "data": "cantidad"
                     },
                     {
@@ -187,7 +194,7 @@
                         //className: "nroPadron",
                     },
                     {
-                        targets: 4,
+                        targets: 5,
                         orderable: false,
                         className: "text-center",
                         render: function(data, type, row) {
@@ -204,18 +211,26 @@
                 layout: {
                     topStart: {
                         buttons: [{
-                            text: 'Agregar producto',
-                            className: '',
-                            action: function(e, dt, node, config) {
-                                buscarProducto();
+                                text: 'Agregar producto',
+                                className: '',
+                                action: function(e, dt, node, config) {
+                                    buscarProducto();
+                                },
+                            }, {
+                                text: 'Imprimir Codigos de Barras',
+                                className: '',
+                                action: function(e, dt, node, config) {
+                                    imprimirEtiquetas();
+                                },
                             },
-                        }, {
-                            text: 'Imprimir etiquetas',
-                            className: '',
-                            action: function(e, dt, node, config) {
-                                imprimirEtiquetas();
-                            },
-                        }]
+                            {
+                                text: 'Imprimir etiquetas de Precio',
+                                className: '',
+                                action: function(e, dt, node, config) {
+                                    imprimirEtiquetasDePrecio();
+                                },
+                            }
+                        ]
 
                     },
                 },
@@ -230,7 +245,7 @@
         }
 
         $('#product-search-box').keyup(function() {
-            
+
             let searchString = $(this).val();
             if (searchString != '' && searchString.length >= 3) {
                 $.ajax({
@@ -302,6 +317,7 @@
                     'id': data["id"],
                     'name': data["name"],
                     'barcode': data["barcode"],
+                    'precio': data["list_price"],
                     'cantidad': 1,
                     'acciones': boton,
 
@@ -342,7 +358,7 @@
         /** DETECTAR EL CAMBIO DEL IMPUT  */
 
         $(document).on('change', '.iptCantidad', function() {
-      
+
             event.stopPropagation();
             let nuevaCantidad = Number.parseFloat($(this).val());
 
@@ -354,10 +370,10 @@
                 //console.log("NO hay idx");
                 return;
             }
-          
+
 
             table_bandeja.cell(idx, 4).data(nuevaCantidad).draw();
-         
+
 
 
             recalcularTotalImpresiones();
@@ -399,7 +415,14 @@
         }
 
         function imprimirEtiquetas() {
-
+            if (table_bandeja.rows().count() == 0) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No hay productos en la bandeja de impresión',
+                    icon: 'error',
+                });
+                return;
+            }
             Swal.fire({
                 title: 'Imprimir Etiquetas',
                 html: 'Desea Imprimir las Etiquetas',
@@ -414,8 +437,8 @@
                 if (result.isConfirmed) {
                     // Obtener los datos de productos
                     let productos = table_bandeja.rows().data().toArray();
-                   
-                   // productos.forEach(producto => delete producto.acciones);
+
+                    // productos.forEach(producto => delete producto.acciones);
 
                     // Crear un formulario dinámico para enviar los datos a una nueva ventana
                     let form = document.createElement("form");
@@ -448,6 +471,64 @@
 
             });
 
+        }
+
+        function imprimirEtiquetasDePrecio() {
+            // si no hay productos en la bandeja, no se puede imprimir
+            if (table_bandeja.rows().count() == 0) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No hay productos en la bandeja de impresión',
+                    icon: 'error',
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Imprimir Etiquetas de Precio',
+                html: 'Desea Imprimir las Etiquetas de Precio',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Si',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    // Obtener los datos de productos
+                    let productos = table_bandeja.rows().data().toArray();
+
+                    // productos.forEach(producto => delete producto.acciones);
+
+                    // Crear un formulario dinámico para enviar los datos a una nueva ventana
+                    let form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = "{{ route('imprimirEtiquetasDePrecio') }}";
+                    form.target = "_blank"; // Abrir en una nueva pestaña
+                    form.style.display = "none";
+
+                    // Añadir el token CSRF
+                    let csrfField = document.createElement("input");
+                    csrfField.type = "hidden";
+                    csrfField.name = "_token";
+                    csrfField.value = "{{ csrf_token() }}";
+                    form.appendChild(csrfField);
+
+                    // Añadir los datos de productos como input hidden
+                    let productosField = document.createElement("input");
+                    productosField.type = "hidden";
+                    productosField.name = "productos";
+                    productosField.value = JSON.stringify(productos);
+                    form.appendChild(productosField);
+
+                    // Agregar el formulario al DOM y enviarlo
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form); // Eliminar el formulario del DOM
+                }
+
+            });
         }
     });
 </script>

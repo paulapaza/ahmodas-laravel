@@ -109,15 +109,15 @@
                             <div class="form-group col-md-2">
                                 <label>Serie</label>
                                 <select name="idserie" id="idserie" class="form-control">
-                                    @foreach ($serie as $item)
-                                    <option value="{{$item['id']}}">{{$item['serie']}}</option>
+                                    @foreach ($series as $serie)
+                                    <option value="{{$serie['id']}}">{{$serie['serie']}}</option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div class="form-group col-md-2">
                                 <label>Número </label>
-                                <input type="number" class="form-control" name="correlativo" id="correlativo" value="{{$serie[0]['correlativo']}}" disabled>
+                                <input type="number" class="form-control" name="correlativo" id="correlativo" value="{{$series[0]['correlativo']}}" disabled>
                             </div>
                             <div class="form-group col-md-2">
                                 <label>Moneda</label>
@@ -164,6 +164,7 @@
                                 <th>precio unitario</th>
                                 <th>Impuesto</th>
                                 <th>subtotal neto</th>
+                                <th>total impuesto</th>
                                 <th>subtotal incl igv</th>
 
                             </tr>
@@ -177,6 +178,7 @@
                                 <td>{{$pos_order_line['price_unit']}}</td>
                                 <td>{{$pos_order_line['tax_ids'][0]}}</td>
                                 <td>{{$pos_order_line['price_subtotal']}}</td>
+                                <td>{{$pos_order_line['amount_tax']}}</td>
                                 <td>{{$pos_order_line['price_subtotal_incl']}}</td>
                             </tr>
                             @endforeach
@@ -195,7 +197,7 @@
 
             <div class="card-body">
                 <div class=" text-right">
-                    <span class="text-bold mr-3">OP. GRAVADAS: </span> {{$pos_order['amount_total']-$pos_order['amount_tax'] }}<br>
+                    <span class="text-bold mr-3">OP. GRAVADAS: </span> {{$pos_order['amount_untaxed'] }}<br>
                     <span class="text-bold mr-3">IGV: </span>{{$pos_order['amount_tax'] }}<br>
                     <span class="text-bold mr-3">TOTAL A PAGAR: S/.</span><span class="text-lg"> {{number_format($pos_order['amount_total'], 2) }}</span>
 
@@ -331,7 +333,7 @@
                             return '18% '; //gravado 10
                         } 
                         else if (data[0] == 1) {
-                            return '18%';
+                            return '18% cod. no conf.'; //gravado 10
                         } 
                         else if (data == 3) {
                             return '0% exonerado 20';
@@ -647,8 +649,6 @@
             /// genera erro pr que se esta envienado siempre
             // el mismo cliente asigando sin poder cambiar el tipo de docuemnto de identidad
             // cuando uno cambia el cliente tien que cambiar el tipo de documento de identidad
-            
-            
             // comprobar si el tipo de documento es factura el cliente tiene que tener ruc
             if ($('#TipoDocumento').val() == '01' && $('#TipoDocumentoIdentidad').val() != '6') {
                 Swal.fire({
@@ -687,16 +687,21 @@
                 TipoDocumento: $('#TipoDocumento').val(),
                 serie_id: $('#idserie').val(),
                 correlativo: $('#correlativo').val(),
-                moneda: $('#moneda').val(),
                 fecha_emision: $('#fecha_emision').val(),
                 forma_pago: $('#forma_pago').val(),
                 monto_pendiente: 0.00,
+                TipoOperacion: '0101', //venta interna
+                TipoMoneda: $('#moneda').val(), // TipoMoneda
             }
 
             let pos_lines = [];
             let i = 0;
             TablePosLines.rows().eq(0).each(function(index) {
                 var data = TablePosLines.row(index).data();
+                //calcular mtoValorUnitario = priceSubtotalIncl / qty (tranformar a 2 decimales)
+                
+                let mtoValorUnitario = (parseFloat(data[5]) / parseFloat(data[2])).toFixed(2);
+                let codigoAfectacion = data[4] == 1 ? '10' : '20';
                 const line = {
                     positem: index + 1,
                     pos_order_line: data[0],
@@ -705,7 +710,10 @@
                     priceUnit: data[3],
                     codigoAfectacion: data[4],
                     priceSubtotal: data[5],
-                    priceSubtotalIncl: data[6],
+                    priceSubtotalIncl: data[7],
+                    productUom: 'NIU',
+                    mtoValorUnitario: mtoValorUnitario,
+                    amount_Tax: data[6],
                 };
                 pos_lines.push(line);
             });
@@ -713,10 +721,9 @@
 
             let pos_order = {
                 pos_order: "{{$pos_order['id']}}",
-                // si existe cliente en odoo enviar el id , si no existe enviar 0
                 partner_id: "{{$cliente['id']??0}}",
                 amount_tax: "{{$pos_order['amount_tax']}}",
-
+                amount_untaxed: "{{$pos_order['amount_untaxed']}}",
                 amount_total: "{{$pos_order['amount_total']}}",
             }
 
@@ -736,7 +743,7 @@
                     if (response.success== true) {
                         Swal.fire({
                             icon: 'success',
-                            title: response.message,
+                            title: response.title,
                             html:  response.descripcion +'<br><br>'+ response.notas+`<br><hr><div class="text-center">Imprimir</div>
                             <div class="row text-center py-3 mx-0 printInvoiceSelector">
                                 <div class="col-4">

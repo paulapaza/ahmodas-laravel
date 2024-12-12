@@ -26,4 +26,11 @@ class ProductController extends Controller
         return view('modules.odoocpe.barcode.print_codbar', compact('productos'));
         
     }
+    public function imprimirEtiquetasDePrecio(Request $request)
+    {
+        $productos = json_decode($request->productos, true);
+
+        return view('modules.odoocpe.barcode.print_price_tag', compact('productos'));
+        
+    }
 }

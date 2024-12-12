@@ -16,5 +16,7 @@ class SerieCorrelativo extends Model
         'serie',
         'correlativo'
     ];
+    // no timestamps
+    public $timestamps = false;
     
 }

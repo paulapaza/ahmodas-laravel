@@ -39,7 +39,7 @@ class AjaxResponseService
     }
 
     
-    public function error(string $message, int $status = 500): JsonResponse
+    static public function error(string $message, int $status = 500): JsonResponse
     {
         return response()->json([
             'success' => false,

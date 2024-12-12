@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Odoocpe;
 
 use App\Http\Controllers\Controller;
+use App\Http\Services\AjaxResponseService;
 use App\Models\Facturacion\SerieCorrelativo;
 use App\Models\Facturacion\Sunat\TipoDocumentoIdentidad;
 use App\Models\OdooCpe\Odoo;
@@ -18,29 +19,105 @@ class PosOrderController extends Controller
         // seteamos la hora a la hoora de odoo , (odoo esta en UTC)
         $fechaInicio = Carbon::parse($fechainicio)->startOfDay()->setTimezone('UTC')->toDateTimeString();
         $fechaFin = Carbon::parse($fechafin)->endOfDay()->setTimezone('UTC')->toDateTimeString();
-        
+
         $Odoo = new Odoo;
         $ventas = $Odoo->ventasOdooIndex($fechaInicio, $fechaFin);
 
         return response()->json($ventas, 200);
     }
-    public function Show($id)
+    public function show($id)
     {
+        // Constante para el divisor del IGV
+        $IGV_DIVISOR = 1.18;
 
-        
+        // Obtener todas las series para el tipo de documento '03'
+        $series = SerieCorrelativo::where('tipo_documento', '03')->get();
+
+        if ($series->isEmpty()) {
+            return AjaxResponseService::error('No se han configurado series y correlativos para el tipo de documento 03');
+        }
+
+        // Formatear el correlativo de cada serie
+        $series->each(function ($serie) {
+            $serie->correlativo = str_pad($serie->correlativo, 8, "0", STR_PAD_LEFT);
+        });
+
+        // Obtener orden desde Odoo
         $Odoo = new Odoo;
         $pos_order = $Odoo->pos_order($id);
-        if ($pos_order['amount_tax'] == 0) {
-            $pos_order['amount_tax'] = 0.18 * $pos_order['amount_total'];
+
+        // Configurar cliente
+        $cliente = $pos_order['partner_id']
+            ? $Odoo->partner($pos_order['partner_id'][0])
+            : [
+                'id' => 0,
+                'name' => 'Cliente varios',
+                'street' => '',
+                'city' => '',
+                'state_id' => ['', ''],
+                'country_id' => '',
+                'vat' => '00000000',
+                'phone' => '',
+                'email' => '',
+                'l10n_pe_district' => ['', ''],
+                'l10n_latam_identification_type_id' => ['', ''],
+                'ubigeo' => '',
+            ];
+
+        // Obtener líneas del pedido
+        $pos_order_lines = $Odoo->pos_order_line($pos_order['lines']);
+
+        foreach ($pos_order_lines as &$line) {
+            // Configurar impuestos si no existen
+            if (empty($line['tax_ids'])) {
+                $line['tax_ids'] = [2]; // ID del impuesto IGV
+                $line['tax_ids_after_fiscal_position'] = 2;
+            }
+
+            // Calcular montos
+            $line['price_subtotal'] = floatval(number_format($line['price_subtotal_incl'] / $IGV_DIVISOR, 2, '.', ''));
+            $line['amount_tax'] = floatval(number_format($line['price_subtotal_incl'] - $line['price_subtotal'], 2, '.', ''));
         }
-       // dd($pos_order);
-        
 
-        $serie = SerieCorrelativo::where('tipo_documento', '03')->get();
-        
-        $serie[0]['correlativo'] = str_pad($serie[0]['correlativo'], 8, "0", STR_PAD_LEFT);
-       
+        // Calcular totales
+        $pos_order['amount_untaxed'] = array_reduce($pos_order_lines, function ($carry, $line) {
+            return $carry + $line['price_subtotal'];
+        }, 0);
 
+        $pos_order['amount_tax'] = array_reduce($pos_order_lines, function ($carry, $line) {
+            return $carry + $line['amount_tax'];
+        }, 0);
+
+        $pos_order['amount_total'] = $pos_order['amount_untaxed'] + $pos_order['amount_tax'];
+
+        // Redondear totales
+        $pos_order['amount_untaxed'] = floatval(number_format($pos_order['amount_untaxed'], 2, '.', ''));
+        $pos_order['amount_tax'] = floatval(number_format($pos_order['amount_tax'], 2, '.', ''));
+        $pos_order['amount_total'] = floatval(number_format($pos_order['amount_total'], 2, '.', ''));
+
+        // Obtener documentos de identidad
+        $TipoDocumento = TipoDocumentoIdentidad::all();
+
+        // Enviar datos a la vista
+        return view('modules.odoocpe.pos_order.show', compact('series', 'pos_order', 'cliente', 'pos_order_lines', 'TipoDocumento'));
+    }
+
+    public function ShowOLD($id)
+    {
+        /*  $serie = SerieCorrelativo::where('tipo_documento', '03')->get();
+        $serie[0]['correlativo'] = str_pad($serie[0]['correlativo'], 8, "0", STR_PAD_LEFT); */
+
+        // Obtener serie correlativo solo una vez, mejorando la legibilidad.
+        $series = SerieCorrelativo::where('tipo_documento', '03')->get();
+
+        if ($series) {
+            $series[0]['correlativo'] = str_pad($series[0]['correlativo'], 8, "0", STR_PAD_LEFT);
+        } else {
+            return AjaxResponseService::error('No se ha configurado la serie y correlativo para el tipo de documento 03');
+        }
+
+        $Odoo = new Odoo;
+        $pos_order = $Odoo->pos_order($id);
 
 
         if ($pos_order['partner_id'] == null) {
@@ -60,60 +137,33 @@ class PosOrderController extends Controller
                 'ubigeo' => '',
             ];
         } else {
-
             $cliente = $Odoo->partner($pos_order['partner_id'][0]);
         }
+
         $pos_order_lines = $Odoo->pos_order_line($pos_order['lines']);
-        
-        /*
-        0 => array:9 [
-                "id" => 87
-                "full_product_name" => "hamburguesa de queso"
-                "price_unit" => 5.0
-                "product_uom_id" => array:2 [▶]
-                "qty" => 2.0
-                "price_subtotal" => 8.47
-                "price_subtotal_incl" => 10.0
-                "tax_ids" => array:1 [▼
-                0 => 2
-                ]
-                "tax_ids_after_fiscal_position" => array:1 [▼
-                0 => 2
-            ]
-        */
-        /*
-          0 => array:9 [▼
-            "id" => 1
-            "full_product_name" => "guia anaconda 3m"
-            "price_unit" => 3.5
-            "product_uom_id" => array:2 [▶]
-            "qty" => 2.0
-            "price_subtotal" => 7.0
-            "price_subtotal_incl" => 7.0
-            "tax_ids" => []
-            "tax_ids_after_fiscal_position" => []
-        ]
-        */
-
-       
-        // recorremos el array de pos_order_lines para formatear los precios
         foreach ($pos_order_lines as $key => $pos_order_line) {
-            // formateamos los precios a 2 decimales
-            $pos_order_lines[$key]['price_unit'] = number_format($pos_order_line['price_unit'], 2, '.', '');
-            $pos_order_lines[$key]['price_subtotal_incl'] = number_format($pos_order_line['price_subtotal_incl'], 2, '.', '');
-
-            // si el producto no tiene impuesto, le asignamos el impuesto IGV    
-            if($pos_order_lines[$key]['tax_ids'] == null){
-                $pos_order_lines[$key]['tax_ids'] = [2];
-                // calculamos el precio sin impuesto
-                $price_subtotal = $pos_order_line['price_subtotal']-($pos_order_line['price_subtotal']*0.18);
-                $pos_order_lines[$key]['price_subtotal'] = number_format($price_subtotal, 2, '.', '');
+            if ($pos_order_lines[$key]['tax_ids'] == []) {
+                $pos_order_lines[$key]['tax_ids'] = [2]; // ID del impuesto IGV
                 $pos_order_lines[$key]['tax_ids_after_fiscal_position'] = 2;
             }
+            $price_subtotal = $pos_order_line['price_subtotal_incl'] / 1.18;
+            $pos_order_lines[$key]['price_subtotal'] = floatval(number_format($price_subtotal, 2, '.', ''));
+            $pos_order_lines[$key]['amount_tax'] = floatval(number_format($pos_order_line['price_subtotal_incl'] - $price_subtotal, 2, '.', ''));
         }
 
+        $total_operaciones_gravadas = array_reduce($pos_order_lines, function ($carry, $line) {
+            return $carry + $line['price_subtotal'];
+        }, 0);
+
+        $pos_order['amount_untaxed'] = floatval(number_format($total_operaciones_gravadas, 2, '.', ''));
+
+        $total_impuestos = array_reduce($pos_order_lines, function ($carry, $line) {
+            return $carry + $line['price_subtotal_incl'] - $line['price_subtotal'];
+        }, 0);
+
+        $pos_order['amount_tax'] = floatval(number_format($total_impuestos, 2, '.', ''));
+
         $TipoDocumento = TipoDocumentoIdentidad::all();
-        // dd($pos_order_lines);
-        return view('modules.odoocpe.pos_order.show', compact('serie', 'pos_order', 'cliente', 'pos_order_lines', 'TipoDocumento'));
+        return view('modules.odoocpe.pos_order.show', compact('series', 'pos_order', 'cliente', 'pos_order_lines', 'TipoDocumento'));
     }
 }

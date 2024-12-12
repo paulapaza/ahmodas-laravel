@@ -103,6 +103,7 @@ Route::middleware([
     Route::view('/odoocpe/barcode/product','modules.odoocpe.barcode.product.index')->name('odoocpe.barcode.product');
     Route::Post('/odoocpe/barcode/product/search', [ProductController::class,'search']);
     Route::Post('/odoocpe/barcode/product/print', [ProductController::class,'imprimirEtiquetas'])->name('imprimirEtiquetas');
+    Route::Post('/odoocpe/barcode/product/print-price-tag', [ProductController::class,'imprimirEtiquetasDePrecio'])->name('imprimirEtiquetasDePrecio');
 
 
     

@@ -14,6 +14,7 @@
     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
         <li><a href="{{route('odoocpe.barcode.product')}}" class="dropdown-item">By Product </a></li>
         <li><a href="{{route('odoocpe.barcode.purchase')}}" class="dropdown-item">By Purchase</a></li>
+        <li><a href="{{route('odoocpe.barcode.product')}}" class="dropdown-item">Price Tag</a></li>
     </ul>
 </li>
 

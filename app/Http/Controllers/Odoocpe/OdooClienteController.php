@@ -11,8 +11,7 @@ class OdooClienteController extends Controller
    
     public function nuevoCliente(Request $request)
     {
-
-      
+    
         /// en odoo dni = 5, ruc = 6      
         // validar numero de doicumentio segun nro de digitos para ruc  11 digitos, para dni 8 digitos
 
