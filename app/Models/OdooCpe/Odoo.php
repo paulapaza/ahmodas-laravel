@@ -60,26 +60,12 @@ class Odoo extends Model
             'Content-Type: application/json',
         ));
 
-        // Ejecutar la solicitud de autenticación
         $response = curl_exec($ch);
-       
         curl_close($ch);
         $response = json_decode($response, true);
-        
-        /* array:3 [
-                "jsonrpc" => "2.0"
-                "id" => null
-                "error" => array:3 [▼
-                    "code" => 200
-                    "message" => "Odoo Server Error"
-                    "data" => array:5 [▶]
-                ]
-            ] */
-        //dd($response);
         if (isset($response['error'])) {
             return "No se puedo ejecutar la consulta curl";
         }
-        //dd($response['result']);
         return $response['result'];
     }
 
@@ -89,7 +75,8 @@ class Odoo extends Model
         $searchValues = array(
             array('date_order', '>=', $fecha_inicio),
             array('date_order', '<=', $fecha_fin),
-            array('note', 'not ilike', 'facturado%') // Filtra los que NO contengan "facturado" al inicio
+            array('general_note', 'not ilike', 'facturado%'), // Filtra los que NO contengan "facturado" al inicio
+            array('state', 'not ilike', 'cancel'), // Filtra los que NO contengan "facturado" al inicio
         );
 
         $query_sales = array(
@@ -118,8 +105,12 @@ class Odoo extends Model
                 )
             ),
         );
+
+      
+        
+        
         $ventas = $this->executeCurlRequest($query_sales);
-       
+        //dd($ventas);
         // Verificamos si la respuesta tiene resultados
         if (!empty($ventas)) {
             foreach ($ventas as &$venta) {
@@ -170,6 +161,31 @@ class Odoo extends Model
                 ),
             ),
         );
+
+       /*  $pos_order = array(
+            'jsonrpc' => '2.0',
+            'method' => 'call',
+            'params' => array(
+                'model' => 'pos.order',
+                'method' => 'search_read',
+                'args' => array(
+                    $searchValues  // Condiciones de búsqueda (ejemplo: [["state", "=", "paid"]])
+                ),
+                'kwargs' => array(
+                    'fields' => array(
+                        'id',
+                        'name',
+                        'date_order',
+                        'pos_reference',
+                        'amount_total',
+                        'user_id',
+                        'partner_id',
+                        'lines'
+                    )
+                )
+            ),
+        );
+         */
 
         // Ejecutamos la solicitud y obtenemos la respuesta
         $pos_order = $this->executeCurlRequest($pos_order);
@@ -607,6 +623,10 @@ class Odoo extends Model
                         '|',
                         array('name', 'ilike', $searchString),
                         array('barcode', 'ilike', $searchString),
+                        '&',  // AND para verificar código de barras
+                        array('barcode', '!=', false), 
+                        array('barcode', '=like', '______'),
+                        //array('barcode', '<=', '999999')
                     ),
                     array(
                         'id',

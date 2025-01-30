@@ -30,14 +30,14 @@
             <div>
                 <span>Etiquetas totales:</span> <span id="TotalEtiquetas"></span> | Número de Hojas a imprimir <span
                     id="TotalHojas">1</span><br>
-                <span>N°Etiquetas x hoja :</span> 140 | N° Etiquetas Para completar hoja: <span id="EtiquetasFaltantes">
+                <span>N°Etiquetas x hoja :</span> 126 | N° Etiquetas Para completar hoja: <span id="EtiquetasFaltantes">
                 </span>
             </div>
 
         </div>
     </div>
 
- 
+
     <div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -112,10 +112,16 @@
                     "data": "name"
                 },
                 {
-                    "data": "barcode"
+                    "data": "barcode",
+                    type: "num"
                 },
                 {
-                    "data": "list_price"
+                    "data": "list_price",
+                    //dos decimales
+
+                    render: function(data, type, row) {
+                        return data.toFixed(2);
+                    }
                 },
                 {
                     "data": "id"
@@ -180,7 +186,7 @@
                             return data.toFixed(2);
                         }
                     },
-                    
+
                     {
                         "data": "cantidad"
                     },
@@ -358,7 +364,6 @@
         /** DETECTAR EL CAMBIO DEL IMPUT  */
 
         $(document).on('change', '.iptCantidad', function() {
-
             event.stopPropagation();
             let nuevaCantidad = Number.parseFloat($(this).val());
 
@@ -367,15 +372,11 @@
 
             // evita que detecto el cambio al actualizar la celda con la nueva cantidad
             if (typeof idx === 'undefined') {
-                //console.log("NO hay idx");
                 return;
             }
-
-
-            table_bandeja.cell(idx, 4).data(nuevaCantidad).draw();
-
-
-
+            table_bandeja.cell(idx, 5).data(nuevaCantidad).draw();
+            
+            let tabla = table_bandeja.rows().data().toArray();
             recalcularTotalImpresiones();
 
         });
@@ -437,8 +438,7 @@
                 if (result.isConfirmed) {
                     // Obtener los datos de productos
                     let productos = table_bandeja.rows().data().toArray();
-
-                    // productos.forEach(producto => delete producto.acciones);
+                    
 
                     // Crear un formulario dinámico para enviar los datos a una nueva ventana
                     let form = document.createElement("form");
