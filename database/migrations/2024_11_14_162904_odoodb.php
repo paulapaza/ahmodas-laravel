@@ -16,7 +16,9 @@ return new class extends Migration
             $table -> string('name');
             $table -> string('url');
             $table -> string('username');
-            $table -> string('password');
+            //pass texto grande 
+            $table -> text('password');
+            $table -> string('tipo_servidor');
             $table -> string('estado');
             $table -> timestamps();
         });

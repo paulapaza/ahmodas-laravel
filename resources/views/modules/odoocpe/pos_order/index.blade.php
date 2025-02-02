@@ -148,7 +148,8 @@
                         "data": "lines",
                         "render": function(data, type, row) {
                             return data;
-                        }
+                        },
+                        visible: false
                     },
                     {
                         "data": "amount_total",

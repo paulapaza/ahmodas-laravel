@@ -49,12 +49,20 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-8">
+                        <div class="col-6">
 
                             <input type="text" class="form-control mb-3" id="product-search-box"
                                 placeholder="Buscar Producto">
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="all-products">
+                                <label class="form-check-label ms-2" for="all-products">
+                                    Todos los productos
+                                </label>
+                            </div>
+
                             <div id="loading" style="display: none;">
                                 Cargando...
 
@@ -84,6 +92,30 @@
         </div>
     </div>
     <input type="hidden" id="iptcsrf" value="{{ csrf_token() }}">
+
+    //modal para agregar cantidad
+    <div class="modal fade" id="modalCantidad" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-xprimary text-white">
+                    <h5 class="modal-title" id="exampleModalLabel">Agregar Cantidad</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="number" class="form-control" id="cantidad" placeholder="Cantidad">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="btnAgregarCantidad">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -250,47 +282,86 @@
             $('#modalBuscarProducto').modal('show');
         }
 
+        let searchTimeout; // Variable para almacenar el timeout
+
         $('#product-search-box').keyup(function() {
+            clearTimeout(searchTimeout); // Borra el timeout anterior para evitar múltiples llamadas
 
             let searchString = $(this).val();
-            if (searchString != '' && searchString.length >= 3) {
-                $.ajax({
-                    url: "/odoocpe/barcode/product/search",
-                    method: "POST",
-                    beforeSend: function() {
-                        $("#loading").show();
-                    },
-                    data: {
-                        searchString: searchString,
-                        _token: "{{ csrf_token() }}",
-                    },
-                    success: function(data) {
-                        if (data.length == 0) {
-                            $('#tbl_productos tbody').html(
-                                '<tr><td colspan="5" class="text-center">No se encontraron productos</td></tr>'
-                            );
-                            return;
+
+            if (searchString !== '' && searchString.length >= 3) {
+                searchTimeout = setTimeout(() => { // Inicia un nuevo timeout
+                    $.ajax({
+                        url: "/odoocpe/barcode/product/search",
+                        method: "POST",
+                        beforeSend: function() {
+                            $("#loading").show();
+                        },
+                        data: {
+                            searchString: searchString,
+                            all_products: $('#all-products').is(':checked') ? 1 : 0,
+                            _token: "{{ csrf_token() }}",
+                        },
+                        success: function(data) {
+                            if (data.length == 0) {
+                                $('#tbl_productos tbody').html(
+                                    '<tr><td colspan="5" class="text-center">No se encontraron productos</td></tr>'
+                                );
+                                return;
+                            }
+                            tabla_productos.clear().draw();
+                            data.forEach(product => {
+                                tabla_productos.row.add(product).draw();
+                            });
+                        },
+                        complete: function() {
+                            $("#loading").hide();
                         }
-                        tabla_productos.clear().draw();
-                        let html = '';
-                        data.forEach(product => {
-                            tabla_productos.row.add(product).draw();
-                        });
-                    },
-                    complete: function() {
-                        $("#loading").hide();
-                    }
-                });
+                    });
+                },1200)// Espera 2.5 segundos antes de ejecutar la búsqueda
             } else {
                 $('#tbl_productos tbody').html('');
             }
         });
 
+        $('#all-products').change(function() {
+            $('#product-search-box').trigger('keyup');
+        });
 
+        //cargar la cantidad de productos
+        $('#btnAgregarCantidad').click(function() {
+            let cantidad = $('#cantidad').val();
+            if (cantidad == '') {
+                alert('Ingrese la cantidad');
+                return;
+            }
+            let datafila = table_bandeja.row($(this).parents('tr')).data();
+            let idx = table_bandeja.row($(this).parents('tr')).index();
+            table_bandeja.cell(idx, 5).data(cantidad).draw();
+            $('#modalCantidad').modal('hide');
+            recalcularTotalImpresiones();
+            //limpiar el input
+            $('#cantidad').val('');
+        });
+        // cargar la cantidad de productos al presionar enter y cerrar el modal
+        $('#cantidad').keypress(function(e) {
+            if (e.which == 13) {
+                $('#btnAgregarCantidad').click();
+            }
+        });
 
+        // al abrir el modal cantidad por el foco en el input
+        $('#modalCantidad').on('shown.bs.modal', function() {
+            $('#cantidad').focus();
+        });
         /***** CARGAR PRODUCTO A LA BANDEJA */
         var nroitem = 1;
         $('#tbl_productos tbody').on('click', 'tr', function() {
+
+            //abrir modal para agregar cantidad
+            $('#modalCantidad').modal('show');
+            
+
 
             // obtenemos los datos de la fila seleccionada
             var data = tabla_productos.row(this).data();
@@ -375,7 +446,7 @@
                 return;
             }
             table_bandeja.cell(idx, 5).data(nuevaCantidad).draw();
-            
+
             let tabla = table_bandeja.rows().data().toArray();
             recalcularTotalImpresiones();
 
@@ -438,7 +509,7 @@
                 if (result.isConfirmed) {
                     // Obtener los datos de productos
                     let productos = table_bandeja.rows().data().toArray();
-                    
+
 
                     // Crear un formulario dinámico para enviar los datos a una nueva ventana
                     let form = document.createElement("form");

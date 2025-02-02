@@ -14,6 +14,8 @@ class Odoo extends Model
     private $url;
     private $username;
     private $password;
+    private $userOdooId;
+    private $tipoServidor;
 
     public function __construct()
     {
@@ -24,10 +26,16 @@ class Odoo extends Model
             $this->url = $connection['url'];
             $this->username = $connection['username'];
             $this->password = $connection['password'];
+            $this->tipoServidor = $connection['tipo_servidor'];
+
+            //autenticacion
+            $this->autenticacionOdoo();
+            
         } else {
             // Manejar el caso en que no se encuentre un registro activo
             throw new \Exception("No hay conexión activa disponible.");
         }
+     
     }
 
     private function getOdooConnection()
@@ -42,16 +50,41 @@ class Odoo extends Model
                 'url' => $dbconn->url,
                 'username' => $dbconn->username,
                 'password' => Crypt::decryptString($dbconn->password),
+                'tipo_servidor' => $dbconn->tipo_servidor
             ];
         } else {
            
             return null;
         }
     }
+    private function autenticacionOdoo()
+    {
+        $query_auth = array(
+            'jsonrpc' => '2.0',
+            'method' => 'call',
+            'params' => array(
+                'service' => 'common',
+                'method' => 'authenticate',
+                'args' => array(
+                    $this->dbname,
+                    $this->username,
+                    $this->password,
+                    array()
+                )
+            ),
+        );
+
+        $id = $this->executeCurlRequest($query_auth);
+        $this->userOdooId = $id;
+    }
+
+    
+    // 1. Autenticación para obtener el user_id
+  
     private function executeCurlRequest($payload)
     {
 
-        //dd($payload);
+        
         $ch = curl_init($this->url);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
@@ -59,12 +92,14 @@ class Odoo extends Model
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
         ));
-
         $response = curl_exec($ch);
         curl_close($ch);
+        
         $response = json_decode($response, true);
         if (isset($response['error'])) {
-            return "No se puedo ejecutar la consulta curl";
+            dd($response);
+            return $response;
+
         }
         return $response['result'];
     }
@@ -72,12 +107,24 @@ class Odoo extends Model
     public function ventasOdooIndex($fecha_inicio, $fecha_fin)
     {
        
-        $searchValues = array(
-            array('date_order', '>=', $fecha_inicio),
-            array('date_order', '<=', $fecha_fin),
-            array('general_note', 'not ilike', 'facturado%'), // Filtra los que NO contengan "facturado" al inicio
-            array('state', 'not ilike', 'cancel'), // Filtra los que NO contengan "facturado" al inicio
-        );
+        //si el tipo de servidor es odoocluster
+      
+        if ($this->tipoServidor == 'odoocluster') {
+            $searchValues = array(
+                array('date_order', '>=', $fecha_inicio),
+                array('date_order', '<=', $fecha_fin),
+                array('general_note', 'not ilike', 'facturado%'), // Filtra los que NO contengan "facturado" al inicio
+                array('state', 'not ilike', 'cancel'), // Filtra los que NO contengan "facturado" al inicio
+            );
+        } else {
+            $searchValues = array(
+                array('date_order', '>=', $fecha_inicio),
+                array('date_order', '<=', $fecha_fin),
+                array('general_customer_note', 'not ilike', 'facturado%'), // Filtra los que NO contengan "facturado" al inicio
+                array('state', 'not ilike', 'cancel'), // Filtra los que NO contengan "facturado" al inicio
+            );
+        }
+        
 
         $query_sales = array(
             'jsonrpc' => '2.0',
@@ -615,7 +662,7 @@ class Odoo extends Model
                 //se envio un array con los ids de las lineas de la orden
                 'args' => array(
                     $this->dbname,
-                    2,
+                    $this->userOdooId,
                     $this->password,
                     "product.product",
                     "search_read",
@@ -641,10 +688,43 @@ class Odoo extends Model
 
         return $this->executeCurlRequest($query_search_product);
     }
+    public function searchAllproduct($searchString)
+    {
+        $query_search_product = array(
+            'jsonrpc' => '2.0',
+            'method' => 'call',
+            'params' => array(
+                'service' => 'object',
+                'method' => 'execute',
+                //se envio un array con los ids de las lineas de la orden
+                'args' => array(
+                    $this->dbname,
+                    $this->userOdooId,
+                    $this->password,
+                    "product.product",
+                    "search_read",
+                    array(
+                        '|',
+                        array('name', 'ilike', $searchString),
+                        array('barcode', 'ilike', $searchString),
+                        
+                    ),
+                    array(
+                        'id',
+                        'name',
+                        'barcode',
+                        'list_price',
+                    )
+                ),
+            ),
+
+        );
+
+        return $this->executeCurlRequest($query_search_product);
+    }
     //purchase order
     public function purchaseOrder($fecha_inicio, $fecha_fin)
     {
-       //DD($fecha_inicio, $fecha_fin);
         $searchValues = array(
             array('date_order', '>=', $fecha_inicio),
            array('date_order', '<=', $fecha_fin),

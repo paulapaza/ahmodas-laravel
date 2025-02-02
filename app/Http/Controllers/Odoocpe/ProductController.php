@@ -14,7 +14,12 @@ class ProductController extends Controller
     {
         //dd($request->all());
         $Odoo = new Odoo;
-        $productos = $Odoo->searchProduct($request->searchString);
+        if ($request->all_products == 1) {
+            $productos = $Odoo->searchAllProduct($request->searchString);
+        } else{
+            $productos = $Odoo->searchProduct($request->searchString);
+        }
+        
 
         return response()->json($productos, 200);
     }
