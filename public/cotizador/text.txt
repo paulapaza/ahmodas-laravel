@@ -1,0 +1,17 @@
+
+Por favor, genera una cotización detallada en base a la lista de precios proporcionada anteriormente,
+de los productos que encuentres en esta lista de utiles escolares: 
+
+
+
+
+
+toma en cuenta los siguientes puntos.
+1. asegurate de colocar precio solo a productos que esten en la lista de precios.
+4. respondeme solo con un json  con los siguiente columnas cantidad,producto,precio_unitario,subtotal
+2. Asegúrate de desglosar cualquier artículo que incluya múltiples elementos para que cada uno tenga su propio precio en la cotización;
+    ejemplos:
+    a. Pliegos De Cartulinas (02 blancas, 02 negras y 2 de color), aqui son 3 productos diferentes,
+    b. Cinta de Masking Tape gruesa-delgado, aqui son dos productos diferentes.
+    c. Plumones Indelebles (Delgado y Grueso), aqui son dos productos diferentes.
+3. Proporciona una columna para la cantidad, el producto, el precio unitario y el subtotal. 

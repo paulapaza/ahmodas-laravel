@@ -83,6 +83,14 @@
             </a>
           </li>
           <li class="nav-item">
+            <a href="{{ route('cotizador.main') }}" class="nav-link text-light">
+            <i class="nav-icon fa-solid fa-file-invoice-dollar"></i>
+              <p>
+               Cotizador +Ai
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
             
             <a href="{{ route('configuracion.main') }}" class="nav-link text-light">
              

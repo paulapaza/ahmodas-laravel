@@ -1,0 +1,143 @@
+analiza esta lista de precios,corresponde a una tienda que vende articulos de escritorio y escolares, respóndeme si o no, si la analizaste y comprendiste cada uno de los ítems.
+si tiene alguna duda. menciónamela, no me expliques la lista. ten en cuenta los siguiente puntos:
+1. los precios están en soles.
+2. cuando el producto indique, por ejemplo:  
+    a. 19.50 masita suave Play-doh x6 unidades, x6 indica que  es un set de 6 unidades masitas play-doh.
+    b. cuando en el nombre de un producto encuentres : x1, x10, x50, x100 , etc, significa que el producto contiene esa cantidad de unidades.
+    c. los producto pueden tener nombres alternativos, ejemplo 5.00 cuaderno cuadriculado o cuad cuadri.
+
+
+lista de precios:
+5.00 cuaderno cuadriculado o cuad cuadri.
+5.00 cuaderno triple linea.
+5.50 cuaderno triple renglon.
+5.50 cuaderno cuadrimax 2x2.
+5.50 cuaderno decroly.
+2.50 Block escolar.
+5.00 cuento con figuras grandes.
+2.50 fonemario.
+2.50 Sobre De Plástico T/ Oficio Con Broche Color Lila (niñas) y color azul (niños).
+13.00 Folder Portatodo Con Liga.
+7.50 Folder de plástico con gusano o folder con gusanillo.
+7.50 archivador.
+7.50 SKETCHBOOK sin anillar.
+
+1.00 pliego de papel platino oropel.
+2.00 Pliegos de papel oropel con diseño..
+0.40 pliego de papel sedita o seda. 
+1.00 Pliego De Papel Crepe.
+2.50 Pliego De Papel Crepe Con Diseño.
+0.60 Pliego De Papel lustre.
+0.70 Pliego De Papel De regalo con dibujos grandes
+0.50 Pliego De Papelógrafos o pliego de papelotes o pliegos 8 oficios o papel sabana.
+6.00 100 unidades de: Hojas colores claros o bond de color o hojas color pastel o Hojas Arco iris colores claros.
+8.00 100 unidades de: Hojas de colores Arco iris  o  Hojas de papel arcoíris o Hojas de Papel de Colores fosforescentes.
+0.15 Hojas Papel Cuadriculado Tamaño Oficio.
+0.15 Hojas Papel Cuadriculado Tamaño a4.
+5.00 ciento de Hojas Bond 80 gramos (Tamaño A-4) 
+1.00 Papel kraft.
+15.00 Paquete de Hojas Bond - A4
+0.30 Hojas Bond - A3
+1.00 mica, mica a4 o mica oficio.
+
+0.5 Pliego De Cartulina escolar blanca .
+1.2 pliego de cartulina negra
+0.8 pliego de cartulina escolar de color.
+2.00 Pliego De Cartulina tipo canson.
+7.00 Pliego De Cartulina Escarchada.
+2.00 Pliego De Cartulina cartón o cartulina Dúplex
+2.5 Pliego De Cartulina con diseño.
+2.5 Pliego De Cartulina Corrugada
+3.0 Pliego De Cartulina Corrugada metálica
+8.50 Block de cartulina de colores
+12.00 block de cartulina de colores a3.
+7.00 Blook lustre a4
+
+4.00 pliego De Microporoso o goma eva o fomi
+5.00 pliego De Microporoso Escarchado o goma eva Escarchado o fomi Escarchada o Micro poroso escarchado.
+4.00 pliego De Corrospum
+7.00 Cartuchera De Plástico Rectangular.
+1.50 Punzón
+7.80 perforador con diseño.
+1.00 Mata mosca pequeño
+2.00 Lápiz Jumbo negro Triangular grueso.
+1.00 lapiz delgado negro.
+1.00 lapiz delgado rojo o lapiz chequeo.
+1.00 Borrador Grande Blancos o Borrador bicolor
+2.50 Tajador Jumbo con depósito 2 orificios
+15.00 Caja De Colores Triangulares Jumbo X12 Unid.
+7.50 Caja de colores largos x 12 unidad.
+5.00 Caja De Crayolas Jumbo X12 Unid.
+15.00 Estuche de Plumones Gruesos x12und
+6.00  caja plastilina jumbo neon x 12
+3.00 Fine Pen Azul o Rojo o Negro
+2.50 Plumones Indeleble delgado
+3.00 plumón indeleble grueso
+3.00 plumón Indeleble pun fina F, M, S x1 unidad.
+2.00 Plumón o plumones de pizarra acrílica x1 unidad.
+5.00 tabla de punzar o pizarra acrílica
+2.50 Tijera mango naranja Con Nombre.
+3.00 tijera de forma o con diseño.
+4.00 tijera con rebote o mi primera tijera.
+1.00 regla de 20cm.
+1.50 regla de 30cm.
+
+
+3.00 Cinta De Embalaje.
+4.00 cinta de embalaje de color.
+2.50 Limpia Tipos
+4.00 Cinta de Masking Tape gruesa 2'.
+2.00 Cinta de Masking Tape delgada 1'.
+5.00 goma en barra grande.
+8.00 Frasco de silicona líquida de 250gr.
+4.80 Frasco de goma con aplicador o cola sintética de 250gr.
+0.50 Barra De Silicona.
+2.00 Blonda Recogida cada 1 metro.
+7.50 caja de temperas x7.
+6.50 Frasco De Tempera con aplicador .
+10.00 Yute de color cada metro.
+2.00 cajita de hisopos.
+2.50 Docena de cheniles de colores.
+2.00 Bolsa De Palitos Bajalengua.
+1.50 Esponja Rectangular.
+3.50 Rodillo Pequeño con Forma.
+3.50 Pincel Grueso.
+4.00 stickers para nombres.
+0.20 Globos N°9 cada uno.
+0.20 pali globos cada uno.
+15.00 juego de lego set de x50 piezas
+10.00 Rompecabezas de encaje de 10 piezas.
+12.00 Rompecabezas de 30 piezas.
+15.00 Rompecabezas de 50 piezas.
+18.00 Rompecabezas de 100 piezas.
+7.80 Instrumento Musical pandereta o maracas.
+19.50 masita suave Play-doh x6 unidades.
+5.00 taper de Cuentas grandes de colores.
+19.00 multibase o base 10.
+15.00 bloque lógicos en táper.
+16.00 Regletas de cussenaire o regletas de cusinier.
+12.00 ábaco.
+2.80 paquete de Ganchos De Plástico.
+6.50 Títere de trapo.
+2.00 Pelota de Trapo.
+2.50 bolsita Ojitos movibles de diferentes tamaños x12 unidades.
+1.50 paño amarillo para limpieza
+1.00 Perchero x2 unidades.
+3.50 toalla o toalla con nombre.
+1.50 vaso (vaso de plástico),
+3.00 individual.
+4.50 Jabón líquido 400gr.
+5.00 Bolsas De Pañitos húmedos (set 100 unidades).
+3.50 Frasco De Poett De 1 L.
+1.80 Rollo de Papel Toalla.
+1.00 Rollo de Papel Higiénico doble hoja.
+1.50 cucharas o tenedores descartables x25 unidades.
+
+
+no vendemos:
+1. pañuelos de colores 40*40
+2. vasos de tecnopor
+3. libros o texto.
+4. agendas
+5. buzo de la institución.
+6. lochera.

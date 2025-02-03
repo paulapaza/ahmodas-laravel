@@ -136,6 +136,12 @@ Route::middleware([
     Route::put('/configuracion/empresa/datosGuiaRemision', [EmpresaController::class, 'update_GuiaRemision'])->name('store_GuiaRemision');
     
 
+    // Cotizador con AI
+    Route::view('/cotizador','modules.cotizador.main')->name('cotizador.main');
+
+    // Cotizar
+    Route::view('/cotizador/cotizar','modules.cotizador.cotizar')->name('cotizador.cotizar');
+
 });
 
     
