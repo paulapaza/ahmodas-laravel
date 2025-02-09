@@ -137,7 +137,7 @@ Route::middleware([
     
 
     // Cotizador con AI
-    Route::view('/cotizador','modules.cotizador.main')->name('cotizador.main');
+    Route::view('/cotizador/main','modules.cotizador.main')->name('cotizador.main');
 
     // Cotizar
     Route::view('/cotizador/cotizar','modules.cotizador.cotizar')->name('cotizador.cotizar');

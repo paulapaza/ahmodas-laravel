@@ -35,6 +35,7 @@
                     <table id="table" class="table table-striped" style="width:100%">
                         <thead>
                             <tr>
+                                <th>nro item</th>
                                 <th>Cantidad</th>
                                 <th>Producto</th>
                                 <th>Precio Unitario</th>
@@ -51,6 +52,12 @@
 
 
         </div>
+    </div>
+    <!-- suma -->
+    <div class="row d-flex justify-content-center">
+        <div class="col-6 text-center alert alert-danger">
+            <h3>Total: <span id="total">0.00</span></h3>
+        </div>  
     </div>
     <!-- modal agregar producto -->
     <div class="modal fade" id="modalBuscarProducto" tabindex="-1" aria-labelledby="exampleModalLabel"
@@ -107,7 +114,7 @@
         </div>
     </div>
     <!-- modal cantidad -->
-    //modal para agregar cantidad
+   
     <div class="modal fade" id="modalCantidad" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -146,18 +153,21 @@
             ],
             //ordering: false,
             "columns": [{
+                    "data": "nro_item"
+                },
+                {
                     "data": "cantidad"
                 },
                 {
                     "data": "producto"
                 },
                 {
-                    data: 'precio_unitario',
+                    "data": 'precio_unitario',
 
                 },
 
                 {
-                    data: 'subtotal',
+                    "data": 'subtotal',
                     render: function(data) {
                         return (data !== null && data !== undefined) ? parseFloat(data).toFixed(
                             2) : '0.00';
@@ -175,7 +185,7 @@
                     //className: "nroPadron",
                 },
                 {
-                    targets: 2,
+                    targets: 3,
                     orderable: false,
                     className: "text-center",
                     render: function(data, type, row) {
@@ -271,6 +281,19 @@
         });
         $('#generar-tabla').click(function() {
             var json = $('#json-text').val();
+            //cambiar la key al json
+            /* [
+  {"n":1, "c":1, "p":"Cuaderno Cuadrimax 2x2 Matemática (AMARILLO)", "pu":5.50, "s":5.50},
+  {"n":2, "c":1, "p":"Cuaderno Cuadrimax 2x2 Comunicación (AMARILLO)", "pu":5.50, "s":5.50}, */
+            // n = nro item, c = cantidad, p = producto, pu = precio unitario, s = subtotal
+            json = json.replace(/"n":/g, '"nro_item":');
+            json = json.replace(/"c":/g, '"cantidad":');
+            json = json.replace(/"p":/g, '"producto":');
+            json = json.replace(/"pu":/g, '"precio_unitario":');
+            json = json.replace(/"s":/g, '"subtotal":');
+            
+
+
             var data;
 
             try {
@@ -290,6 +313,15 @@
 
                 // Agregar los datos a la tabla
                 table.clear().rows.add(data).draw(false);
+
+                //sumar los datos y mostar en un div despues de la tabla
+                var total = 0;
+                data.forEach(function(item) {
+                    total += item.subtotal;
+                });
+                $('#total').text(total.toFixed(2));
+
+
             } catch (error) {
                 alert("El formato del JSON no es válido. error: " + error);
             }
@@ -354,14 +386,14 @@
         $('#tbl_productos tbody').on('click', 'tr', function() {
             let row = $(this); // Guarda la referencia a la fila seleccionada
 
+            //cerrar modal
+            $('#modalBuscarProducto').modal('hide');
+
             Swal.fire({
                 title: "Submit your Github username",
                 input: "text",
-                inputAttributes: {
-                    autocapitalize: "off"
-                },
                 showCancelButton: true,
-                confirmButtonText: "Look up"
+                confirmButtonText: "ok"
                 
                 
             }).then((result) => {

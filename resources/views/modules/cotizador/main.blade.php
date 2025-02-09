@@ -3,6 +3,6 @@
     <x-menuCotizador></x-menuCotizador>
   </x-slot>
      
-     <div>Cotizador</div>
+  <x-slot name="pagetitle">Cotizador</x-slot>
 </x-admin-layout>
  

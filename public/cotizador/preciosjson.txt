@@ -5,7 +5,6 @@ LISTA DE PRECIOS: primero esta el precio y luego esta el concepto o producto
 5.50 cuaderno cuadrimax 2x2.
 5.50 cuaderno decroly.
 2.50 Block escolar.
-6.50 Block cuadriculado A-4 o block preforado a4.
 5.00 cuento con figuras grandes.
 2.50 fonemario o silabario
 2.50 Sobre De Plástico T/ Oficio Con Broche Color Lila (niñas) y color azul (niños).
@@ -65,7 +64,7 @@ LISTA DE PRECIOS: primero esta el precio y luego esta el concepto o producto
 3.80 Caja De Crayolas Jumbo X12 Unid.
 13.00 Estuche de Plumones Gruesos x12und
 5.50  caja plastilina jumbo neon x 12
-2.50 FinePen o fine pen.
+2.50 Fine Pen Azul o Rojo o Negro
 2.00 Plumones Indeleble delgado
 2.50 plumón indeleble grueso
 3.50 plumón Indeleble pun fina F, M, S x1 unidad.
@@ -89,9 +88,6 @@ LISTA DE PRECIOS: primero esta el precio y luego esta el concepto o producto
 4.80 Frasco de silicona líquida de 250gr.
 3.50 Frasco de goma con aplicador o cola sintética de 250gr.
 0.50 Barra De Silicona.
-6.50 set o Blister x6 goma escarchada.
-3.50 goma escarchada x1.
-4.00 escarcha 100gr
 2.00 Blonda Recogida cada 1 metro.
 6.20 caja de temperas x7.
 6.50 Frasco De Tempera con aplicador .
@@ -132,12 +128,12 @@ LISTA DE PRECIOS: primero esta el precio y luego esta el concepto o producto
 2.50 Rollo de Papel Toalla x1.
 1.00 Rollo de Papel Higiénico doble hoja.
 1.50 cucharas o tenedores descartables x25 unidades.
-8.00 Diccionario de: ingles, sinonimos antonimos o diccionario.
+8.00 Diccionario.
 18.00 Biblia para niños.
 13.00 Geoplano.
-2.00 pincel plano o redondo del Nº1 al Nº6
-2.50 pincel plano o redondo del Nº8 al Nº12
-4.00 pincel plano o redondo del Nº18 al Nº22
+2.00 pincel del 1 al 6
+2.50 pincel de 8 al 12
+4.00 pincel del 18 al 22
 
 no cotizar:
 1. pañuelos de colores 40*40

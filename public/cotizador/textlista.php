@@ -111,16 +111,16 @@ Aseo:
 6 Rollos de Papel Higiénico doble hoja
 
 
-
-toma en cuenta los siguientes puntos.
-1. asegúrate de colocar precio solo a productos que estén en la lista de precios.
 2. Asegúrate de desglosar cualquier artículo que incluya múltiples elementos para que cada uno tenga su propio precio en la cotización;
     ejemplos:
     a. Pliegos De Cartulinas (02 blancas, 02 negras y 2 de color), aqui son 3 productos diferentes,
     b. Cinta de Masking Tape gruesa-delgado, aquí son dos productos diferentes.
     c. Plumones Indelebles (Delgado y Grueso), aquí son dos productos diferentes.
     d. Caja de Temperas, 1 paleta, 2 Pinceles (grueso y delgado), aquí son 4 productos diferentes.
+
+toma en cuenta los siguientes puntos.
+1. asegúrate de colocar precio solo a productos que estén en la lista de precios.
 2. asegúrate de calcular el precio de cada producto teniendo en cuenta , en la lista de precios, el precio de cada producto y su cantidad.
 3. Proporciona una columna para la cantidad, el producto, el precio unitario y el subtotal. 
-4. devuelve la cotizacion en formato json.
+4. devuelve la cotizacion en formato json. con las siguientes columas: cantidad, producto, precio_unitario, subtotal.
 4. finalmente haz una lista de productos que no se puedan incluir en la cotización debido a la falta de precio.
