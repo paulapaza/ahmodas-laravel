@@ -49,8 +49,8 @@
         }
 
         .price {
-            font-size: 50px;
-            font-weight: lighter;
+            font-size: 60px;
+            font-weight: bold;
 
             margin-bottom: -3px;
         }
