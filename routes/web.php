@@ -12,6 +12,7 @@ use App\Http\Controllers\Inventario\CategoriaController;
 use App\Http\Controllers\Inventario\MarcaController;
 use App\Http\Controllers\Inventario\ProductoController;
 use App\Http\Controllers\Inventario\UnidadDeMedidaController;
+use App\Http\Controllers\MagentoController as ControllersMagentoController;
 use App\Http\Controllers\Odoocpe\OdooClienteController;
 use App\Http\Controllers\Odoocpe\OdooDbController;
 use App\Http\Controllers\Odoocpe\OdooInvoiceController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Odoocpe\OdooUbigeoController;
 use App\Http\Controllers\Odoocpe\PosOrderController;
 use App\Http\Controllers\Odoocpe\ProductController;
 use App\Http\Controllers\Odoocpe\PurchaseOrderController;
+use App\Http\Controllers\Odoocpe\MagentoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -141,6 +143,12 @@ Route::middleware([
 
     // Cotizar
     Route::view('/cotizador/cotizar','modules.cotizador.cotizar')->name('cotizador.cotizar');
+    
+    //magento
+    
+    Route::view('/magento','modules.odoocpe.magento.main')->name('magento.main');
+    Route::get('/odoocpe/magento/producto/{sku}', [MagentoController::class, 'getProduct']);
+    Route::put('/odoocpe/magento/producto/{sku}', [MagentoController::class, 'updateProduct']);  
 
 });
 

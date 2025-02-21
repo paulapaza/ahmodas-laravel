@@ -8,6 +8,7 @@
 <li class="nav-item ">
     <a  href="{{route('odoocpe.pos_order.index')}}" class="nav-link ">Pos Order</a>
 </li>
+
 <li class="nav-item dropdown">
     <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
         class="nav-link dropdown-toggle">BarCode</a>
@@ -27,6 +28,9 @@
     </ul>
 </li>
 
+<li class="nav-item ">
+    <a  href="{{route('magento.main')}}" class="nav-link ">Magento</a>
+</li>
 
 
 
