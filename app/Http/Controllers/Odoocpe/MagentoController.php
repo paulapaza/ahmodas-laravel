@@ -36,7 +36,7 @@ class MagentoController extends Controller
     // Método genérico para hacer peticiones con cURL
     private function makeCurlRequest($url, $method, $data = null)
     {
-        dd($url, $method, $data); 
+        //dd($url, $method, $data); 
         $ch = curl_init();
         $headers = [
             "Authorization: Bearer " . $this->accessToken,
