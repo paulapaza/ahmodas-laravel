@@ -8,7 +8,8 @@
                             <div class="col-6 search-list">
                                 @csrf
                                 <!-- INPUT INGRESO-->
-                                <input type="text" class="form-control" id="search-box" placeholder="codigo de barras"
+                                <input type="text" class="form-control" id="search-box"
+                                    placeholder="nombre de producto o codigo de barras"
                                     autocomplete="off">
                                 <ul id="datos">
 
@@ -17,7 +18,7 @@
                             <div class="col-6">
                                 <!-- BOTONES BUSCAR Producto -->
                                 <button class="btn btn-primary wrap w-100" id="search-button">
-                                    <i class="fa-solid fa-barcode "></i> Buscar Por codigo de barras
+                                    <i class="fa-solid fa-circle-check"></i> Buscar Producto
                                 </button>
 
                             </div>
@@ -33,7 +34,6 @@
                                     <th>Barcode</th>
                                     <th>Nombre Productos</th>
                                     <th>Precio</th>
-                                    <th>Precio Minimo</th>
 
                                 </tr>
                             </thead>
@@ -49,13 +49,12 @@
                 <div class="card shadow carrito ">
                     <div class="card-body">
                         <div id="carrito" style="height: 30vh; overflow-y: auto;">
-                            <table class="table-carrito" id="table-carrito">
+                            <table class="table" id="table-carrito">
                                 <thead>
                                     <tr>
                                         <th>Cant.</th>
                                         <th>Nombre</th>
                                         <th>Precio uni</th>
-                                        <th>Precio minimo</th>
                                         <th>Sub total</th>
                                         <th>id</th>
                                         <th>tool</th>
@@ -68,7 +67,7 @@
                             </table>
                         </div>
                         <div class="row">
-
+                            
                             <div class="col-md-12 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
                                 Total
                                 <span id="MonedaServicios"></span> <span id="SimboloMonedaservicios"></span> <span
@@ -184,7 +183,8 @@
                         <!-- Inputs de pago con botones como etiquetas -->
                         <div class="form-group row align-items-center">
                             <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago active"
+                                <button type="button"
+                                    class="btn btn-outline-secondary btn-block btn-modo-pago active"
                                     data-target="efectivo">Efectivo</button>
                             </div>
                             <div class="col-6">
@@ -256,137 +256,144 @@
 </x-pos-layout>
 
 <script>
+   /*  let carrito = [];
+    let totalCarrito = 0;
+    let metodoPagoActual = 'efectivo';
+
+    function calcularTotalCarrito() {
+        totalCarrito = carrito.reduce((acc, item) => acc + item.precio, 0);
+        $('#total-carrito').text('S/ ' + totalCarrito.toFixed(2));
+    }
+
+    function actualizarCarrito() {
+        let html = '';
+        carrito.forEach(item => {
+            html += `
+            <tr>
+                <td>${item.nombre}</td>
+                <td class="text-right">S/ ${item.precio.toFixed(2)}</td>
+            </tr>
+        `;
+        });
+        $('#tabla-carrito tbody').html(html);
+        calcularTotalCarrito();
+        distribuirTotalEnEfectivo(); // por defecto todo va a efectivo
+    }
+
+    function distribuirTotalEnEfectivo() {
+        $('#pago_efectivo').val(totalCarrito.toFixed(2));
+        $('#pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
+        calcularTotalPagado();
+    }
+
+    function calcularTotalPagado() {
+        let total = 0;
+        $('.tipo-pago').each(function() {
+            let val = parseFloat($(this).val()) || 0;
+            total += val;
+        });
+        $('#total-pagado').text('S/ ' + total.toFixed(2));
+    }
+
+    // Cuando cambia manualmente un input (tarjeta, yape o transferencia)
+    function manejarCambioManual(target) {
+        const valorManual = parseFloat($(`#pago_${target}`).val()) || 0;
+        const otros = ['efectivo', 'tarjeta', 'yape', 'transferencia'].filter(x => x !== target);
+
+        let sumaOtros = 0;
+        otros.forEach(m => {
+            if (m !== 'efectivo') {
+                sumaOtros += parseFloat($(`#pago_${m}`).val()) || 0;
+            }
+        });
+
+        const restante = totalCarrito - (valorManual + sumaOtros);
+        $('#pago_efectivo').val(Math.max(0, restante).toFixed(2));
+        calcularTotalPagado();
+    }
+
+    // Cuando se presiona un botón (Yape, Tarjeta, Transferencia)
+    function moverDesdeEfectivo(metodoDestino) {
+        const montoEfectivo = parseFloat($('#pago_efectivo').val()) || 0;
+        const actualDestino = parseFloat($(`#pago_${metodoDestino}`).val()) || 0;
+
+        const nuevoMonto = montoEfectivo + actualDestino;
+        $(`#pago_${metodoDestino}`).val(nuevoMonto.toFixed(2));
+        $('#pago_efectivo').val(0);
+        calcularTotalPagado();
+    }
+     */
     $(document).ready(function() {
+        let inputActivo = null;
 
-
-        let _token = $('input[name="_token"]').val();
-        // Inicializamos las variables para tipo de envio por ajax en Store record
-        let dataCrud = {
-            route: "/inventario/producto",
-            subject: 'Producto',
-            model: "producto",
-            csrf: _token,
-        };
-        let tableProductos = new Larajax({
-            data: dataCrud,
-            idTable: "#table-Productos",
-            topButton: false,
-            columns: [{
-                    data: 'id'
-                },
-                {
-                    data: 'codigo_barras'
-                },
-                {
-                    data: 'nombre'
-                },
-                {
-                    data: 'precio_unitario'
-                },
-                {
-                    data: 'precio_minimo',
-                    visible: false
-
-                },
-
-
-            ],
-            actionsButtons: {
-                edit: true,
-                destroy: true
-            },
-            alingCenter: [3, 4]
-        })
-
-        let table = new DataTable('#table-carrito', {
-            paging: false,
-             searching: false,
-             ordering:  false,
-            columns: [{
-                    data: 'cantidad'
-                },
-
-                {
-                    data: 'nombre'
-                },
-                {
-                    data: 'precio_unitario'
-                },
-                {
-                    data: 'precio_minimo',
-                    visible: false
-                },
-                {
-                    data: 'subtotal',
-                    visible: false
-                },
-                {
-                    data: 'id'
-                },
-                {
-                    data: 'boton',
-                    visible: false
-                },
-
-
-
-            ]
+        // Detecta el último input tocado
+        $('body').on('focus', 'input', function() {
+            inputActivo = this;
         });
-       
 
-        //buscar producto 
-        $("#search-box").keypress(function(e) {
-            if (e.which === 13) {
-                e.preventDefault(); // Evita el comportamiento por defecto del enter
-                buscarProducto();
-            }
-        });
-        $(document).on('click', '#search-button', function(e) {
+        // Keypad funcional
+        $('.keypad-btn').click(function() {
+            if (!inputActivo) return;
 
-            e.stopImmediatePropagation();
-            buscarProducto();
+            const key = $(this).data('key');
 
-        })
-
-        function buscarProducto() {
-            var stringSearch = $("#search-box").val();
-
-            $("#search-box").focus();
-
-            if (isNaN(stringSearch) == true) {
-                Swal.fire({
-                    icon: 'error',
-                    html: 'El codigo debe ser solo numeros',
-                    footer: 'Intenta nuevamente!'
-                })
-                return
+            if (key === '←') {
+                inputActivo.value = inputActivo.value.slice(0, -1);
+            } else {
+                inputActivo.value += key;
             }
 
-            $.ajax({
-                url: "/invetario/producto/buscar",
-                type: "POST",
-                data: {
-                    '_token': _token,
-                    "stringSearch": stringSearch,
-                },
-                dataType: 'json',
-                success: function(respuesta) {
+            $(inputActivo).trigger('input'); // dispara evento input para recalcular si hace falta
+        });
 
-                    $("#search-box").focus();
-                    $("#search-box").val("");
-                    /*
-                    {id: 2, codigo_barras: "452978", nombre: "pantalon jean varon wrangler 42", costo_unitario: "50.00",…}
+        // Al hacer clic en producto
+        $('.agregar-producto').click(function() {
+            const producto = {
+                id: $(this).data('id'),
+                nombre: $(this).data('nombre'),
+                precio: parseFloat($(this).data('precio'))
+            };
+            carrito.push(producto);
+            actualizarCarrito();
+        });
 
-                    */
-                    //cargar data al carrito
+        // Al hacer clic en método de pago
+        $('.btn-modo-pago').click(function() {
+            $('.btn-modo-pago').removeClass('active');
+            $(this).addClass('active');
 
+            const metodo = $(this).data('target');
+            metodoPagoActual = metodo;
+            moverDesdeEfectivo(metodo);
+        });
 
+        // Al editar manualmente un input
+        $('.tipo-pago').on('input', function() {
+            const id = $(this).attr('id').replace('pago_', '');
+            manejarCambioManual(id);
+        });
 
-                }
-            });
+        // Botón cobrar
+        $('#btn-cobrar').click(function() {
+            const total = parseFloat($('#total-carrito').text().replace('S/ ', ''));
+            const pagado = parseFloat($('#total-pagado').text().replace('S/ ', ''));
 
-        }
+            if (carrito.length === 0) {
+                return alert('El carrito está vacío.');
+            }
 
+            if (Math.abs(total - pagado) > 0.01) {
+                return alert('El total pagado no coincide con el total del carrito.');
+            }
+
+            // Aquí puedes enviar datos con AJAX si deseas
+            alert('Venta registrada correctamente.');
+        });
+
+        /**************************
+         * MIS funciones
+         * ***************************/
+      
 
     });
 </script>

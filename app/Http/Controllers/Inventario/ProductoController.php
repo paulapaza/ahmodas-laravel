@@ -12,13 +12,19 @@ class ProductoController extends Controller
 {
     public function index()
     {
-       $productos = DB::table('productos')
-                ->select('id', 'codigo_barras', 'nombre', 'costo_unitario', 'precio_unitario',
+        $productos = DB::table('productos')
+            ->select(
+                'id',
+                'codigo_barras',
+                'nombre',
+                'costo_unitario',
+                'precio_unitario',
                 'precio_minimo',
-                'categoria_id', 
-                'marca_id', 
-                'estado')
-                ->get();
+                'categoria_id',
+                'marca_id',
+                'estado'
+            )
+            ->get();
 
 
         return response()->json($productos, 200);
@@ -32,7 +38,7 @@ class ProductoController extends Controller
     }
     public function store(ProductoRequest $request)
     {
-    
+
         $producto = new Producto();
         $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
@@ -52,7 +58,7 @@ class ProductoController extends Controller
         return response()->json([
             "success" => true,
             "message" => "Producto creado correctamente",
-           
+
         ], 201);
     }
     //update
@@ -67,7 +73,7 @@ class ProductoController extends Controller
         }
         $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
-        $producto->costo_unitario = $request->costo_unitario;   
+        $producto->costo_unitario = $request->costo_unitario;
         $producto->precio_unitario = $request->precio_unitario;
         $producto->precio_minimo = $request->precio_minimo;
         $producto->marca_id = $request->marca_id;
@@ -97,7 +103,54 @@ class ProductoController extends Controller
         return response()->json([
             "success" => true,
             "message" => "Producto actualizado correctamente",
-           
+
         ], 201);
+    }
+    //buscarProducto
+    public function buscarProducto(Request $request)
+    {
+
+        $stringBuscado = trim($request->stringSearch ?? '');
+
+        if ($stringBuscado === '') {
+            return response()->json(['error' => 'Búsqueda vacía'], 400);
+        }
+
+        /* ─────────────────────────────────────────────
+     | 1. Intento exacto por código de barras
+     ───────────────────────────────────────────── */
+        // Si la cadena son solo dígitos asumimos código de barras y no tiene espacios en blanco
+        if (preg_match('/^\d+$/', $stringBuscado)) {
+            $productoPorCodigo = Producto::where('codigo_barras', $stringBuscado)->first();
+
+            if ($productoPorCodigo) {
+                return response()->json([$productoPorCodigo]);
+            }
+            // Si no se encontró por código seguimos con búsqueda por nombre
+        }
+
+        /* ─────────────────────────────────────────────
+     | 2. Búsqueda flexible por nombre
+     ───────────────────────────────────────────── */
+        // Separamos por espacios, quitamos duplicados y tokens muy cortos
+        $tokens = collect(preg_split('/\s+/', $stringBuscado))
+            ->filter(fn($t) => strlen($t) > 1)   // ignora tokens de 1 letra
+            ->unique()
+            ->values();
+
+        // Construimos la consulta: todas las palabras deben estar presentes (AND)
+        $productos = Producto::where(function ($q) use ($tokens) {
+            foreach ($tokens as $token) {
+                $q->where('nombre', 'LIKE', '%' . $token . '%');
+            }
+        })
+            ->limit(20) // aumenta o pagina si lo necesitas
+            ->get();
+
+        if ($productos->isEmpty()) {
+            return response()->json(['mensaje' => 'Producto no encontrado'], 404);
+        }
+
+        return response()->json($productos);
     }
 }

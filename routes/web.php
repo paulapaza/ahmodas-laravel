@@ -50,6 +50,8 @@ Route::middleware([
     // productos
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
+    Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);
+
     // categorias
     Route::view('/inventario/categorias','modules.inventario.categoria.index')->name('inventario.categorias.index');
     Route::resource('/inventario/categoria', CategoriaController::class);

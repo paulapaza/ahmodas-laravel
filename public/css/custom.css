@@ -110,6 +110,9 @@ verde: #54C392
 .bg-xsecondary{
     background-color: #77b6cf!important;
 }
+.bg-xsecondary-soft{
+    background-color: #d3d3d3!important;
+}
 .bg-xsuccess{
     background-color: #FFDC7F!important;
 }
