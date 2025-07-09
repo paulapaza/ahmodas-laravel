@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         $this->call(empresa::class);
-        $this->call(unidad_de_medida::class);
         $this->call(tipo_documento_identidad::class);
         $this->call(tipo_precio::class);
         $this->call(tipo_de_comprobante::class);
@@ -41,13 +40,11 @@ class DatabaseSeeder extends Seeder
         //crear marca por defecto
         Marca::create([
             'nombre' => 'Sin Marca',
-            'descripcion' => 'marca asignada por defecto',
             'estado' => 1,
         ]);
         //crear categoria por defecto
         Categoria::create([
             'nombre' => 'Sin Categoria',
-            'descripcion' => 'categoria asignada por defecto',
             'estado' => 1,
         ]);
     }

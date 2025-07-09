@@ -27,7 +27,7 @@ class empresa extends Seeder
 
 
             'pais'=> 'PE',
-            'estado' => 'activo',
+            'estado' => 1,
 
             'razon_social' => 'Mi Empresa S.A.C',
             'tipo_documento' => '6',

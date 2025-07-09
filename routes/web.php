@@ -11,6 +11,8 @@ use App\Http\Controllers\Facturacion\Sunat\TipoPrecioController;
 use App\Http\Controllers\Inventario\CategoriaController;
 use App\Http\Controllers\Inventario\MarcaController;
 use App\Http\Controllers\Inventario\ProductoController;
+use App\Http\Controllers\Inventario\StockController;
+use App\Http\Controllers\Inventario\TiendaController;
 use App\Http\Controllers\Inventario\UnidadDeMedidaController;
 use App\Http\Controllers\MagentoController as ControllersMagentoController;
 use App\Http\Controllers\Odoocpe\OdooClienteController;
@@ -37,7 +39,10 @@ Route::middleware([
     })->name('dashboard');
     Route::get('/admin', function () {return view('layouts.admin');})->name('adminpanel');
     Route::get('/facturacion', function () {return view('facturacion.home');})->name('facturacion.home');
-
+    /*************************
+     Punto de Venta
+     ************************/
+    Route::view('/punto-de-venta', 'modules.puntodeventa.pos')->name('puntodeventa.pos');
     /*************************
      MODULO DE INVENTARIO
      ************************/ 
@@ -52,8 +57,9 @@ Route::middleware([
     Route::view('/inventario/marcas','modules.inventario.marca.index')->name('inventario.marcas.index');
     Route::resource('/inventario/marca', MarcaController::class)->except(['show, create, edit']);
     // unidad de medida
-    Route::view('/inventario/unidades-de-medida','modules.inventario.unidad_de_medida.index')->name('inventario.unidadmedida.index');
-    Route::resource('/inventario/unidad-de-medida', UnidadDeMedidaController::class)->except(['show, create, edit']);
+    Route::resource('/inventario/tienda', TiendaController::class);
+    // stock
+    Route::get('/inventario/stock', [StockController::class, 'tiendasConStock']);
     /*************************
      MODULO DE FACTURACION
      ************************/
@@ -79,46 +85,9 @@ Route::middleware([
     Route::post('/facturacion/Serie', [SerieCorrelativoController::class,'getCorrelativo'])->name('getCorrelativo');
     Route::post('/facturacion/SerieCorrelativo', [SerieCorrelativoController::class,'getSerieCorrelativo'])->name('getSerieCorrelativo');
     
-    /*************************
-     MODULO ODOO CPE
-     ************************/
-    Route::view('/odoocpe','modules.odoocpe.main')->name('odoocpe.main');
+   
 
-    // pos order
-    Route::view('/odoocpe/pos-order','modules.odoocpe.pos_order.index')->name('odoocpe.pos_order.index');
-    Route::get('/odoocpe/pos-order/{fechainicio}/{fechafin}', [PosOrderController::class, 'indexbydate'])->name('odoocpe.pos_order.indexbydate');
-    Route::resource('/odoocpe/pos-order', PosOrderController::class)->only(['store', 'show','update', 'destroy']);
-        // ubigeo
-        Route::get('/departamento', [OdooUbigeoController::class,'mostrarDepartamentos'])->name('mostrarDepartamentos');
-        Route::POST('provincias/{state_id}', [OdooUbigeoController::class,'mostrarProvincias'])->name('mostrarProvincias');
-        Route::POST('distritos/{city_id}', [OdooUbigeoController::class,'mostrarDistritos'])->name('mostrarDistritos');
-        Route::POST('ubigeo/{city_id}', [OdooUbigeoController::class,'mostrarUbigeo'])->name('mostrarUbigeo');
-        // cliente
-    
-        Route::POST('nuevoCliente', [OdooClienteController::class,'nuevoCliente'])->name('nuevoCliente');
-        Route::POST('buscarCliente', [OdooClienteController::class,'buscarCliente'])->name('buscarCliente');
-        Route::POST('obtenerDatosCliente', [OdooClienteController::class,'obtenerDatosCliente'])->name('obtenerDatosCliente');
-       
-        // crear cpe
-        Route::POST('registrarFactura', [OdooInvoiceController::class,'create'])->name('registrarFactura');
-    // Barcode
-    Route::view('/odoocpe/barcode/product','modules.odoocpe.barcode.product.index')->name('odoocpe.barcode.product');
-    Route::Post('/odoocpe/barcode/product/search', [ProductController::class,'search']);
-    Route::Post('/odoocpe/barcode/product/print', [ProductController::class,'imprimirEtiquetas'])->name('imprimirEtiquetas');
-    Route::Post('/odoocpe/barcode/product/print-price-tag', [ProductController::class,'imprimirEtiquetasDePrecio'])->name('imprimirEtiquetasDePrecio');
-
-
-    
-    Route::view('/odoocpe/barcode/purchase','modules.odoocpe.barcode.purchase.index')->name('odoocpe.barcode.purchase');
-    Route::get('/odoocpe/purchase-order/{fechainicio}/{fechafin}', [PurchaseOrderController::class, 'indexbydate'])->name('odoocpe.purchase_order.indexbydate');
-    Route::get('/odoocpe/barcode/purchase-order-lines/{ids}', [PurchaseOrderController::class, 'showPurchaseLines'])->name('odoocpe.purchase_order_lines.show');
-/*     Route::get('/odoocpe/barcode/purchase-order/print-etiquetas/{purchase_id}', [PurchaseOrderController::class, 'imprimirEtiquetas'])->name('odoocpe.purchase_order.imprimirEtiquetas'); */
-
-    
-    // odoo db 
-    Route::view('/odoocpe/configuracion/odoo-dbs','modules.odoocpe.configuracion.odoo_db.index')->name('odoocpe.configuracion.odoo_db.index');
-    Route::resource('/odoocpe/configuracion/odoo-db', OdooDbController::class)->only(['index', 'store', 'update', 'destroy']);
-
+   
     /*************************
      MODULO DE CONFIGURACION
      ************************/    
@@ -138,17 +107,8 @@ Route::middleware([
     Route::put('/configuracion/empresa/datosGuiaRemision', [EmpresaController::class, 'update_GuiaRemision'])->name('store_GuiaRemision');
     
 
-    // Cotizador con AI
-    Route::view('/cotizador/main','modules.cotizador.main')->name('cotizador.main');
 
-    // Cotizar
-    Route::view('/cotizador/cotizar','modules.cotizador.cotizar')->name('cotizador.cotizar');
-    
-    //magento
-    
-    Route::view('/magento','modules.odoocpe.magento.main')->name('magento.main');
-    Route::get('/odoocpe/magento/producto/{sku}', [MagentoController::class, 'getProduct']);
-    Route::put('/odoocpe/magento/producto/{sku}', [MagentoController::class, 'updateProduct']);  
+
 
 });
 

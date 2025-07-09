@@ -23,35 +23,18 @@ class ProductoRequest extends FormRequest
     {
         
         return [
-            'nombre' => 'required|string',
-
-            'tipo' => 'required|in:A,S',
-            'categoria_id' => 'required|integer',
-            'unidad_medida_id' => 'required|integer',
-
-            'precio_unitario' => 'required|numeric',
-            'impuesto_cliente' => 'nullable|string',
-            'costo_unitario' => 'required|numeric',
-            'barcode' => 'required|string',
-            
-            'descripcion' => 'nullable|string',
-            'img' => 'file|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'marca_id' => 'required|integer',
-            'estado' => 'required|in:0,1,2',
-            
-            'impuesto_bolsa' => 'required|in:0,1',
-            //'incluye_igv' => 'required|in:0,1',
-            //'tipo_afectacion_igv' => 'required|string', depende del impuesto elegido
-
-            //compra
-            'compra_incluyeIgv' => 'required|in:0,1',
-            'compra_tipo_afectacion_igv_codigo' => 'required|string',
-        
-            'stock_minimo' => 'nullable|numeric',
-            'stock_maximo' => 'nullable|numeric',
-            'stock_alerta' => 'nullable|numeric',
-
-
+            // revisar si el codigo de barras es unico solo en la creacion
+            // si es edicion, no validar que sea unico
+            'codigo_barras' => $this->isMethod('post') ? 'nullable|string|max:13|unique:productos,codigo_barras' : 'nullable|string|max:13',
+            'nombre' => 'required|string|max:100',
+            'costo_unitario' => 'nullable|numeric|min:0',
+            'precio_unitario' => 'required|numeric|min:0',
+            'precio_minimo' => 'required|numeric|min:0',
+            'marca_id' => 'required|exists:marcas,id',
+            'categoria_id' => 'required|exists:categorias,id',
+            'stocks' => 'required|array',
+            'stocks.*' => 'nullable|numeric|min:0'
+           
         ];
     }
 }

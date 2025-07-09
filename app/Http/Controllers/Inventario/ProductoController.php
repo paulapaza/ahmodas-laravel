@@ -13,7 +13,11 @@ class ProductoController extends Controller
     public function index()
     {
        $productos = DB::table('productos')
-                ->select('id', 'barcode', 'nombre', 'costo_unitario', 'precio_unitario','categoria_id', 'stock', 'estado')
+                ->select('id', 'codigo_barras', 'nombre', 'costo_unitario', 'precio_unitario',
+                'precio_minimo',
+                'categoria_id', 
+                'marca_id', 
+                'estado')
                 ->get();
 
 
@@ -28,68 +32,22 @@ class ProductoController extends Controller
     }
     public function store(ProductoRequest $request)
     {
-        /*
-            nombre: Colores largos x12 layconsa
-            tipo: A
-            unidad_medida_id: 1
-            categoria_id: 1
-
-            impuesto_id: 2
-            incluye_igv: 1
-            impuesto_bolsa: 0
-            
-            precio_unitario: 8.50
-            costo_unitario: 542
-            barcode: 4545
-            descripcion: 
-            img: (binary)
-            marca_id: 1
-            estado: 1
-            
-            stock_minimo: 
-            stock_maximo: 
-            stock_alerta: 
-
-            compra_incluyeIgv: 1
-            compra_tipo_afectacion_igv_codigo: 10
-        */
+    
         $producto = new Producto();
+        $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
-        
-        $producto->tipo = $request->tipo;
-        $producto->unidad_medida_id = $request->unidad_medida_id;
-        $producto->categoria_id = $request->categoria_id;
-        
-        
-        //imnpuesto ventas
-        $producto->impuesto_id = $request->impuesto_id;  // 2 --> 18% igv incluido en el precio	10	18.00	Si	2
-        $producto->incluye_igv = $request->incluye_igv; // esta en el impuesto_id
-        $producto->tipo_afectacion_igv = '10'; // esta en el impuesto_id
-        $producto->impuesto_bolsa = $request->impuesto_bolsa; 
-        
-        
-        $producto->precio_unitario = $request->precio_unitario;
         $producto->costo_unitario = $request->costo_unitario;
-        
-        $producto->barcode = $request->barcode;
-        $producto->descripcion = $request->descripcion;
+        $producto->precio_unitario = $request->precio_unitario;
+        $producto->precio_minimo = $request->precio_minimo;
         $producto->marca_id = $request->marca_id;
-        $producto->imagen = $request->imagen;
-        $producto->estado = $request->estado;
-        
-        $producto->stock_minimo = $request->stock_minimo;
-        $producto->stock_maximo = $request->stock_maximo;
-        $producto->stock_alerta = $request->stock_alerta;
-
-        //impuesto compras
-        $producto->compra_incluyeIgv = $request->compra_incluyeIvg;
-            // aqui poner el tipo de impuesto de compra
-        $producto->compra_tipo_afectacion_igv_codigo = $request->compra_tipo_afectacion_igv_codigo;
-        $producto->tipo_afectacion_igv_id = $request->tipo_afectacion_igv_id;
+        $producto->categoria_id = $request->categoria_id;
         $producto->save();
 
-        
-    
+        $stocks = $request->input('stocks', []);
+
+        foreach ($stocks as $tiendaId => $stock) {
+            $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
+        }
 
         return response()->json([
             "success" => true,
@@ -98,24 +56,43 @@ class ProductoController extends Controller
         ], 201);
     }
     //update
-    public function update(Request $request, $id)
+    public function update(ProductoRequest  $request, $id)
     {
         $producto = Producto::find($id);
-        $producto->tipo = $request->tipo;
-        $producto->categoria_id = $request->categoria_id;
+        if (!$producto) {
+            return response()->json([
+                "success" => false,
+                "message" => "Producto no encontrado",
+            ], 404);
+        }
+        $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
-        $producto->descripcion = $request->descripcion;
-        $producto->marca_id = $request->marca_id;
-        $producto->barcode = $request->barcode;
-        $producto->imagen = $request->imagen;
+        $producto->costo_unitario = $request->costo_unitario;   
         $producto->precio_unitario = $request->precio_unitario;
-        $producto->costo_unitario = $request->costo_unitario;
-        $producto->tipo_precio = $request->tipo_precio;
-        $producto->tipo_afectacion_igv_id = $request->tipo_afectacion_igv_id;
-        $producto->impuesto_bolsa = $request->impuesto_bolsa;
-        $producto->unidad_medida_id = $request->unidad_medida_id;
-        $producto->estado = $request->estado;
+        $producto->precio_minimo = $request->precio_minimo;
+        $producto->marca_id = $request->marca_id;
+        $producto->categoria_id = $request->categoria_id;
         $producto->save();
+        // Actualizar stocks
+        $stocks = $request->input('stocks', []);
+        foreach ($stocks as $tiendaId => $stock) {
+            // Verificar si la tienda ya está asociada al producto
+            if ($producto->tiendas()->where('tienda_id', $tiendaId)->exists()) {
+                // Actualizar stock existente
+                $producto->tiendas()->updateExistingPivot($tiendaId, ['stock' => $stock]);
+            } else {
+                // Asociar nueva tienda con stock
+                $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
+            }
+        }
+        // Eliminar tiendas que no están en el request
+        $tiendasExistentes = $producto->tiendas->pluck('id')->toArray();
+        $tiendasRequest = array_keys($stocks);
+        $tiendasAEliminar = array_diff($tiendasExistentes, $tiendasRequest);
+        foreach ($tiendasAEliminar as $tiendaId) {
+            $producto->tiendas()->detach($tiendaId);
+        }
+
 
         return response()->json([
             "success" => true,

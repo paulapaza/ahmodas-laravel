@@ -36,6 +36,5 @@
         <li class="dropdown-divider"></li>
         <li><a href="{{route('inventario.categorias.index')}}" class="dropdown-item">Categorias de Producto</a></li>
         <li><a href="{{route('inventario.marcas.index')}}" class="dropdown-item">Marcas de Producto</a></li>
-        <li><a href="{{route('inventario.unidadmedida.index')}}" class="dropdown-item">Unidades de Medida</a></li>
-    </ul>
+        </ul>
 </li>

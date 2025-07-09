@@ -57,7 +57,7 @@ class Empresa extends Migration
             $table -> string('guia_remision_client_id', 255)->nullable();
             $table -> string('guia_remision_client_secret', 40)->nullable();
             
-            $table -> string('estado', 15) -> default('activo');
+            $table -> boolean('estado')->default(1); // Estado de la empresa (activo/inactivo)
         });
     }
 

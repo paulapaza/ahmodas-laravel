@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Marca extends Model
 {
     use HasFactory;
-    protected $table = 'p_marcas';
+    protected $table = 'marcas';
     protected $fillable = ['nombre', 'descripcion', 'estado'];
     //sin updated_at y created_at
     public $timestamps = false;

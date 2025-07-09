@@ -14,49 +14,33 @@
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-          {{-- <li class="nav-item menu-open">
-            <a href="#" class="nav-link active">
-              <i class="nav-icon fas fa-tachometer-alt"></i>
+         
+          <li class="nav-item">
+            <a href="#" class="nav-link text-light">
+            
+              <i class="nav-icon fa-regular fa-rectangle-list"></i>
               <p>
-                Starter Pages
-                <i class="right fas fa-angle-left"></i>
+                Dashboard
               </p>
             </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="#" class="nav-link active">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Active Page</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i>
-                  <p>Inactive Page</p>
-                </a>
-              </li>
-            </ul>
-          </li> --}}
-        {{--   <li class="nav-item">
+          </li>
+          <li class="nav-item">
             
-            <a href="{{ route('facturacion.home') }}" class="nav-link text-light">
+            <a href="{{ route('puntodeventa.pos') }}" class="nav-link text-light">
              
-              <i class="nav-icon  fa-solid fa-file-invoice"></i>
-
-              
+            <i class="nav-icon fa-solid fa-cart-shopping"></i>
+            
               <p>
-                Facturacion
+                Punto de Venta
                
               </p>
             </a>
-          </li> --}}
+          </li>
           <li class="nav-item">
             
             <a href="{{ route('inventario.main') }}" class="nav-link text-light">
-             
-            <i class="nav-icon fa-solid fa-box-archive"></i>
+             <i class="nav-icon  fa-solid fa-warehouse"></i> 
+       
               <p>
                 Inventario
                
@@ -73,23 +57,8 @@
               </p>
             </a>
           </li>
-          <li class="nav-item">
-            
-            <a href="{{ route('odoocpe.main') }}" class="nav-link text-light">
-            <i class="nav-icon fa-regular fa-circle"></i>
-              <p>
-               Odoo +Plus
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('cotizador.main') }}" class="nav-link text-light">
-            <i class="nav-icon fa-solid fa-file-invoice-dollar"></i>
-              <p>
-               Cotizador +Ai
-              </p>
-            </a>
-          </li>
+          
+        
           <li class="nav-item">
             
             <a href="{{ route('configuracion.main') }}" class="nav-link text-light">
