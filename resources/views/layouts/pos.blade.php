@@ -40,7 +40,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <div class="content">
       <div class="container-fluid">
         <div class="row">
-            <div class="col px-3 pt-3">
+            <div class="col">
 
                 {{ $slot ?? 'Dashboard'}}
             </div>

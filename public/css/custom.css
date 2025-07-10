@@ -58,9 +58,10 @@ table thead th {
 }
 table.dataTable {
    margin: 15px 0px!important;
- 
 }
-
+#carrito table.dataTable {
+   margin: 0px 0px!important;
+}
 div.dt-container.dt-empty-footer tbody>tr:last-child>*{
     border-bottom: 0px!important;
 }

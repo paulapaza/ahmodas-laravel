@@ -147,9 +147,9 @@ class ProductoController extends Controller
             ->limit(20) // aumenta o pagina si lo necesitas
             ->get();
 
-        if ($productos->isEmpty()) {
-            return response()->json(['mensaje' => 'Producto no encontrado'], 404);
-        }
+        /* if ($productos->isEmpty()) {
+            return response()->json([]);
+        } */
 
         return response()->json($productos);
     }

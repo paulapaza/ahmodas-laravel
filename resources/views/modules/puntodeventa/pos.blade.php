@@ -1,7 +1,7 @@
 <x-pos-layout>
     <div class="container-fluid mx-0 px-0">
         <div class="row mb-3 ">
-            <div class="col-md-7 pt-2">
+            <div class="col-md-7 pt-3">
                 <div class="row">
                     <div class="col-md-12 mb-1">
                         <div class="row form-group mb-3 ">
@@ -14,19 +14,26 @@
 
                                 </ul>
                             </div>
-                            <div class="col-6">
+                            <div class="col-5">
                                 <!-- BOTONES BUSCAR Producto -->
-                                <button class="btn btn-primary wrap w-100" id="search-button">
+                                <button class="btn btn-xsecondary wrap w-100" id="search-button">
                                     <i class="fa-solid fa-barcode "></i> Buscar Por codigo de barras
+                                </button>
+
+                            </div>
+                            <div class="col-1">
+                                <!-- BOTON toggle mostrar y ocultar productos-container -->
+                                <button class="btn btn-xsecondary wrap w-100" id="toggle-productos-container">
+                                    <i class="fa-solid fa-plus-square"></i>
                                 </button>
 
                             </div>
 
                         </div>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-12" id="productos-container" style="display: none;">
                         <!-- TABLA PARA CARGAR productos left -->
-                        <table id="table-Productos" class="table table-striped ">
+                        <table id="table-Productos" class="table table-striped w-100">
                             <thead class="bg-primary">
                                 <tr>
                                     <th>id</th>
@@ -45,16 +52,17 @@
                 </div>
             </div>
             <!-- Carrito-->
-            <div class="col-md-5 bg-xsecondary-soft mr-0 pt-2" style="height: 100vh; overflow-y: auto;">
-                <div class="card shadow carrito ">
-                    <div class="card-body">
-                        <div id="carrito" style="height: 30vh; overflow-y: auto;">
-                            <table class="table-carrito" id="table-carrito">
+            <div class="col-md-5 bg-xsecondary-soft mr-0 pt-3" style="height: 100vh; overflow-y: auto;">
+                <div class="card shadow">
+                    <div class="card-body pt-0 px-1">
+                        <div id="carrito"
+                            style="min-height: 20vh; max-height: 50vh; overflow-y: auto; scrollbar-x: none;">
+                            <table id="table-carrito">
                                 <thead>
                                     <tr>
-                                        <th>Cant.</th>
+                                        <th>Can</th>
                                         <th>Nombre</th>
-                                        <th>Precio uni</th>
+                                        <th>Precio</th>
                                         <th>Precio minimo</th>
                                         <th>Sub total</th>
                                         <th>id</th>
@@ -75,7 +83,7 @@
                                     id="TotalRecibo">0.00</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-block btn-danger" id="btnPagar">Pagar</button>
+                        <button type="button" class="btn btn-block btn-xsuccess" id="btnPagar">Pagar</button>
                     </div><!-- card body-->
                 </div>
             </div>
@@ -288,29 +296,42 @@
                     visible: false
 
                 },
+               
 
 
             ],
-            actionsButtons: {
-                edit: true,
-                destroy: true
-            },
-            alingCenter: [3, 4]
+            /*  actionsButtons: {
+                 edit: true,
+                 destroy: true
+             },
+             alingCenter: [3, 4] */
         })
 
         let table = new DataTable('#table-carrito', {
             paging: false,
-             searching: false,
-             ordering:  false,
+            searching: false,
+            ordering: false,
             columns: [{
-                    data: 'cantidad'
+                    data: 'cantidad',
+                    width: '7%',
                 },
 
                 {
-                    data: 'nombre'
+                    data: 'nombre',
+                    width: '50%',
                 },
                 {
-                    data: 'precio_unitario'
+                    data: 'precio_unitario',
+                     className: 'text-right',
+                     render: function(data, type, row) {
+
+                            return `<input type="text" min="1" class="iptPrecio-unitario" 
+                                    style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
+                                    value="${data}" />`;
+                                
+
+
+                        }
                 },
                 {
                     data: 'precio_minimo',
@@ -318,21 +339,25 @@
                 },
                 {
                     data: 'subtotal',
-                    visible: false
+                   className: 'text-right',
+                   
+
                 },
                 {
-                    data: 'id'
+                    data: 'id',
+                    visible: false
                 },
                 {
                     data: 'boton',
-                    visible: false
+                    width: '15%',
+
                 },
 
 
 
             ]
         });
-       
+
 
         //buscar producto 
         $("#search-box").keypress(function(e) {
@@ -379,6 +404,17 @@
 
                     */
                     //cargar data al carrito
+                    if (respuesta.length > 0) {
+                        agregarProductoAlCarrito(respuesta[0].id, respuesta[0].nombre, respuesta[0]
+                            .precio_unitario,respuesta[0].precio_minimo);
+                        calcularTotal();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            html: 'No se encontro el producto',
+                            footer: 'Intenta nuevamente!'
+                        })
+                    }
 
 
 
@@ -386,6 +422,119 @@
             });
 
         }
+        //calcular total
+        function calcularTotal() {
+            let total = 0;
+            table.rows().every(function(rowIdx, tableLoop, rowLoop) {
+                let data = this.data();
+                total += parseFloat(data.subtotal);
+            });
+            $("#TotalRecibo").text(total.toFixed(2));
+            $("#MonedaServicios").text("S/ ");
+            $("#SimboloMonedaservicios").text("S/ ");
+            $("#TotalRecibo").val(total.toFixed(2));
+            $("#total-pagado").text("S/ " + total.toFixed(2));
+        }
+        // agregar producto al carrito
+        function agregarProductoAlCarrito(id, nombre, precio, precio_minimo) {
+            //revisar si el producto ya existe en el carrito
+            let existe = false;
+            table.rows().every(function(rowIdx, tableLoop, rowLoop) {
+                let data = this.data();
+                if (data.id === id) {
+                    // Si el producto ya existe, aumentamos la cantidad
+                    data.cantidad++;
+                    data.subtotal = (data.cantidad * parseFloat(data.precio_unitario)).toFixed(2);
+                    this.data(data).draw();
+                    existe = true;
+                    calcularTotal();
+                    return false; // Salimos del loop
+                }
+            });
+            // Si el producto no existe, lo agregamos al carrito
+            if (existe) return;
+
+
+            let data = {
+                cantidad: 1,
+                nombre: nombre,
+                precio_unitario: precio,
+                precio_minimo: precio_minimo, // Asumiendo que el precio mínimo es el mismo que el unitario
+                subtotal: precio,
+                id: id,
+                boton: `
+                        <button class="btn btn-secondary btn-xs disminuir-cantidad" data-id="${id}"><i class="fa-solid fa-minus"></i></button>
+                        <button class="btn btn-secondary btn-xs aumentar-cantidad" data-id="${id}"><i class="fa-solid fa-plus"></i></button>
+                        `
+            };
+            table.row.add(data).draw();
+            calcularTotal();
+        }
+        // Evento para aumentar la cantidad de un producto en el carrito
+        $(document).on('click', '.aumentar-cantidad', function() {
+            let id = $(this).data('id');
+            let row = table.row($(this).closest('tr'));
+            let data = row.data();
+            data.cantidad++;
+            data.subtotal = (data.cantidad * parseFloat(data.precio_unitario)).toFixed(2);
+            row.data(data).draw();
+            calcularTotal();
+        });
+        // Evento para disminuir la cantidad de un producto en el carrito
+        $(document).on('click', '.disminuir-cantidad', function() {
+            let id = $(this).data('id');
+            let row = table.row($(this).closest('tr'));
+            let data = row.data();
+            if (data.cantidad > 1) {
+                data.cantidad--;
+                data.subtotal = (data.cantidad * parseFloat(data.precio_unitario)).toFixed(2);
+                row.data(data).draw();
+                calcularTotal();
+            } else {
+                // Si la cantidad es 1, eliminamos el producto del carrito
+                row.remove().draw();
+                calcularTotal();
+            }
+        });
+        // toggle productos-container
+        $(document).on('click', '#toggle-productos-container', function(e) {
+            e.stopImmediatePropagation();
+            $("#productos-container").toggle();
+            if ($("#productos-container").is(":visible")) {
+                $(this).html('<i class="fa-solid fa-minus-square"></i>');
+            } else {
+                $(this).html('<i class="fa-solid fa-plus-square"></i>');
+            }
+        });
+        // Evento para agregar un producto al carrito desde la lista de productos 
+        $("#table-Productos tbody").on("click", "tr", function() {
+            let data = tableProductos.row(this).data();
+            if (data) {
+                agregarProductoAlCarrito(data.id, data.nombre, data.precio_unitario, data.precio_minimo);
+                calcularTotal();
+            }
+        });
+        // Evento para manejar el cambio de precio unitario en el carrito
+        $(document).on('change', '.iptPrecio-unitario', function() {
+            let row = table.row($(this).closest('tr'));
+            let data = row.data();
+            let nuevoPrecio = parseFloat($(this).val());
+            if (!isNaN(nuevoPrecio) && nuevoPrecio > data.precio_minimo) {
+                data.precio_unitario = nuevoPrecio;
+                data.subtotal = (data.cantidad * nuevoPrecio).toFixed(2);
+                data.precio_unitario = nuevoPrecio.toFixed(2); // Formatear el
+                row.data(data).draw();
+                // formaterar con dos decimales
+                calcularTotal();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    html: 'El precio minimo de este producto es : '+ data.precio_minimo,
+                    footer: 'Intenta nuevamente!'  
+                });
+                $(this).val(data.precio_unitario); // Reestablecer al precio original
+            }
+        });    
 
 
     });
