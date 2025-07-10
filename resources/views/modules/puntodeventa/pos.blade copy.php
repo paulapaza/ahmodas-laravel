@@ -256,7 +256,7 @@
 </x-pos-layout>
 
 <script>
-   /*  let carrito = [];
+   let carrito = [];
     let totalCarrito = 0;
     let metodoPagoActual = 'efectivo';
 
@@ -322,7 +322,7 @@
         $('#pago_efectivo').val(0);
         calcularTotalPagado();
     }
-     */
+     
     $(document).ready(function() {
         let inputActivo = null;
 

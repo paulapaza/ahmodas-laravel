@@ -31,7 +31,8 @@
 
                         </div>
                     </div>
-                    <div class="col-md-12" id="productos-container" style="display: none;">
+                    {{-- <div class="col-md-12" id="productos-container" style="display: none;">
+                     --}}<div class="col-md-12" id="productos-container">
                         <!-- TABLA PARA CARGAR productos left -->
                         <table id="table-Productos" class="table table-striped w-100">
                             <thead class="bg-primary">
@@ -53,10 +54,10 @@
             </div>
             <!-- Carrito-->
             <div class="col-md-5 bg-xsecondary-soft mr-0 pt-3" style="height: 100vh; overflow-y: auto;">
-                <div class="card shadow">
+                <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
                         <div id="carrito"
-                            style="min-height: 20vh; max-height: 50vh; overflow-y: auto; scrollbar-x: none;">
+                            style="min-height: 30vh; max-height: 50vh; overflow-y: auto; scrollbar-x: none;">
                             <table id="table-carrito">
                                 <thead>
                                     <tr>
@@ -83,182 +84,110 @@
                                     id="TotalRecibo">0.00</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-block btn-xsuccess" id="btnPagar">Pagar</button>
+                        <div class="row align-items-center mb-3">
+                            <div class="col-7 ">
+                                <div class="form-group row align-items-center">
+                                    <div class="col-6">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-block btn-modo-pago active"
+                                            data-target="efectivo">Efectivo</button>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control text-right tipo-pago"
+                                            id="pago_efectivo" name="pago_efectivo" value="0" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row align-items-center">
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
+                                            data-target="tarjeta">Tarjeta</button>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control text-right tipo-pago"
+                                            id="pago_tarjeta" name="pago_tarjeta" value="0" disabled>
+                                            
+                                       
+                                    </div>
+                                </div>
+
+                                <div class="form-group row align-items-center">
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
+                                            data-target="yape">Yape / Plin</button>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control text-right tipo-pago"
+                                            id="pago_yape" name="pago_yape" value="0" disabled>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row align-items-center">
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
+                                            data-target="transferencia">Transferencia</button>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="text" class="form-control text-right tipo-pago"
+                                            id="pago_transferencia" name="pago_transferencia" value="0" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-5 text-right">
+                                <div class="card d-inline-block" style="width: 260px;">
+
+                                    {{-- <div class="card-body">
+                                        <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
+                                            style="gap: 5px;">
+                                            @php
+                                                $keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '←'];
+                                            @endphp
+                                            @foreach ($keys as $key)
+                                                <button type="button" class="btn btn-secondary keypad-btn"
+                                                    data-key="{{ $key }}"
+                                                    style="width: 30%; min-width: 60px; margin: 2px; font-size: 1.6em; font-weight: bold;">
+                                                    {{ $key }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div> --}}
+                                    <div class="card-body">
+                                        <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
+                                            style="gap: 4px;">
+                                            @php
+                                                $keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '←'];
+                                            @endphp
+
+                                            @foreach ($keys as $key)
+                                                <button type="button" class="btn btn-secondary keypad-btn"
+                                                    data-key="{{ $key }}"
+                                                    style="width: 25%; min-width: 45px; margin: 2px; font-size: 1.2em; font-weight: bold; padding: 5px 8px;">
+                                                    {{ $key }}
+                                                </button>
+                                            @endforeach
+
+                                            {{-- Botón Enter (✔) --}}
+                                            <button type="button" class="btn btn-success keypad-enter"
+                                                style="width: 80%; min-width: 60px; margin: 2px; font-size: 1.2em; font-weight: bold; padding: 5px 8px;">
+                                                ✔
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row justify-content-around">
+                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Boleta</button>
+                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Factura</button>
+                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Guardar</button>
+                        </div>
                     </div><!-- card body-->
                 </div>
             </div>
         </div>
-        <div class="row">
-            <!-- Lista de productos -->
-            <div class="col-md-7">
-                <div class="card">
-                    <div class="card-body" id="lista-productos" style="height: 50vh; overflow-y: auto;">
-                        <!-- poner un buyscador para traer los productos -->
-
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="buscador-productos"
-                                placeholder="Buscar productos...">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button" id="btn-buscar-productos">
-                                    Buscar
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-muted">Seleccione un producto para agregar al carrito</p>
-                        <!-- Aquí se mostrarán los productos -->
-
-                        <div class="row">
-                            <!-- Producto de ejemplo (puedes llenar con un foreach en backend o JS) -->
-                            <div class="col-md-4 mb-3">
-                                <button class="btn btn-outline-dark btn-block agregar-producto" data-id="1"
-                                    data-nombre="Producto A" data-precio="10.00">
-                                    Producto A<br><small>S/ 10.00</small>
-                                </button>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <button class="btn btn-outline-dark btn-block agregar-producto" data-id="2"
-                                    data-nombre="Producto B" data-precio="20.00">
-                                    Producto B<br><small>S/ 20.00</small>
-                                </button>
-                            </div>
-                            <!-- ... -->
-                        </div>
-                    </div>
-                </div>
-                {{-- <div class="card">
-                    <div class="card-body col-4">
-                        <div id="keypad" class="btn-group d-flex flex-wrap" style="gap: 5px;">
-                            @php
-                                $keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '←'];
-                            @endphp
-                            @foreach ($keys as $key)
-                                <button type="button" class="btn btn-secondary flex-fill keypad-btn text-bold"
-                                    data-key="{{ $key }}" style="width: 30%; min-width: 60px; margin: 2px; font-size: 1.5em;">
-                                    
-                                    {{ $key }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                </div> --}}
-                <div class="row">
-                    <div class="col-12 text-right">
-                        <div class="card d-inline-block" style="width: 260px;">
-
-                            <div class="card-body">
-                                <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
-                                    style="gap: 5px;">
-                                    @php
-                                        $keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '←'];
-                                    @endphp
-                                    @foreach ($keys as $key)
-                                        <button type="button" class="btn btn-secondary keypad-btn"
-                                            data-key="{{ $key }}"
-                                            style="width: 30%; min-width: 60px; margin: 2px; font-size: 1.6em; font-weight: bold;">
-                                            {{ $key }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-            </div>
-
-            <!-- Carrito -->
-            <div class="col-md-5">
-                <div class="card">
-
-                    <div class="card-body" style="height: 30vh; overflow-y: auto;">
-                        <table class="table table-sm" id="tabla-carrito">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th class="text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-
-                    <div class="p-3">
-                        {{-- <div class="form-group">
-                            <label>Total a pagar:</label>
-                            <h3 id="total-carrito">S/ 0.00</h3>
-                        </div> --}}
-
-                        <!-- Inputs de pago con botones como etiquetas -->
-                        <div class="form-group row align-items-center">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago active"
-                                    data-target="efectivo">Efectivo</button>
-                            </div>
-                            <div class="col-6">
-                                <input type="number" step="0.01" class="form-control text-right tipo-pago"
-                                    id="pago_efectivo" name="pago_efectivo" value="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group row align-items-center">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
-                                    data-target="tarjeta">Tarjeta</button>
-                            </div>
-                            <div class="col-6">
-                                <input type="number" step="0.01" class="form-control text-right tipo-pago"
-                                    id="pago_tarjeta" name="pago_tarjeta" value="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group row align-items-center">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
-                                    data-target="yape">Yape / Plin</button>
-                            </div>
-                            <div class="col-6">
-                                <input type="number" step="0.01" class="form-control text-right tipo-pago"
-                                    id="pago_yape" name="pago_yape" value="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group row align-items-center">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
-                                    data-target="transferencia">Transferencia</button>
-                            </div>
-                            <div class="col-6">
-                                <input type="number" step="0.01" class="form-control text-right tipo-pago"
-                                    id="pago_transferencia" name="pago_transferencia" value="0">
-                            </div>
-                        </div>
-
-                        <div class="form-group text-right">
-                            <label>Total pagado:</label>
-                            <h4 id="total-pagado">S/ 0.00</h4>
-                        </div>
-
-
-
-
-
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <button class="btn btn-primary w-100" id="btn-boleta">Boleta</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-primary w-100" id="btn-factura">Factura</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-success w-100" id="btn-guardar">Guardar</button>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
+       
     </div>
 
 </x-pos-layout>
@@ -266,7 +195,7 @@
 <script>
     $(document).ready(function() {
 
-
+        let totalCarrito = 0;
         let _token = $('input[name="_token"]').val();
         // Inicializamos las variables para tipo de envio por ajax en Store record
         let dataCrud = {
@@ -296,7 +225,7 @@
                     visible: false
 
                 },
-               
+
 
 
             ],
@@ -318,20 +247,20 @@
 
                 {
                     data: 'nombre',
-                    width: '50%',
+                    width: '48%',
                 },
                 {
                     data: 'precio_unitario',
-                     className: 'text-right',
-                     render: function(data, type, row) {
+                    className: 'text-right',
+                    render: function(data, type, row) {
 
-                            return `<input type="text" min="1" class="iptPrecio-unitario" 
+                        return `<input type="text" min="1" class="iptPrecio-unitario" 
                                     style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
                                     value="${data}" />`;
-                                
 
 
-                        }
+
+                    }
                 },
                 {
                     data: 'precio_minimo',
@@ -339,8 +268,8 @@
                 },
                 {
                     data: 'subtotal',
-                   className: 'text-right',
-                   
+                    className: 'text-right',
+
 
                 },
                 {
@@ -406,7 +335,7 @@
                     //cargar data al carrito
                     if (respuesta.length > 0) {
                         agregarProductoAlCarrito(respuesta[0].id, respuesta[0].nombre, respuesta[0]
-                            .precio_unitario,respuesta[0].precio_minimo);
+                            .precio_unitario, respuesta[0].precio_minimo);
                         calcularTotal();
                     } else {
                         Swal.fire({
@@ -430,10 +359,7 @@
                 total += parseFloat(data.subtotal);
             });
             $("#TotalRecibo").text(total.toFixed(2));
-            $("#MonedaServicios").text("S/ ");
-            $("#SimboloMonedaservicios").text("S/ ");
-            $("#TotalRecibo").val(total.toFixed(2));
-            $("#total-pagado").text("S/ " + total.toFixed(2));
+            totalCarrito = total;
         }
         // agregar producto al carrito
         function agregarProductoAlCarrito(id, nombre, precio, precio_minimo) {
@@ -448,6 +374,7 @@
                     this.data(data).draw();
                     existe = true;
                     calcularTotal();
+                    distribuirTotalEnEfectivo();
                     return false; // Salimos del loop
                 }
             });
@@ -468,7 +395,9 @@
                         `
             };
             table.row.add(data).draw();
+            // cargar el total al input efectivo
             calcularTotal();
+            distribuirTotalEnEfectivo();
         }
         // Evento para aumentar la cantidad de un producto en el carrito
         $(document).on('click', '.aumentar-cantidad', function() {
@@ -479,9 +408,11 @@
             data.subtotal = (data.cantidad * parseFloat(data.precio_unitario)).toFixed(2);
             row.data(data).draw();
             calcularTotal();
+            distribuirTotalEnEfectivo();
         });
         // Evento para disminuir la cantidad de un producto en el carrito
         $(document).on('click', '.disminuir-cantidad', function() {
+
             let id = $(this).data('id');
             let row = table.row($(this).closest('tr'));
             let data = row.data();
@@ -489,12 +420,14 @@
                 data.cantidad--;
                 data.subtotal = (data.cantidad * parseFloat(data.precio_unitario)).toFixed(2);
                 row.data(data).draw();
-                calcularTotal();
+
+
             } else {
                 // Si la cantidad es 1, eliminamos el producto del carrito
                 row.remove().draw();
-                calcularTotal();
             }
+            calcularTotal();
+            distribuirTotalEnEfectivo();
         });
         // toggle productos-container
         $(document).on('click', '#toggle-productos-container', function(e) {
@@ -510,7 +443,8 @@
         $("#table-Productos tbody").on("click", "tr", function() {
             let data = tableProductos.row(this).data();
             if (data) {
-                agregarProductoAlCarrito(data.id, data.nombre, data.precio_unitario, data.precio_minimo);
+                agregarProductoAlCarrito(data.id, data.nombre, data.precio_unitario, data
+                    .precio_minimo);
                 calcularTotal();
             }
         });
@@ -519,23 +453,183 @@
             let row = table.row($(this).closest('tr'));
             let data = row.data();
             let nuevoPrecio = parseFloat($(this).val());
-            if (!isNaN(nuevoPrecio) && nuevoPrecio > data.precio_minimo) {
+            if (!isNaN(nuevoPrecio) && nuevoPrecio >= data.precio_minimo) {
                 data.precio_unitario = nuevoPrecio;
                 data.subtotal = (data.cantidad * nuevoPrecio).toFixed(2);
                 data.precio_unitario = nuevoPrecio.toFixed(2); // Formatear el
                 row.data(data).draw();
-                // formaterar con dos decimales
-                calcularTotal();
+
             } else {
                 Swal.fire({
                     icon: 'error',
-                    html: 'El precio minimo de este producto es : '+ data.precio_minimo,
-                    footer: 'Intenta nuevamente!'  
+                    html: 'El precio minimo de este producto es : ' + data.precio_minimo,
+                    footer: 'Intenta nuevamente!'
                 });
                 $(this).val(data.precio_unitario); // Reestablecer al precio original
             }
-        });    
+            calcularTotal();
+            distribuirTotalEnEfectivo(); // Recalcular efectivo al cambiar el precio
+        });
+        // alñ presionar enterel iptPrecio-unitario
 
+        // otro eventos
+        // Detecta el último input tocado
+        $('body').on('focus', 'input', function() {
+            inputActivo = this;
+        });
+
+        let nuevoValor = '';
+
+        $('.keypad-btn').click(function() {
+            if (!inputActivo) return;
+            console.log('Valor actualizado:', inputActivo.value);
+            if (!inputActivo) return;
+
+            const key = $(this).data('key');
+
+            if (key === '←') {
+                nuevoValor = nuevoValor.slice(0, -1);
+            } else {
+                nuevoValor += key;
+            }
+            inputActivo.value = nuevoValor;
+
+            //$(inputActivo).trigger('input'); // Para actualizar cálculos si los hay
+        });
+        $('#table-carrito input').blur(function() {
+            if (!inputActivo) return;
+
+            const row = table.row($(this).closest('tr'));
+            const data = row.data();
+            const valorFinal = parseFloat($(this).val());
+
+            if (valorFinal < data.precio_minimo) {
+                Swal.fire({
+                    icon: 'error',
+                    html: 'El precio mínimo de este producto es: ' + data.precio_minimo,
+                    footer: 'Intenta nuevamente!'
+                });
+
+                nuevoValor = data.precio_unitario.toString();
+                this.value = nuevoValor;
+            }
+
+            inputActivo = null;
+            nuevoValor = '';
+        });
+        $('.keypad-enter').click(function() {
+            if (!inputActivo) return;
+
+            if ($(inputActivo).closest('#table-carrito').length) {
+                const row = table.row($(inputActivo).closest('tr'));
+                const data = row.data();
+                const valorFinal = parseFloat(nuevoValor);
+
+                if (isNaN(valorFinal)) return;
+
+                if (valorFinal >= data.precio_minimo) {
+                    data.precio_unitario = valorFinal.toFixed(2);
+                    data.subtotal = (data.cantidad * valorFinal).toFixed(2);
+                    row.data(data).draw();
+                    inputActivo.value = valorFinal.toFixed(2);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        html: 'El precio mínimo de este producto es: ' + data.precio_minimo,
+                        footer: 'Intenta nuevamente!'
+                    });
+
+                    // Restaurar valor anterior
+                    nuevoValor = data.precio_unitario.toString();
+                    inputActivo.value = nuevoValor;
+                }
+               
+                calcularTotal();
+                distribuirTotalEnEfectivo(); 
+            }
+            //para usarlo en los imputs de pago
+            else if ($(inputActivo).closest('.tipo-pago').length) {
+                const valorFinal = parseFloat(nuevoValor);
+                if (isNaN(valorFinal)) return;
+                
+                inputActivo.value = valorFinal.toFixed(2);
+                manejarCambioManual(inputActivo.id.replace('pago_', ''));
+            }
+            // Limpiar
+            inputActivo = null;
+            nuevoValor = '';
+        });
+
+     
+
+        function distribuirTotalEnEfectivo() {
+            $('#pago_efectivo').val(totalCarrito.toFixed(2));
+            $('#pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
+            calcularTotal();
+        }
+
+
+
+        // Cuando cambia manualmente un input (tarjeta, yape o transferencia)
+        function manejarCambioManual(target) {
+            const valorManual = parseFloat($(`#pago_${target}`).val()) || 0;
+            const otros = ['efectivo', 'tarjeta', 'yape', 'transferencia'].filter(x => x !== target);
+
+            let sumaOtros = 0;
+            otros.forEach(m => {
+                if (m !== 'efectivo') {
+                    sumaOtros += parseFloat($(`#pago_${m}`).val()) || 0;
+                }
+            });
+
+            const restante = totalCarrito - (valorManual + sumaOtros);
+            $('#pago_efectivo').val(Math.max(0, restante).toFixed(2));
+            //calcularTotal();
+        }
+
+        // Cuando se presiona un botón (Yape, Tarjeta, Transferencia)
+        function moverDesdeEfectivo(metodoDestino) {
+            const montoEfectivo = parseFloat($('#pago_efectivo').val()) || 0;
+            const actualDestino = parseFloat($(`#pago_${metodoDestino}`).val()) || 0;
+
+            const nuevoMonto = montoEfectivo + actualDestino;
+            $(`#pago_${metodoDestino}`).val(nuevoMonto.toFixed(2));
+            $('#pago_efectivo').val(0);
+            //calcularTotal();
+        }
+
+        // Al hacer clic en método de pago
+        $('.btn-modo-pago').click(function() {
+            $('.btn-modo-pago').removeClass('active');
+            $(this).addClass('active');
+
+            const metodo = $(this).data('target');
+            //si es efectivo ignorar
+            if (metodo === 'efectivo') {
+                return;
+            }
+            metodoPagoActual = metodo;
+            moverDesdeEfectivo(metodo);
+            //poner el foco en el input del metodo de pago
+            $(`#pago_${metodo}`).focus();
+            // enable input del metodo de pago
+            $(`#pago_${metodo}`).prop('disabled', false);
+        });
+        // Al editar manualmente un input
+        $('.tipo-pago').on('input', function() {
+            const id = $(this).attr('id').replace('pago_', '');
+            manejarCambioManual(id);
+        });
+        // al precionar enter dentro del input de pago
+        $('.tipo-pago').keypress(function(e) {
+            if (e.which === 13) {
+                e.preventDefault(); // Evita el comportamiento por defecto del enter
+                const id = $(this).attr('id').replace('pago_', '');
+                // poner dos decimales al valor
+                $(this).val(parseFloat($(this).val()).toFixed(2));
+                manejarCambioManual(id);
+            }
+        });
 
     });
 </script>
