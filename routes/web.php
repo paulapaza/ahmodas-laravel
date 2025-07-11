@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Configuracion\EmpresaController;
 use App\Http\Controllers\Configuracion\UserController;
+use App\Http\Controllers\Facturacion\CpeSerieController;
 use App\Http\Controllers\Facturacion\ImpuestoController;
 use App\Http\Controllers\Facturacion\SerieCorrelativoController;
 use App\Http\Controllers\Facturacion\Sunat\TipoAfectacionController;
@@ -51,6 +52,9 @@ Route::middleware([
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);
+    // tiendas
+    Route::view('/inventario/tiendas','modules.inventario.tienda.index')->name('inventario.tiendas.index');
+    Route::resource('/inventario/tienda', TiendaController::class);
 
     // categorias
     Route::view('/inventario/categorias','modules.inventario.categoria.index')->name('inventario.categorias.index');
@@ -58,6 +62,7 @@ Route::middleware([
     // marcas
     Route::view('/inventario/marcas','modules.inventario.marca.index')->name('inventario.marcas.index');
     Route::resource('/inventario/marca', MarcaController::class)->except(['show, create, edit']);
+
     // unidad de medida
     Route::resource('/inventario/tienda', TiendaController::class);
     // stock
@@ -84,10 +89,12 @@ Route::middleware([
     Route::view('/facturacion/configuracion/impuestos','modules.facturacion.impuestos.index')->name('facturacion.impuestos.index');
     Route::resource('/facturacion/impuesto', ImpuestoController::class)->only(['index']);
 
-    Route::post('/facturacion/Serie', [SerieCorrelativoController::class,'getCorrelativo'])->name('getCorrelativo');
-    Route::post('/facturacion/SerieCorrelativo', [SerieCorrelativoController::class,'getSerieCorrelativo'])->name('getSerieCorrelativo');
-    
-   
+    //cep_serie
+    Route::get('/facturacion/serie', [CpeSerieController::class,'index'])->name('cpe.serie.index');
+    Route::get('/facturacion/serie/{id}', [CpeSerieController::class,'getCorrelativo'])->name('cpe.serie.getCorrelativo');
+    Route::post('/facturacion/serie-correlativo', [CpeSerieController::class,'getSerieCorrelativo'])->name('cpe.serie.getSerieCorrelativo');
+    Route::view('/facturacion/cpe-series', 'modules.facturacion.CpeSeries')->name('facturacion.configuracion.cpe.serie.list'); 
+    Route::resource('/facturacion/cpe-serie', CpeSerieController::class);
 
    
     /*************************

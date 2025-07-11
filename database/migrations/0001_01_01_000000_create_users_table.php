@@ -10,12 +10,14 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
+    {   
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->string('username')->unique()->nullable();
+            // tienda_id
+            $table->unsignedBigInteger('tienda_id')->nullable();
             $table->tinyInteger('estado')->default(1);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -23,6 +25,7 @@ return new class extends Migration
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamps();
+            $table->foreign('tienda_id')->references('id')->on('tiendas')->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -2,11 +2,13 @@
     <x-slot name="menu">
         <x-menuInventario></x-menuInventario>
     </x-slot>
-    <x-slot name="pagetitle">Marcas Productos</x-slot>
+    <x-slot name="pagetitle">Tiendas</x-slot>
 
     <x-table>
         <th>id</th>
         <th>Nombre</th>
+        <th>Direccion</th>
+        <th>Telefono</th>
         <th>Estado</th>
     </x-table>
 
@@ -23,8 +25,14 @@
             
             <div class="col-md-12">
                 <div class="form-group">
-                    <label for="descripcion">Descripcion</label>
-                    <input type="text" class="form-control" id="descripcion" name="descripcion">
+                    <label for="direccion">Direccion</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion" required>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="telefono">Telefono</label>
+                    <input type="text" class="form-control" id="telefono" name="telefono" required>
                 </div>
             </div>
             
@@ -49,9 +57,9 @@
         let csrf = $('input[name="_token"]').val();
         // Inicializamos las variables para tipo de envio por ajax en Store record
         let dataCrud = {
-            route: "/inventario/marca",
-            subject: 'Marca',
-            model: "Marca",
+            route: "/inventario/tienda",
+            subject: 'Tienda',
+            model: "Tienda",
             csrf: csrf,
         };
         let table = new Larajax({
@@ -63,13 +71,19 @@
                     data: 'nombre'
                 },
                 
-               
+                {
+                    data: 'direccion'
+                },
+                {
+                    data: 'telefono'
+                },
                 {
                     data: 'estado',
                     render: function(data) {
                         return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
                     }
                 },
+               
 
             ],
             actionsButtons: {

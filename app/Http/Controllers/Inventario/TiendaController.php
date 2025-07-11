@@ -3,33 +3,51 @@
 namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\Controller;
+use App\Models\Inventario\Tienda;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\New_;
 
 class TiendaController extends Controller
 {
     public function index()
     {
-        $tiendas = DB::table('tiendas')
-            ->select('id', 'nombre', 'direccion', 'estado')
-            ->get();
-
+        $tiendas = Tienda::all();
         return response()->json($tiendas, 200);
     }
 
-    public function show($id)
-    {
-        $tienda = DB::table('tiendas')->find($id);
-
-        return response()->json($tienda, 200);
-    }
+  
 
     public function store(Request $request)
     {
-        $tienda = new \App\Models\Inventario\Tienda();
-        $tienda->fill($request->all());
+        $tienda = new Tienda();
+        $tienda->nombre = $request->nombre;
+        $tienda->direccion = $request->direccion;
+        $tienda->telefono = $request->telefono;
+        $tienda->estado = $request->estado;
         $tienda->save();
-
-        return response()->json($tienda, 201);
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Tienda creada correctamente',
+                'tienda' => $tienda
+            ], 201
+        );
+    }
+    public function update(Request $request, $id)
+    {
+        $tienda = Tienda::findOrFail($id);
+        $tienda->nombre = $request->nombre;
+        $tienda->direccion = $request->direccion;
+        $tienda->telefono = $request->telefono;
+        $tienda->estado = $request->estado;
+        $tienda->save();
+        return response()->json([
+            'success' => true,
+            'message' => 'Tienda actualizada correctamente',
+            'tienda' => $tienda
+        ]
+        , 200);
+    
     }
 }

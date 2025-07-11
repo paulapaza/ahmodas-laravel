@@ -106,8 +106,8 @@
                                     <div class="col-4">
                                         <input type="text" class="form-control text-right tipo-pago"
                                             id="pago_tarjeta" name="pago_tarjeta" value="0" disabled>
-                                            
-                                       
+
+
                                     </div>
                                 </div>
 
@@ -117,8 +117,8 @@
                                             data-target="yape">Yape / Plin</button>
                                     </div>
                                     <div class="col-4">
-                                        <input type="text" class="form-control text-right tipo-pago"
-                                            id="pago_yape" name="pago_yape" value="0" disabled>
+                                        <input type="text" class="form-control text-right tipo-pago" id="pago_yape"
+                                            name="pago_yape" value="0" disabled>
                                     </div>
                                 </div>
 
@@ -180,14 +180,14 @@
                         </div>
                         <div class="row justify-content-around">
                             <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Boleta</button>
-                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Factura</button>
-                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Guardar</button>
+                            <button type="button" class="btn btn-xsuccess col-3" id="btnBoleta">Factura</button>
+                            <button type="button" class="btn btn-xsuccess col-3" id="btnFactura">Guardar</button>
                         </div>
                     </div><!-- card body-->
                 </div>
             </div>
         </div>
-       
+
     </div>
 
 </x-pos-layout>
@@ -543,15 +543,15 @@
                     nuevoValor = data.precio_unitario.toString();
                     inputActivo.value = nuevoValor;
                 }
-               
+
                 calcularTotal();
-                distribuirTotalEnEfectivo(); 
+                distribuirTotalEnEfectivo();
             }
             //para usarlo en los imputs de pago
             else if ($(inputActivo).closest('.tipo-pago').length) {
                 const valorFinal = parseFloat(nuevoValor);
                 if (isNaN(valorFinal)) return;
-                
+
                 inputActivo.value = valorFinal.toFixed(2);
                 manejarCambioManual(inputActivo.id.replace('pago_', ''));
             }
@@ -560,7 +560,7 @@
             nuevoValor = '';
         });
 
-     
+
 
         function distribuirTotalEnEfectivo() {
             $('#pago_efectivo').val(totalCarrito.toFixed(2));
@@ -630,6 +630,81 @@
                 manejarCambioManual(id);
             }
         });
+
+        /****************************
+         * PROCESAR PAGO
+         ****************************/
+        $(document).on('click', '#btnPagar', function() {
+            let total = parseFloat($("#TotalRecibo").text());
+            if (total <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    html: 'El total no puede ser cero',
+                    footer: 'Agrega productos al carrito!'
+                });
+                return;
+            }
+            // Validar que al menos un método de pago tenga un monto
+            const efectivo = parseFloat($('#pago_efectivo').val()) || 0;
+            const tarjeta = parseFloat($('#pago_tarjeta').val()) || 0;
+            const yape = parseFloat($('#pago_yape').val()) || 0;
+            const transferencia = parseFloat($('#pago_transferencia').val()) || 0;
+
+            if (efectivo + tarjeta + yape + transferencia <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    html: 'Debe ingresar al menos un monto en los métodos de pago',
+                    footer: 'Intenta nuevamente!'
+                });
+                return;
+            }
+            //ajax 
+            $.ajax({
+                url: "/puntodeventa/pos/venta",
+                type: "POST",
+                data: {
+                    '_token': _token,
+                    'efectivo': efectivo,
+                    'tarjeta': tarjeta,
+                    'yape': yape,
+                    'transferencia': transferencia,
+                    'total': totalCarrito,
+                    'productos': table.rows().data().toArray()
+                },
+                dataType: 'json',
+                success: function(respuesta) {
+                    if (respuesta.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            html: 'Pago procesado correctamente',
+                            footer: 'Gracias por su compra!'
+                        }).then(() => {
+                            // Limpiar el carrito y los inputs de pago
+                            table.clear().draw();
+                            $('#pago_efectivo, #pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
+                            $("#TotalRecibo").text('0.00');
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            html: respuesta.message,
+                            footer: 'Intenta nuevamente!'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        html: 'Error al procesar el pago',
+                        footer: 'Intenta nuevamente!'
+                    });
+                }
+            });
+
+           
+        });
+
+
 
     });
 </script>

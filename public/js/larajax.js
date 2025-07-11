@@ -660,6 +660,18 @@ function activate_button_on_input_change() {
     $("#modal select").change(function () {
         $(".btn-store").prop("disabled", false);
     });
+   //si presionamos backspace o suprimir en el input
+    $(":input").keydown(function (e) {
+        if (
+            event.keyCode == 8 ||
+            event.keyCode == 46 ||
+            event.keyCode == 13 ||
+            event.keyCode == 32
+        ) {
+            $(".btn-store").prop("disabled", false);
+        }
+    }
+    );
 }
 function show_validate_errors(errors) {
    

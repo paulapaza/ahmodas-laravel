@@ -2,12 +2,16 @@
     <x-slot name="menu">
         <x-menuInventario></x-menuInventario>
     </x-slot>
-    <x-slot name="pagetitle">Marcas Productos</x-slot>
+    <x-slot name="pagetitle">Series y correlativo de los Documento de Pago electronico</x-slot>
 
     <x-table>
         <th>id</th>
-        <th>Nombre</th>
-        <th>Estado</th>
+        <th>tienda</th>
+        <th>tipo_comprobante</th>
+        <th>serie</th> 
+        <th>correlativo</th>
+        <th>estado</th>
+
     </x-table>
 
     <x-mymodal>
@@ -16,15 +20,33 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group">
-                    <label for="nombre">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    <label for="tienda_id">Tienda</label>
+                    <select class="form-control" id="tienda_id" name="tienda_id" required>
+                      
+                    </select>
                 </div>
             </div>
             
             <div class="col-md-12">
                 <div class="form-group">
-                    <label for="descripcion">Descripcion</label>
-                    <input type="text" class="form-control" id="descripcion" name="descripcion">
+                    <label for="tipo_comprobante">tipo comprobante</label>
+                    <select class="form-control" id="tipo_comprobante" name="tipo_comprobante" required>
+                        <option value="boleta">Boleta</option>
+                        <option value="factura">Factura</option>
+                        <option value="nota_de_credito">Ticket</option>
+                    </select> 
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="serie">Serie</label>
+                    <input type="text" class="form-control" id="serie" name="serie" required>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="correlativo">Correlativo</label>
+                    <input type="text" class="form-control" id="correlativo" name="correlativo" required>
                 </div>
             </div>
             
@@ -32,8 +54,8 @@
                 <div class="form-group">
                     <label for="estado">Estado</label>
                     <select class="form-control" id="estado" name="estado" required>
-                        <option value="1">Activo</option>
-                        <option value="0">Inactivo</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
                     </select>
                 </div>
             </div>
@@ -49,9 +71,9 @@
         let csrf = $('input[name="_token"]').val();
         // Inicializamos las variables para tipo de envio por ajax en Store record
         let dataCrud = {
-            route: "/inventario/marca",
-            subject: 'Marca',
-            model: "Marca",
+            route: "/facturacion/cpe-serie",
+            subject: 'CpeSerie',
+            model: "CpeSerie",
             csrf: csrf,
         };
         let table = new Larajax({
@@ -60,14 +82,23 @@
                     data: 'id'
                 },
                 {
-                    data: 'nombre'
+                    data: 'tienda.nombre'
                 },
                 
-               
+                {
+                    data: 'tipo_comprobante'
+                },
+                {
+                    data: 'serie'
+                },
+                {
+                    data: 'correlativo'
+                    
+                },
                 {
                     data: 'estado',
                     render: function(data) {
-                        return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
+                        return (data == "activo") ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
                     }
                 },
 
@@ -125,7 +156,25 @@
 
             destroy_record(dataCrud, table, rowData)
         });
-
+        // llenar el select de tienda
+        $.ajax({
+            url: '/inventario/tienda',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                let select = $('#tienda_id');
+                select.empty();
+                $.each(data, function(index, tienda) {
+                    select.append($('<option>', {
+                        value: tienda.id,
+                        text: tienda.nombre
+                    }));
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al cargar las tiendas:', error);
+            }
+        });
      
         
     });
