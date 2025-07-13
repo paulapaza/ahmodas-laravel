@@ -14,8 +14,9 @@ class PosOrderLine extends Model
 
     protected $fillable = [
         'order_id',
-        'product_id',
+        'producto_id',
         'quantity',
+        'subtotal',
         'price',
     ];
 

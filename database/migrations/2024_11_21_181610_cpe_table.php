@@ -14,7 +14,7 @@ return new class extends Migration
         // Invoice es el documento electronico boleta, factura, nota de credito, nota de debito
         // aqui se guarda la informacion de la documento electronico
         // es la respuesta de nubefact
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('cpes', function (Blueprint $table) {
             $table->id();
             // pos order
             $table->unsignedBigInteger('pos_order_id');
@@ -59,6 +59,6 @@ return new class extends Migration
     public function down(): void
     {
         //
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists('cpes');
     }
 };

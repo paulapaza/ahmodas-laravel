@@ -31,9 +31,9 @@
                 <div class="form-group">
                     <label for="tipo_comprobante">tipo comprobante</label>
                     <select class="form-control" id="tipo_comprobante" name="tipo_comprobante" required>
-                        <option value="boleta">Boleta</option>
-                        <option value="factura">Factura</option>
-                        <option value="nota_de_credito">Ticket</option>
+                        <option value="03">Boleta</option>
+                        <option value="01">Factura</option>
+                        <option value="12">Ticket</option>
                     </select> 
                 </div>
             </div>

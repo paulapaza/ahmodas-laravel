@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('pos_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number')->unique();
+            $table->string('order_number');
             $table->timestamp('order_date')->useCurrent();
-            $table->enum('tipo_comprobante', ['boleta', 'factura', 'nota_venta'])->default('boleta');
+            $table->string('tipo_comprobante', 20);
             $table->string('serie')->default('001');
             $table->decimal('total_amount', 10, 2);
             $table->unsignedBigInteger('user_id')->nullable();

@@ -4,7 +4,6 @@ use App\Http\Controllers\Configuracion\EmpresaController;
 use App\Http\Controllers\Configuracion\UserController;
 use App\Http\Controllers\Facturacion\CpeSerieController;
 use App\Http\Controllers\Facturacion\ImpuestoController;
-use App\Http\Controllers\Facturacion\SerieCorrelativoController;
 use App\Http\Controllers\Facturacion\Sunat\TipoAfectacionController;
 use App\Http\Controllers\Facturacion\Sunat\TipoComprobanteController;
 use App\Http\Controllers\Facturacion\Sunat\TipoDocumentoIdentidadController;
@@ -14,16 +13,8 @@ use App\Http\Controllers\Inventario\MarcaController;
 use App\Http\Controllers\Inventario\ProductoController;
 use App\Http\Controllers\Inventario\StockController;
 use App\Http\Controllers\Inventario\TiendaController;
-use App\Http\Controllers\Inventario\UnidadDeMedidaController;
-use App\Http\Controllers\MagentoController as ControllersMagentoController;
-use App\Http\Controllers\Odoocpe\OdooClienteController;
-use App\Http\Controllers\Odoocpe\OdooDbController;
-use App\Http\Controllers\Odoocpe\OdooInvoiceController;
-use App\Http\Controllers\Odoocpe\OdooUbigeoController;
-use App\Http\Controllers\Odoocpe\PosOrderController;
-use App\Http\Controllers\Odoocpe\ProductController;
-use App\Http\Controllers\Odoocpe\PurchaseOrderController;
-use App\Http\Controllers\Odoocpe\MagentoController;
+
+use App\Http\Controllers\Pos\PosOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,6 +35,8 @@ Route::middleware([
      Punto de Venta
      ************************/
     Route::view('/punto-de-venta', 'modules.puntodeventa.pos')->name('puntodeventa.pos');
+    //venta
+    Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
     /*************************
      MODULO DE INVENTARIO
      ************************/ 

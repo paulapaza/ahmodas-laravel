@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('ubigeo')->nullable();
             $table->string('direccion')->nullable();
             $table->string('telefono')->nullable();
-            $table->string('mail')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
         });
     }

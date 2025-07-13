@@ -4,7 +4,7 @@
             <div class="col-md-7 pt-3">
                 <div class="row">
                     <div class="col-md-12 mb-1">
-                        <div class="row form-group mb-3 ">
+                        <div class="row form-group mb-2 ">
                             <div class="col-6 search-list">
                                 @csrf
                                 <!-- INPUT INGRESO-->
@@ -34,7 +34,7 @@
                     {{-- <div class="col-md-12" id="productos-container" style="display: none;">
                      --}}<div class="col-md-12" id="productos-container">
                         <!-- TABLA PARA CARGAR productos left -->
-                        <table id="table-Productos" class="table table-striped w-100">
+                        <table id="table-Productos" class="table table-striped w-100 pt-0 mt-0">
                             <thead class="bg-primary">
                                 <tr>
                                     <th>id</th>
@@ -53,11 +53,11 @@
                 </div>
             </div>
             <!-- Carrito-->
-            <div class="col-md-5 bg-xsecondary-soft mr-0 pt-3" style="height: 100vh; overflow-y: auto;">
+            <div class="col-md-5 bg-xsecondary-soft mr-0 pt-2" style="height: 100vh; overflow-y: auto;">
                 <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
                         <div id="carrito"
-                            style="min-height: 30vh; max-height: 50vh; overflow-y: auto; scrollbar-x: none;">
+                            style="height: 39vh; overflow-y: auto; overflow-x: hidden;">
                             <table id="table-carrito">
                                 <thead>
                                     <tr>
@@ -65,9 +65,9 @@
                                         <th>Nombre</th>
                                         <th>Precio</th>
                                         <th>Precio minimo</th>
-                                        <th>Sub total</th>
+                                        <th>Total</th>
                                         <th>id</th>
-                                        <th>tool</th>
+                                        <th></th>
 
                                     </tr>
                                     </tr>
@@ -84,26 +84,26 @@
                                     id="TotalRecibo">0.00</span>
                             </div>
                         </div>
-                        <div class="row align-items-center mb-3">
-                            <div class="col-7 ">
-                                <div class="form-group row align-items-center">
-                                    <div class="col-6">
+                        <div class="row align-items-center mb-0">
+                            <div class="col-6">
+                                <div class="form-group row pl-3">
+                                    <div class="col-8">
                                         <button type="button"
                                             class="btn btn-outline-secondary btn-block btn-modo-pago active"
                                             data-target="efectivo">Efectivo</button>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4 px-0">
                                         <input type="text" class="form-control text-right tipo-pago"
                                             id="pago_efectivo" name="pago_efectivo" value="0" disabled>
                                     </div>
                                 </div>
 
-                                <div class="form-group row align-items-center">
-                                    <div class="col-6">
+                                <div class="form-group row pl-3">
+                                    <div class="col-8">
                                         <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="tarjeta">Tarjeta</button>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4 px-0">
                                         <input type="text" class="form-control text-right tipo-pago"
                                             id="pago_tarjeta" name="pago_tarjeta" value="0" disabled>
 
@@ -111,47 +111,33 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group row align-items-center">
-                                    <div class="col-6">
+                                <div class="form-group row pl-3">
+                                    <div class="col-8">
                                         <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="yape">Yape / Plin</button>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4 px-0">
                                         <input type="text" class="form-control text-right tipo-pago" id="pago_yape"
                                             name="pago_yape" value="0" disabled>
                                     </div>
                                 </div>
 
-                                <div class="form-group row align-items-center">
-                                    <div class="col-6">
+                                <div class="form-group row pl-3">
+                                    <div class="col-8">
                                         <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="transferencia">Transferencia</button>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4 px-0">
                                         <input type="text" class="form-control text-right tipo-pago"
                                             id="pago_transferencia" name="pago_transferencia" value="0" disabled>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-5 text-right">
-                                <div class="card d-inline-block" style="width: 260px;">
+                            <div class="col-6">
+                                <div class="card d-inline-block " >
 
-                                    {{-- <div class="card-body">
-                                        <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
-                                            style="gap: 5px;">
-                                            @php
-                                                $keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '←'];
-                                            @endphp
-                                            @foreach ($keys as $key)
-                                                <button type="button" class="btn btn-secondary keypad-btn"
-                                                    data-key="{{ $key }}"
-                                                    style="width: 30%; min-width: 60px; margin: 2px; font-size: 1.6em; font-weight: bold;">
-                                                    {{ $key }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div> --}}
-                                    <div class="card-body">
+                                   
+                                    <div class="card-body py-1">
                                         <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
                                             style="gap: 4px;">
                                             @php
@@ -161,7 +147,7 @@
                                             @foreach ($keys as $key)
                                                 <button type="button" class="btn btn-secondary keypad-btn"
                                                     data-key="{{ $key }}"
-                                                    style="width: 25%; min-width: 45px; margin: 2px; font-size: 1.2em; font-weight: bold; padding: 5px 8px;">
+                                                    style="width: 30%; min-width: 40px; margin: 1px; font-size: 1.2em; font-weight: bold; padding: 5px 8px;">
                                                     {{ $key }}
                                                 </button>
                                             @endforeach
@@ -179,9 +165,9 @@
 
                         </div>
                         <div class="row justify-content-around">
-                            <button type="button" class="btn btn-xsuccess col-3" id="btnPagar">Boleta</button>
-                            <button type="button" class="btn btn-xsuccess col-3" id="btnBoleta">Factura</button>
-                            <button type="button" class="btn btn-xsuccess col-3" id="btnFactura">Guardar</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnBoleta" codigo_tipo_comprobante="03">Boleta</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnFactura" codigo_tipo_comprobante="01">Factura</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnGuardar" codigo_tipo_comprobante="12">Guardar</button>
                         </div>
                     </div><!-- card body-->
                 </div>
@@ -240,6 +226,12 @@
             paging: false,
             searching: false,
             ordering: false,
+            info: false,  
+            lengthChange: false,
+            language: {
+                emptyTable: ' ' 
+            } ,
+            
             columns: [{
                     data: 'cantidad',
                     width: '7%',
@@ -555,6 +547,10 @@
                 inputActivo.value = valorFinal.toFixed(2);
                 manejarCambioManual(inputActivo.id.replace('pago_', ''));
             }
+            // si el valor del input es cero desabilitar el input
+            if (parseFloat(inputActivo.value) <= 0) {
+                $(inputActivo).prop('disabled', true);
+            }
             // Limpiar
             inputActivo = null;
             nuevoValor = '';
@@ -564,7 +560,7 @@
 
         function distribuirTotalEnEfectivo() {
             $('#pago_efectivo').val(totalCarrito.toFixed(2));
-            $('#pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
+            $('#pago_tarjeta, #pago_yape, #pago_transferencia').val(0).prop('disabled', true);
             calcularTotal();
         }
 
@@ -584,6 +580,8 @@
 
             const restante = totalCarrito - (valorManual + sumaOtros);
             $('#pago_efectivo').val(Math.max(0, restante).toFixed(2));
+            //si el valor es cero desabilitar el input
+        
             //calcularTotal();
         }
 
@@ -628,13 +626,23 @@
                 // poner dos decimales al valor
                 $(this).val(parseFloat($(this).val()).toFixed(2));
                 manejarCambioManual(id);
+                // Deshabilitar el input si es cero
+                if (parseFloat($(this).val()) <= 0) {
+                    $(this).prop('disabled', true);
+                }
             }
         });
 
         /****************************
          * PROCESAR PAGO
          ****************************/
-        $(document).on('click', '#btnPagar', function() {
+        $(document).on('click', '.procesar_venta', function() {
+
+            console.log('Procesando pago...');
+            //desactivar botones de pago
+            $('.procesar_venta').prop('disabled', true);
+            //añadir icono des procesamiento
+            
             let total = parseFloat($("#TotalRecibo").text());
             if (total <= 0) {
                 Swal.fire({
@@ -658,9 +666,35 @@
                 });
                 return;
             }
+            // verificar la suma de los metodos de pagos sea = al total del carrito
+            console.log('Total del carrito:', totalCarrito);
+            console.log('Efectivo:', efectivo);
+            console.log('Tarjeta:', tarjeta);
+            console.log('Yape:', yape);
+            console.log('Transferencia:', transferencia);
+            if (efectivo + tarjeta + yape + transferencia != totalCarrito) {
+
+                Swal.fire({
+                    icon: 'error',
+                    html: 'El total de los métodos de pago debe ser igual al total del carrito',
+                    footer: 'Intenta nuevamente!'
+                });
+                 $('.procesar_venta').prop('disabled', false);
+                return;
+            }
             //ajax 
+            let productos = table.rows().data().toArray();
+            // Convertir los productos a un formato adecuado para enviar al servidor
+            productos = productos.map(producto => {
+                return {
+                    id: producto.id,
+                    cantidad: producto.cantidad,
+                    precio_unitario: parseFloat(producto.precio_unitario),
+                    subtotal: parseFloat(producto.subtotal)
+                };
+            });
             $.ajax({
-                url: "/puntodeventa/pos/venta",
+                url: "/punto-de-venta/venta",
                 type: "POST",
                 data: {
                     '_token': _token,
@@ -669,7 +703,8 @@
                     'yape': yape,
                     'transferencia': transferencia,
                     'total': totalCarrito,
-                    'productos': table.rows().data().toArray()
+                    'codigo_tipo_comprobante': $(this).attr('codigo_tipo_comprobante'),
+                    'productos': productos,
                 },
                 dataType: 'json',
                 success: function(respuesta) {
@@ -683,6 +718,9 @@
                             table.clear().draw();
                             $('#pago_efectivo, #pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
                             $("#TotalRecibo").text('0.00');
+                            // Volver a activar los botones de pago
+                            $('.procesar_venta').prop('disabled', false);
+                           
                         });
                     } else {
                         Swal.fire({

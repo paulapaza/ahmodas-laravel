@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('pos_order_lines', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('pos_orders_id');
+            $table->unsignedBigInteger('pos_order_id');
             $table->unsignedBigInteger('producto_id');
             $table->integer('quantity');
             $table->decimal('price', 10, 2);
+            $table->decimal('subtotal', 10, 2);
+            
             $table->timestamps();
             // Foreign key constraints
-            $table->foreign('pos_orders_id')->references('id')->on('pos_orders')->onDelete('cascade');
+            $table->foreign('pos_order_id')->references('id')->on('pos_orders')->onDelete('cascade');
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
         });
     }
