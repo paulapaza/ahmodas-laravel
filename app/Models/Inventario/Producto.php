@@ -2,7 +2,7 @@
 
 namespace App\Models\Inventario;
 
-
+use App\Models\Pos\PosOrderLine;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,4 +28,9 @@ class Producto extends Model
     {
         return $this->tiendas->firstWhere('id', $tiendaId)?->pivot->stock ?? 0;
     }
+    // orderLines
+    public function orderLines()
+    {
+        return $this->hasMany(PosOrderLine::class, 'producto_id'); 
+    } 
 }

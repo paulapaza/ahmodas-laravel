@@ -12,7 +12,7 @@ class CpeSerie extends Model
     protected $fillable = [
         'id',
         'tienda_id',
-        'tipo_comprobante',
+        'codigo_tipo_comprobante',
         'serie',
         'correlativo',
         'estado',

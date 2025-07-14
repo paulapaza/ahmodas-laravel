@@ -657,10 +657,29 @@ function activate_button_on_input_change() {
         //console.log("cambio el input date");
         $(".btn-store").prop("disabled", false);
     });
+    //number
+    $(":input[type=number]").change(function () {
+        console.log("activar boton al cambiar input");
+        //console.log("cambio el input number");
+        $(".btn-store").prop("disabled", false);
+    });
+    $(":input[type=number]").keydown(function (e) {
+        //tecla enter o numero
+        //console.log("activar boton al cambiar input number");
+        if (
+            event.keyCode == 13 ||
+            (event.keyCode >= 48 && event.keyCode <= 57) ||
+            (event.keyCode >= 96 && event.keyCode <= 105)
+        ) {
+            $(".btn-store").prop("disabled", false);
+        }
+    });
+    //si cambia el select
+    
     $("#modal select").change(function () {
         $(".btn-store").prop("disabled", false);
     });
-   //si presionamos backspace o suprimir en el input
+   //si presionamos backspace o suprimir en el input o
     $(":input").keydown(function (e) {
         if (
             event.keyCode == 8 ||

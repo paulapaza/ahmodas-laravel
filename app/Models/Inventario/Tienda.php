@@ -2,6 +2,7 @@
 
 namespace App\Models\Inventario;
 
+use App\Models\Pos\Posorder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,6 +33,10 @@ class Tienda extends Model
         return $this->hasMany(User::class, 'tienda_id');
     }
 
-    // relacion con cpe_series
+    // relacion con PosOrder
+    public function posOrders()
+    {
+        return $this->hasMany(Posorder::class, 'tienda_id');
+    }
    
 }

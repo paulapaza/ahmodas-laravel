@@ -1,6 +1,8 @@
 <?php
 namespace App\Models\Pos;
 
+use App\Models\Inventario\Tienda;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +19,7 @@ class Posorder extends Model
         'serie',
         'order_date',
         'user_id',
+        'tienda_id',
         'cliente_id',
         'total_amount',
         'status',
@@ -32,6 +35,16 @@ class Posorder extends Model
         return $this->hasMany(PosOrderPayment::class, 'pos_order_id');
     }
 
+    // Relación con la tienda
+    public function tienda()
+    {
+        return $this->belongsTo(Tienda::class, 'tienda_id');
+    }
+    // Relación con el usuario
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     /*  public function lines(): HasMany
     {
         return $this->hasMany(PosorderLine::class, 'posorder_id'); // usa el nombre de la clave foránea real

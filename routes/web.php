@@ -37,6 +37,15 @@ Route::middleware([
     Route::view('/punto-de-venta', 'modules.puntodeventa.pos')->name('puntodeventa.pos');
     //venta
     Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
+     /*************************
+     Ventas
+     ************************/
+    Route::view('/ventas', 'modules.ventas.main')->name('ventas.main');
+    // ventas
+    Route::view('/ventas/ventas', 'modules.ventas.posorder.index')->name('ventas.posorder.index');
+    Route::resource('/ventas/posorder', PosOrderController::class)->only(['index','show']);
+    Route::get('ventas/posorder/{fecha_inicio?}/{fecha_fin?}', [posOrderController::class, 'indexByDate'])->name('playa.parqueo.indexByDate  ');
+
     /*************************
      MODULO DE INVENTARIO
      ************************/ 

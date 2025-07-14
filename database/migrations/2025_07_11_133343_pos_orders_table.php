@@ -18,10 +18,14 @@ return new class extends Migration
             $table->string('tipo_comprobante', 20);
             $table->string('serie')->default('001');
             $table->decimal('total_amount', 10, 2);
-            $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('cliente_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('tienda_id')->nullable();
             $table->string('estado')->default('completado');
+            // tienda
             $table->timestamps();
+            // Foreign keys
+            $table->foreign('tienda_id')->references('id')->on('tiendas')->onDelete('set null');
             $table->foreign('cliente_id')->references('id')->on('clientes')->onDelete('set null');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
 

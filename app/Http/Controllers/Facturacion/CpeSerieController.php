@@ -21,7 +21,7 @@ class CpeSerieController extends Controller
     {
         $serie = new CpeSerie();
         $serie->tienda_id = $request->tienda_id;
-        $serie->tipo_comprobante = $request->tipo_comprobante;
+        $serie->codigo_tipo_comprobante = $request->codigo_tipo_comprobante;
         $serie->serie = $request->serie;
         $serie->correlativo = $request->correlativo;
         $serie->estado = $request->estado;
@@ -34,7 +34,7 @@ class CpeSerieController extends Controller
     {
         $serie = CpeSerie::findOrFail($id);
         $serie->tienda_id = $request->tienda_id;
-        $serie->tipo_comprobante = $request->tipo_comprobante;    
+        $serie->codigo_tipo_comprobante = $request->codigo_tipo_comprobante;    
         $serie->serie = $request->serie;
         $serie->correlativo = $request->correlativo;
         $serie->estado = $request->estado;

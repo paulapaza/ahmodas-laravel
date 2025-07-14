@@ -204,6 +204,31 @@ verde: #54C392
     border: 1px solid #8b223f;
     color: #fff;
 }
+.badge-xsuccess{
+    background-color: #FFDC7F!important;
+    color: #16325B;
+    
+}
+.badge-xprimary{
+    background-color: #227d96!important;
+    color: #ffffff;
+    
+}
+.badge-xsecondary{
+    background-color: #77b6cf!important;
+    color: #ffffff;
+    font-weight: bold;
+}
+.badge-xdanger{
+    background-color: #ff7f7f!important;
+    color: #ffffff;
+    font-weight: bold;
+}
+.badge-xinfo{
+    background-color: #78b7d0!important;
+    color: #ffffff;
+    
+}
 
 /** tab */
 

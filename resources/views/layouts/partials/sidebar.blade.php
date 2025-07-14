@@ -28,11 +28,22 @@
             
             <a href="{{ route('puntodeventa.pos') }}" class="nav-link text-light">
              
-            <i class="nav-icon fa-solid fa-cart-shopping"></i>
+            <i class="nav-icon fa-solid fa-store"></i>
             
               <p>
                 Punto de Venta
                
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            
+            <a href="{{ route('ventas.main')  }}" class="nav-link text-light">
+             
+            <i class="nav-icon fa-solid fa-chart-simple"></i>
+            
+              <p>
+                ventas
               </p>
             </a>
           </li>

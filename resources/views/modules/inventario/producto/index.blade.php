@@ -19,54 +19,53 @@
     <x-mymodal>
         @csrf
         <input type="hidden" id="id" name="id">
-        <div class="col-12 col-md-12">
-            <div class="mb-3 row">
-                <label for="nombre" class="form-label col-6">Nombre del Producto</label>
-                <input type="text" class="form-control col-12" id="nombre" name="nombre" autocomplete="off"
+        <div class="row ">
+            <div class="form-group col-12">
+                <label for="nombre" class="form-label">Nombre del Producto</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" autocomplete="off"
                     required>
             </div>
-            <div class="mb-3 row">
-                <label for="costo_unitario" class="form-label col-6">Precio de Compra </label>
-                <input type="number" class="form-control col-5" id="costo_unitario" step="0.01"
+           
+             <div class="form-group col-4">
+                <label for="costo_unitario" class="form-label">Precio de Compra </label>
+                <input type="number" class="form-control" id="costo_unitario" step="0.01"
                     name="costo_unitario" autocomplete="off" required>
             </div>
-            <div class="mb-3 row">
-                <label for="precio_unitario" class="form-label col-6">Precio de Venta </label>
-                <input type="number" class="form-control col-5" id="precio_unitario" name="precio_unitario"
+             <div class="form-group col-4">
+               <label for="precio_unitario" class="form-label">Precio de Venta </label>
+                <input type="number" class="form-control" id="precio_unitario" name="precio_unitario"
                     autocomplete="off" required step="0.01">
 
-                <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small>
+               {{--  <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small> --}}
             </div>
-            <div class="mb-3 row">
-                <label for="precio_minimo" class="form-label col-6">Precio de Venta min</label>
-                <input type="number" class="form-control col-5" id="precio_minimo" name="precio_minimo"
+           
+            <div class="form-group col-4">
+                <label for="precio_minimo" class="form-label">Precio de Venta min</label>
+                <input type="number" class="form-control" id="precio_minimo" name="precio_minimo"
                     autocomplete="off" required step="0.01">
-
-                <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small>
+                {{-- <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small> --}}
+            </div>
+            <div class="form-group col-4">
+                <label for="codigo_barras" class="form-label">Código de barras</label>
+                <input type="text" class="form-control" id="codigo_barras" name="codigo_barras"
+                    autocomplete="off" required>
             </div>
 
-
-            <div class="mb-3 row">
-                <label for="codigo_barras" class="form-label col-6">Código de barras</label>
-                <input type="text" class="form-control col-5" id="codigo_barras" name="codigo_barras" autocomplete="off"
-                    required>
-            </div>
-        
-            <div class="mb-3 row">
-                <label for="marca_id" class="form-label col-6">Marca</label>
-                <select class="form-control col-5" id="marca_id" name="marca_id" clean="false" required>
+            <div class="form-group col-4">
+                <label for="marca_id" class="form-label">Marca</label>
+                <select class="form-control " id="marca_id" name="marca_id" clean="false" required>
 
                 </select>
             </div>
-            <div class="mb-3 row">
-                <label for="categoria_id" class="form-label col-6">Categoria</label>
-                <select class="form-control col-5" id="categoria_id" name="categoria_id" clean="false" required>
+            <div class="form-group col-4">
+                <label for="categoria_id" class="form-label">Categoria</label>
+                <select class="form-control" id="categoria_id" name="categoria_id" clean="false" required>
 
                 </select>
             </div>
-            <h5>Stock por tienda</h5>
-            <div id="stocks_por_tienda"></div>
         </div>
+        <h5>Stock por tienda</h5>
+        <div id="stocks_por_tienda"></div>
 
 
     </x-mymodal>
@@ -110,31 +109,40 @@
                 {
                     data: 'estado',
                     render: function(data, type, row) {
-                        return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
+                        return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' :
+                            '<span class="badge bg-xsecondary text-white">Inactivo</span>'
                     }
                 },
-                
+
             ],
             actionsButtons: {
                 edit: true,
-                destroy:true
+                destroy: true
             },
             alingCenter: [7]
-            
+
         })
         cargarStocks(); // sin parámetro
         // edit record
 
-        $('#table').on('click', '.btn-edit', function() {
+       /*  $('#table').on('click', '.btn-edit', function() {
             let rowData = ($(this).parents('tr').hasClass('child')) ?
                 table.row($(this).parents().prev('tr')).data() :
                 table.row($(this).parents('tr')).data();
-            //limpiar el input file
-            cargarStocks(rowData.id); // Pasamos el id del producto para cargar los stocks
+            await cargarStocks(rowData.id);
 
             edit_record(rowData, table, $(this));
+        
+        }); */
+        $('#table').on('click', '.btn-edit', async function () {
+    let rowData = ($(this).parents('tr').hasClass('child')) ?
+        table.row($(this).parents().prev('tr')).data() :
+        table.row($(this).parents('tr')).data();
 
-        });
+    await cargarStocks(rowData.id); // ✅ ahora sí puedes usar await aquí
+
+    edit_record(rowData, table, $(this));
+});
 
         // store record
         $(document).on('click', '.btn-store', function() {
@@ -202,7 +210,7 @@
         });
         //stock por tiendas
         // Llama esto al cargar la vista o al abrir el modal de crear/editar
-        function cargarStocks(productoId = null) {
+        /* function async cargarStocks(productoId = null) {
             $.ajax({
                 url: '/inventario/stock',
                 data: {
@@ -220,7 +228,6 @@
                             name="stocks[${tienda.id}]"
                             id="stock_tienda_${tienda.id}"
                             class="form-control"
-                            min="0"
                             value="${tienda.stock}">
                     </div>`;
                     });
@@ -228,8 +235,38 @@
                 }
             });
         }
-
-
+ */
+        async function cargarStocks(productoId = null) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '/inventario/stock',
+                    data: {
+                        producto_id: productoId
+                    },
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        let html = '';
+                        data.forEach(tienda => {
+                            html += `
+                        <div class="form-group mb-2">
+                            <label for="stock_tienda_${tienda.id}">${tienda.nombre}</label>
+                            <input type="number"
+                                name="stocks[${tienda.id}]"
+                                id="stock_tienda_${tienda.id}"
+                                class="form-control"
+                                value="${tienda.stock}">
+                        </div>`;
+                        });
+                        $('#stocks_por_tienda').html(html);
+                        resolve(); // <- resuelve la promesa después de completar
+                    },
+                    error: function(xhr, status, error) {
+                        reject(error); // <- en caso de error
+                    }
+                });
+            });
+        }
 
 
 

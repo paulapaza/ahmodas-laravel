@@ -17,7 +17,7 @@
                             <div class="col-5">
                                 <!-- BOTONES BUSCAR Producto -->
                                 <button class="btn btn-xsecondary wrap w-100" id="search-button">
-                                    <i class="fa-solid fa-barcode "></i> Buscar Por codigo de barras
+                                    <i class="fa-solid fa-barcode "></i> Buscar Por codigo de barras (F2)
                                 </button>
 
                             </div>
@@ -56,8 +56,7 @@
             <div class="col-md-5 bg-xsecondary-soft mr-0 pt-2" style="height: 100vh; overflow-y: auto;">
                 <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
-                        <div id="carrito"
-                            style="height: 39vh; overflow-y: auto; overflow-x: hidden;">
+                        <div id="carrito" style="height: 39vh; overflow-y: auto; overflow-x: hidden;">
                             <table id="table-carrito">
                                 <thead>
                                     <tr>
@@ -134,9 +133,9 @@
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="card d-inline-block " >
+                                <div class="card d-inline-block ">
 
-                                   
+
                                     <div class="card-body py-1">
                                         <div id="keypad" class="btn-group d-flex flex-wrap justify-content-end"
                                             style="gap: 4px;">
@@ -165,9 +164,12 @@
 
                         </div>
                         <div class="row justify-content-around">
-                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnBoleta" codigo_tipo_comprobante="03">Boleta</button>
-                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnFactura" codigo_tipo_comprobante="01">Factura</button>
-                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnGuardar" codigo_tipo_comprobante="12">Guardar</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnBoleta"
+                                codigo_tipo_comprobante="03">Boleta</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnFactura"
+                                codigo_tipo_comprobante="01">Factura</button>
+                            <button type="button" class="btn btn-xsuccess col-3 procesar_venta" id="btnGuardar"
+                                codigo_tipo_comprobante="12">Guardar</button>
                         </div>
                     </div><!-- card body-->
                 </div>
@@ -180,7 +182,7 @@
 
 <script>
     $(document).ready(function() {
-
+        $('#search-box').focus();
         let totalCarrito = 0;
         let _token = $('input[name="_token"]').val();
         // Inicializamos las variables para tipo de envio por ajax en Store record
@@ -226,12 +228,12 @@
             paging: false,
             searching: false,
             ordering: false,
-            info: false,  
+            info: false,
             lengthChange: false,
             language: {
-                emptyTable: ' ' 
-            } ,
-            
+                emptyTable: ' '
+            },
+
             columns: [{
                     data: 'cantidad',
                     width: '7%',
@@ -581,12 +583,13 @@
             const restante = totalCarrito - (valorManual + sumaOtros);
             $('#pago_efectivo').val(Math.max(0, restante).toFixed(2));
             //si el valor es cero desabilitar el input
-        
+
             //calcularTotal();
         }
 
         // Cuando se presiona un botón (Yape, Tarjeta, Transferencia)
         function moverDesdeEfectivo(metodoDestino) {
+
             const montoEfectivo = parseFloat($('#pago_efectivo').val()) || 0;
             const actualDestino = parseFloat($(`#pago_${metodoDestino}`).val()) || 0;
 
@@ -598,21 +601,30 @@
 
         // Al hacer clic en método de pago
         $('.btn-modo-pago').click(function() {
+            //si efectivo es cero, hno hacer nada
+
             $('.btn-modo-pago').removeClass('active');
             $(this).addClass('active');
-
             const metodo = $(this).data('target');
             //si es efectivo ignorar
             if (metodo === 'efectivo') {
+
+                $('#pago_efectivo').val(totalCarrito.toFixed(2));
+                $('#pago_tarjeta, #pago_yape, #pago_transferencia').prop('disabled', true).val(0);
+                return;
+            }
+            if ($('#pago_efectivo').val() <= 0) {
                 return;
             }
             metodoPagoActual = metodo;
             moverDesdeEfectivo(metodo);
+
             //poner el foco en el input del metodo de pago
             $(`#pago_${metodo}`).focus();
             // enable input del metodo de pago
             $(`#pago_${metodo}`).prop('disabled', false);
         });
+
         // Al editar manualmente un input
         $('.tipo-pago').on('input', function() {
             const id = $(this).attr('id').replace('pago_', '');
@@ -632,7 +644,13 @@
                 }
             }
         });
-
+        // poner foco en el input de codigo de barras al cargar la pagina al presionar f2
+        $(document).on('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                $('#search-box').focus();
+            }
+        });
         /****************************
          * PROCESAR PAGO
          ****************************/
@@ -642,7 +660,7 @@
             //desactivar botones de pago
             $('.procesar_venta').prop('disabled', true);
             //añadir icono des procesamiento
-            
+
             let total = parseFloat($("#TotalRecibo").text());
             if (total <= 0) {
                 Swal.fire({
@@ -650,6 +668,7 @@
                     html: 'El total no puede ser cero',
                     footer: 'Agrega productos al carrito!'
                 });
+                $('.procesar_venta').prop('disabled', false);
                 return;
             }
             // Validar que al menos un método de pago tenga un monto
@@ -679,7 +698,7 @@
                     html: 'El total de los métodos de pago debe ser igual al total del carrito',
                     footer: 'Intenta nuevamente!'
                 });
-                 $('.procesar_venta').prop('disabled', false);
+                $('.procesar_venta').prop('disabled', false);
                 return;
             }
             //ajax 
@@ -716,11 +735,12 @@
                         }).then(() => {
                             // Limpiar el carrito y los inputs de pago
                             table.clear().draw();
-                            $('#pago_efectivo, #pago_tarjeta, #pago_yape, #pago_transferencia').val(0);
+                            $('#pago_efectivo, #pago_tarjeta, #pago_yape, #pago_transferencia')
+                                .val(0);
                             $("#TotalRecibo").text('0.00');
                             // Volver a activar los botones de pago
                             $('.procesar_venta').prop('disabled', false);
-                           
+
                         });
                     } else {
                         Swal.fire({
@@ -733,13 +753,14 @@
                 error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
-                        html: 'Error al procesar el pago',
-                        footer: 'Intenta nuevamente!'
+                        html: 'Error al procesar el pago: ' + xhr.responseJSON
+                            .message,
+                        footer: 'Intenta nuevamente! presione f5 para recargar la pagina    '
                     });
                 }
             });
 
-           
+
         });
 
 

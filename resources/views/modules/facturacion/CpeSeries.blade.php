@@ -29,8 +29,8 @@
             
             <div class="col-md-12">
                 <div class="form-group">
-                    <label for="tipo_comprobante">tipo comprobante</label>
-                    <select class="form-control" id="tipo_comprobante" name="tipo_comprobante" required>
+                    <label for="codigo_tipo_comprobante">tipo comprobante</label>
+                    <select class="form-control" id="codigo_tipo_comprobante" name="codigo_tipo_comprobante" required>
                         <option value="03">Boleta</option>
                         <option value="01">Factura</option>
                         <option value="12">Ticket</option>
@@ -86,7 +86,13 @@
                 },
                 
                 {
-                    data: 'tipo_comprobante'
+                    data: 'codigo_tipo_comprobante',
+                    render: function(data, type, row) {
+                        return (data == "01") ? '<span class="badge badge-xprimary">Factura</span>' :
+                            (data == "12") ? '<span class="badge badge-xdanger">Ticket</span>' :
+                            (data == "03") ? '<span class="badge badge-xsuccess ">Boleta</span>' :
+                            '<span class="badge bg-xdanger text-white">Otro</span>';
+                    }
                 },
                 {
                     data: 'serie'
