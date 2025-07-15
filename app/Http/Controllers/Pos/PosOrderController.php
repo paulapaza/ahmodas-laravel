@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PosOrderStore;
+use App\Models\Inventario\Tienda;
 use App\Models\Pos\Posorder;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
@@ -36,7 +37,7 @@ class PosOrderController extends Controller
             ->findOrFail($id);
         return view('modules.ventas.posorder.show', compact('posorder'));
     }
-   
+
     public function store(PosOrderStore $request)
     {
         $posServices = new PosServices();
@@ -92,14 +93,14 @@ class PosOrderController extends Controller
                 'price' => $line['precio_unitario'],
                 'subtotal' => $line['subtotal'],
             ]);
-             $posServices->updateStockProductoTienda(
+            $posServices->updateStockProductoTienda(
                 $line['id'],
                 $tienda_id,
                 'venta',
                 $line['cantidad']
             );
         }
-       
+
 
         // Aumentar el correlativo del CPE
         (new PosServices())->increase_CpeSerie($cpeSerie);
@@ -111,5 +112,95 @@ class PosOrderController extends Controller
             'message' => 'Venta registrada correctamente',
             'data' => $pos_order,
         ]);
+    }
+
+    public function cancel($id)
+    {
+        //1. poner la orden en estado anulado
+        $posOrder = Posorder::findOrFail($id);
+        if ($posOrder->estado === 'anulado') {
+            return response()->json([
+                'success' => false,
+                'message' => 'La orden ya está anulada.',
+            ], 400);
+        }
+
+        $posOrder->estado = 'anulado';
+        $posOrder->save();
+        //2. actualizar el stock de los productos vendidos
+        $posServices = new PosServices();
+        foreach ($posOrder->orderLines as $line) {
+            $posServices->updateStockProductoTienda(
+                $line->producto_id,
+                $posOrder->tienda_id,
+                'anulacion',
+                $line->quantity
+            );
+        }
+        // 3. retornar los pagos
+        $posOrder->payments()->each(function ($payment) {
+            $payment->delete();
+        });
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Orden anulada correctamente.',
+            'data' => $posOrder,
+        ]);
+    }
+    // postOrderBystore
+    public function postOrderPanel($fecha_inicio = null, $fecha_fin = null)
+    {
+
+        $fecha_inicio = $fecha_inicio
+            ? Carbon::parse($fecha_inicio)->startOfDay()  // Si existe, la parsea
+            : now()->startOfDay();                        // Si no existe, usa hoy
+
+        $fecha_fin = $fecha_fin
+            ? Carbon::parse($fecha_fin)->endOfDay()       // Si existe, la parsea hasta el final del día
+            : now()->endOfDay();
+
+        // Validar que fecha_inicio no sea mayor que fecha_fin
+        if ($fecha_inicio->gt($fecha_fin)) {
+            throw new \Exception('La fecha de inicio no puede ser mayor que la fecha de fin');
+        }
+
+        /* $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
+            $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
+                ->with(['payments']) // Cargar los pagos para cada orden
+                ->orderBy('order_date', 'desc');
+        }])->get(); */
+
+        // 2. CONSULTA OPTIMIZADA CON SELECT ESPECÍFICO
+        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
+
+            // 2.1 FILTRAR POR RANGO DE FECHAS
+            $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
+
+                // 2.2 SUBCONSULTA OPTIMIZADA PARA PAYMENTS
+                ->with(['payments' => function ($paymentQuery) {
+                    // SOLO SELECCIONA LOS CAMPOS QUE NECESITAS
+                    $paymentQuery->select('id', 'pos_order_id', 'payment_method', 'amount');
+                    // Esto reduce la cantidad de datos transferidos desde la BD
+                }])
+
+                // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
+                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount')
+                // Esto evita traer campos innecesarios como created_at, updated_at, etc.
+
+                // 2.4 ORDENAR POR FECHA DESCENDENTE
+                ->orderBy('order_date', 'Asc');
+        }])->get();
+
+
+        return view('modules.ventas.posorder.posorderpanel', compact('alltiendas'));
+    }
+
+    public function postOrderLinePanel()
+    {
+        $alltiendas = Tienda::all();
+
+        return view('modules.ventas.posorder.posorderlinepanel', compact('alltiendas'));
     }
 }

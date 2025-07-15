@@ -50,4 +50,14 @@ class TiendaController extends Controller
         , 200);
     
     }
+    //destroy
+    public function destroy($id)
+    {
+        $tienda = Tienda::findOrFail($id);
+        $tienda->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Tienda eliminada correctamente'
+        ], 200);
+    }
 }

@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="menu">
-        <x-menuInventario></x-menuInventario>
+        <x-menuVentas />
     </x-slot>
     <x-slot name="pagetitle">Ventas</x-slot>
 
@@ -78,10 +78,10 @@
 <script>
     $(document).ready(function() {
 
-       // token = $('input[name="_token"]').val();
-        
+        // token = $('input[name="_token"]').val();
+        token = $('input[name="_token"]').val();
         cargarTabla();
-  
+
         // suma total de la columna total_amount
         table.on('draw', function() {
             console.log('Tabla recargada');
@@ -93,25 +93,30 @@
                     return;
                 }
                 total += parseFloat(data.total_amount);
-                
+
             });
             $('#totalSoles').text(total.toFixed(2));
         });
+        //anular venta
+        table.on('click', '.btn-anular-venta', function() {
+
+        });
 
     });
+
     function cargarTabla(fechaInicio = "", fechaFin = "") {
-            table = new Larajax({
-                data: tableParqueosParams = {
-                    modelName: 'Parqueo', //nombre del modelo
-                    route: '/ventas/posorder', //ruta del controlador generada por el resource
-                    modalId: '#modal',
-                    queryParams: '/' + fechaInicio + '/' + fechaFin,
-                },
-                linkShow: {
-                    target: 4
-                },
-                newRecordTopButton: false,
-                columns: [{
+        table = new Larajax({
+            data: tableParqueosParams = {
+                modelName: 'Parqueo', //nombre del modelo
+                route: '/ventas/posorder', //ruta del controlador generada por el resource
+                modalId: '#modal',
+                queryParams: '/' + fechaInicio + '/' + fechaFin,
+            },
+            linkShow: {
+                target: 4
+            },
+            newRecordTopButton: false,
+            columns: [{
                     data: 'id'
                 },
                 {
@@ -151,23 +156,28 @@
                 },
                 {
                     data: 'estado',
+                    render: function(data, type, row) {
+                        return data === 'anulado' ?
+                            '<span class="badge badge-xsecondary">Anulado</span>' :
+                            '<span class="badge badge-xsuccess">Activo</span>';
+                    }
                 },
 
             ],
-                actionsButtons: {
-                    //cancel: true, // no implementado
-                    customButton: [{
-                        text: 'Anular',
-                        action: 'anular-venta',
-                    }, ]
+            actionsButtons: {
+                cancel: true, // no implementado
+                /* customButton: [{
+                    text: 'Anular',
+                    action: 'anular-venta',
+                }, */
 
-                },
-                customTopButton: [{
-                    text: 'Filtro: Hoy',
-                    icon: 'fas fa-calendar-alt ',
-                    class: 'btn-select-fecha bg-xsuccess',
-                    myfunction: () => Selecionarfecha(),
-                }],
-            });
-        }
+            },
+            customTopButton: [{
+                text: 'Filtro: Hoy',
+                icon: 'fas fa-calendar-alt ',
+                class: 'btn-select-fecha bg-xsuccess',
+                myfunction: () => Selecionarfecha(),
+            }],
+        });
+    }
 </script>

@@ -210,6 +210,7 @@ class Larajax {
         print = false,
         edit = false,
         destroy = false,
+        cancel = false,
         menuType = "default",
         customButton = false,
         customButtonLink = false,
@@ -248,6 +249,9 @@ class Larajax {
                     //buttons += destroy ? `<button type="button" class="btn btn-primary btn-sm btn-destroy me-2" id=${data} ${this.model}="${fila[1]}" onclick="destroy_record('${fila[0]}','${fila[1]}')">Eliminar</button>` : '';
                     buttons += destroy
                         ? `<button type="button" class="btn btn-xaccent btn-sm btn-destroy mr-2" id=${data} subject="${fila[1]}" >Eliminar</button>`
+                        : "";
+                    buttons += cancel
+                        ? `<button type="button" class="btn btn-primary btn-sm btn-cancel mr-2" route="${this.route}" modalId=${this.modalId} id=${data} subject="${fila[1]}" >Anular</button>`
                         : "";
 
                     if (customButton) {
@@ -939,3 +943,46 @@ function destroy_record(dataAjax, table, rowData) {
         }
     });
 }
+// anular record
+$('#table').on("click", ".btn-cancel", function () {
+    const rowData_id = $(this).attr('id');
+    const route = $(this).attr('route');
+    const modalId = $(this).attr('modalId');
+    const subject = $(this).attr('subject');
+
+    Swal.fire({
+        title: "Anular",
+        text:
+            "¿Está seguro de anular a: " + subject + "?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si, anular",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: route + "/cancel/" + rowData_id,
+                type: "PUT",
+                dataType: "json",
+                data: {
+                    _token: token,
+                },
+                success: function (respuesta) {
+                    swal_message_response(respuesta)
+                        ? table.ajax.reload()
+                        : null;
+                },
+                error: function (error) {
+                    // llega aqui si mando error 400
+                    Swal.fire({
+                        icon: "error",
+                        title: "Hubo un error",
+                        html: error.responseJSON.message,
+                        showConfirmButton: true,
+                    });
+                },
+            });
+        }
+    });
+});

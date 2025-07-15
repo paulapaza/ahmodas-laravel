@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('username')->unique()->nullable();
             // tienda_id
-            $table->unsignedBigInteger('tienda_id')->nullable();
+            $table->tinyInteger('tienda_id')->nullable();
             $table->tinyInteger('estado')->default(1);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

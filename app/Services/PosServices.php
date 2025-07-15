@@ -34,7 +34,7 @@ class PosServices
             // tipo_transaccion: 'venta' o 'devolucion'
             if ($tipo_transaccion === 'venta') {
                 $this->decreaseStock($producto_id, $tienda_id, $cantidad);
-            } elseif ($tipo_transaccion === 'devolucion') {
+            } elseif ($tipo_transaccion === 'anulacion') {
                 $this->increaseStock($producto_id, $tienda_id, $cantidad); 
             }
         }

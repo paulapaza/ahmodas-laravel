@@ -4,7 +4,7 @@
     </x-slot>
     <x-slot name="pagetitle">Venta nro {{ $posorder->id }}</x-slot>
     <div class="bg-trama detalle-recibo">
-        <div class="paper col-12 col-md-6 col-lg-5 col-xl-4 mx-auto">
+        <div class="paper col-12 col-md-6 col-lg-5 col-xl-4 mx-auto bg-white">
             <div class="cabecera">
                 <div class="row">
                     @if ($posorder->estado == "anulado")
@@ -96,7 +96,7 @@
                     <button class="btn btn-primary" id="print">Imprimir</button>
                 </div>
                 <div class="col-6 text-left">
-                    <a href="{{route('ventas.posorder.index') }}" class="btn btn-secondary">Regresar</a>
+                    <a href="{{ url()->previous() }}" class="btn btn-secondary">Regresar</a>
                 </div>
             </div>
         </div>

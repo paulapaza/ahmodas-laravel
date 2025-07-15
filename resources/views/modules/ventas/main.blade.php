@@ -4,4 +4,3 @@
      
   <x-slot name="pagetitle">Ventas</x-slot>
 </x-admin-layout>
- 

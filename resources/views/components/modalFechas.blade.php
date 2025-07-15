@@ -128,8 +128,7 @@
             } */
 
             $("#modal-filter-fechas").modal("hide");
-            console.log(fechaInicio, fechaFin);
-            table.destroy();
+            //table.destroy();
             cargarTabla(fechaInicio, fechaFin);
         });
     </script>
