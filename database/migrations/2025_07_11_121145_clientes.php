@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::create('clientes', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->string('tipo_documento_identidad')->unique();
+            $table->string('tipo_documento_identidad');
             $table->string('numero_documento_identidad')->unique();
-            $table->string('nacionalidad')->nullable();
-            $table->string('pais')->nullable();
             $table->string('ubigeo')->nullable();
             $table->string('direccion')->nullable();
             $table->string('telefono')->nullable();

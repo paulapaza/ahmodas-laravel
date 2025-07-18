@@ -91,11 +91,27 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-6 text-right">
-                    <button class="btn btn-primary" id="print">Imprimir</button>
+            @php
+                $print_button = '<a href="#" class="btn btn-primary" onclick="window.print()">Imprimir</a>';
+            @endphp
+            @if ($posorder->cpe)
+                @php 
+                    $print_button = "<a href='{$posorder->cpe->enlace_del_pdf}' target='_blank' class='btn btn-primary'>Imprimir Comprobante</a>";
+                @endphp
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <p class="text-bold">Comprobante Electrónico</p>
+                        <p>Estado: {{ $posorder->cpe->aceptada_por_sunat }}</p>
+                        <p>Enlace: <a href="{{ $posorder->cpe->enlace }}" target="_blank">{{ $posorder->cpe->enlace }}</a></p>
+                        <p>XML: <a href="{{ $posorder->cpe->enlace_del_xml }}" target="_blank">{{ $posorder->cpe->enlace_del_xml }}</a></p>
+                    </div>
                 </div>
-                <div class="col-6 text-left">
+            @endif
+            <div class="row">
+                <div class="col-6">
+                    {!! $print_button !!}
+                </div>
+                <div class="col-6 text-right">
                     <a href="{{ url()->previous() }}" class="btn btn-secondary">Regresar</a>
                 </div>
             </div>

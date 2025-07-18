@@ -6,7 +6,7 @@ use App\Models\Inventario\UnidadDeMedida;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UnidadDeMedidaRequest;
-use App\Http\Services\AjaxResponseService;
+use App\Services\AjaxResponseService;
 
 class UnidadDeMedidaController extends Controller
 {

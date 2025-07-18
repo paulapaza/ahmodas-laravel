@@ -655,111 +655,245 @@
          * PROCESAR PAGO
          ****************************/
         $(document).on('click', '.procesar_venta', function() {
-
-            console.log('Procesando pago...');
-            //desactivar botones de pago
-            $('.procesar_venta').prop('disabled', true);
-            //añadir icono des procesamiento
-
             let total = parseFloat($("#TotalRecibo").text());
             if (total <= 0) {
                 Swal.fire({
                     icon: 'error',
-                    html: 'El total no puede ser cero',
+                    html: 'No hya producto agregados al la venta',
                     footer: 'Agrega productos al carrito!'
                 });
                 $('.procesar_venta').prop('disabled', false);
                 return;
             }
-            // Validar que al menos un método de pago tenga un monto
-            const efectivo = parseFloat($('#pago_efectivo').val()) || 0;
-            const tarjeta = parseFloat($('#pago_tarjeta').val()) || 0;
-            const yape = parseFloat($('#pago_yape').val()) || 0;
-            const transferencia = parseFloat($('#pago_transferencia').val()) || 0;
+            $('.procesar_venta').prop('disabled', true);
 
-            if (efectivo + tarjeta + yape + transferencia <= 0) {
-                Swal.fire({
-                    icon: 'error',
-                    html: 'Debe ingresar al menos un monto en los métodos de pago',
-                    footer: 'Intenta nuevamente!'
-                });
-                return;
-            }
-            // verificar la suma de los metodos de pagos sea = al total del carrito
-            console.log('Total del carrito:', totalCarrito);
-            console.log('Efectivo:', efectivo);
-            console.log('Tarjeta:', tarjeta);
-            console.log('Yape:', yape);
-            console.log('Transferencia:', transferencia);
-            if (efectivo + tarjeta + yape + transferencia != totalCarrito) {
+            let codigo_tipo_comprobante = $(this).attr('codigo_tipo_comprobante');
+            let cliente = null;
+            // abrir modal si el codigo_tipo_comprobante es 01 o 03
+            if (codigo_tipo_comprobante != "12") {
+                // si es 03 cargar variables para boleta
+                if (codigo_tipo_comprobante == "03") {
+                    Swal.fire({
+                        title: 'Datos cliente para la boleta',
+                        html: `<div class="form-contenedor">
+                                <input type="text" id="dni_cliente" class="form-input" placeholder="DNI">
+                                <input type="text" id="nombre_cliente" class="form-input" placeholder="Nombre">
+                                <input type="text" id="direccion_cliente" class="form-input" placeholder="Dirección">
+                                </div>`,
+                        focusConfirm: false,
+                        customClass: {
+                            popup: 'form-modal'
+                        },
+                        preConfirm: () => {
+                            const dni = Swal.getPopup().querySelector('#dni_cliente').value;
+                            const nombre = Swal.getPopup().querySelector('#nombre_cliente')
+                                .value;
+                            const direccion = Swal.getPopup().querySelector(
+                                '#direccion_cliente').value;
 
-                Swal.fire({
-                    icon: 'error',
-                    html: 'El total de los métodos de pago debe ser igual al total del carrito',
-                    footer: 'Intenta nuevamente!'
-                });
-                $('.procesar_venta').prop('disabled', false);
-                return;
+
+                            // dni 8 digitos y ser solo numeros
+                            if (dni && !/^\d{8}$/.test(dni)) {
+                                Swal.showValidationMessage(
+                                    'El DNI debe tener exactamente 8 dígitos numéricos');
+                                return false;
+                            }
+                            // si tiene dni de tener nombre
+                            if (dni && !nombre) {
+                                Swal.showValidationMessage(
+                                    'Falta Nombre');
+                                return false;
+                            }
+
+                            return {
+                                dni,
+                                nombre,
+                                direccion
+                            };
+                        },
+                        willClose: () => {
+                            // Se ejecuta siempre al cerrar el modal, incluso si no se confirmó
+                            $('.procesar_venta').prop('disabled', false);
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Aquí accedes a los datos ingresados
+                            const cliente = result.value; // Aquí están los valores ingresados
+                            //añadir tipo_documento a cliente
+                            cliente.tipo_documento = '1';
+                            procesarVenta(cliente); // Llama a tu función con el cliente
+
+                        }
+
+                    });
+                }
+                if (codigo_tipo_comprobante == "01") {
+                    Swal.fire({
+                        title: 'Datos cliente para la factura',
+                        html: `<div class="form-contenedor"><input type="text" id="ruc_cliente" class="form-input" placeholder="RUC">
+                                <input type="text" id="razon_social_cliente" class="form-input" placeholder="Razón Social">
+                                <input type="text"  id="direccion_cliente" class="form-input"  placeholder="Dirección">
+                                </div>`,
+                        focusConfirm: false,
+                        customClass: {
+                            popup: 'form-modal'
+                        },
+                        preConfirm: () => {
+                            const ruc = Swal.getPopup().querySelector('#ruc_cliente').value;
+                            const razonSocial = Swal.getPopup().querySelector(
+                                    '#razon_social_cliente')
+                                .value;
+                            const direccion = Swal.getPopup().querySelector(
+                                '#direccion_cliente').value;
+
+                            if (!ruc || !razonSocial || !direccion) {
+                                Swal.showValidationMessage(
+                                    `Por favor, completa todos los campos`);
+                            }
+                            // ruc 11 digitos y ser solo numeros
+                            if (!/^\d{11}$/.test(ruc)) {
+                                Swal.showValidationMessage(
+                                    `El RUC debe tener exactamente 11 dígitos numéricos`
+                                );
+                                return false;
+                            }
+                            return {
+                                ruc,
+                                razonSocial,
+                                direccion
+                            };
+                        },
+                        willClose: () => {
+                            // Se ejecuta siempre al cerrar el modal, incluso si no se confirmó
+                            $('.procesar_venta').prop('disabled', false);
+                        }
+
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Aquí accedes a los datos ingresados
+                            const cliente = result.value; // Aquí están los valores ingresados
+                            cliente.tipo_documento = '6'; // Añadir tipo_documento a cliente
+                            procesarVenta(cliente); // Llama a tu función con el cliente
+
+                        }
+                    });
+                }
+            } else {
+                procesarVenta(cliente);
             }
-            //ajax 
-            let productos = table.rows().data().toArray();
-            // Convertir los productos a un formato adecuado para enviar al servidor
-            productos = productos.map(producto => {
-                return {
-                    id: producto.id,
-                    cantidad: producto.cantidad,
-                    precio_unitario: parseFloat(producto.precio_unitario),
-                    subtotal: parseFloat(producto.subtotal)
-                };
-            });
-            $.ajax({
-                url: "/punto-de-venta/venta",
-                type: "POST",
-                data: {
-                    '_token': _token,
-                    'efectivo': efectivo,
-                    'tarjeta': tarjeta,
-                    'yape': yape,
-                    'transferencia': transferencia,
-                    'total': totalCarrito,
-                    'codigo_tipo_comprobante': $(this).attr('codigo_tipo_comprobante'),
-                    'productos': productos,
-                },
-                dataType: 'json',
-                success: function(respuesta) {
-                    if (respuesta.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            html: 'Pago procesado correctamente',
-                            footer: 'Gracias por su compra!'
-                        }).then(() => {
-                            // Limpiar el carrito y los inputs de pago
+
+            //desactivar botones de pago
+
+            //añadir icono des procesamiento
+            function procesarVenta(cliente) {
+
+                // Validar que al menos un método de pago tenga un monto
+                const efectivo = parseFloat($('#pago_efectivo').val()) || 0;
+                const tarjeta = parseFloat($('#pago_tarjeta').val()) || 0;
+                const yape = parseFloat($('#pago_yape').val()) || 0;
+                const transferencia = parseFloat($('#pago_transferencia').val()) || 0;
+
+                if (efectivo + tarjeta + yape + transferencia <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        html: 'Debe ingresar al menos un monto en los métodos de pago',
+                        footer: 'Intenta nuevamente!'
+                    });
+                    return;
+                }
+
+                if (efectivo + tarjeta + yape + transferencia != totalCarrito) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        html: 'El total de los métodos de pago debe ser igual al total del carrito',
+                        footer: 'Intenta nuevamente!'
+                    });
+                    $('.procesar_venta').prop('disabled', false);
+                    return;
+                }
+                //ajax 
+                let productos = table.rows().data().toArray();
+                // Convertir los productos a un formato adecuado para enviar al servidor
+                productos = productos.map(producto => {
+                    return {
+                        id: producto.id,
+                        cantidad: producto.cantidad,
+                        precio_unitario: parseFloat(producto.precio_unitario),
+                        subtotal: parseFloat(producto.subtotal)
+                    };
+                });
+                $.ajax({
+                    url: "/punto-de-venta/venta",
+                    type: "POST",
+                    data: {
+                        '_token': _token,
+                        'efectivo': efectivo,
+                        'tarjeta': tarjeta,
+                        'yape': yape,
+                        'transferencia': transferencia,
+                        'total': totalCarrito,
+                        'codigo_tipo_comprobante': codigo_tipo_comprobante,
+                        'cliente': cliente,
+                        'productos': productos,
+                    },
+                    dataType: 'json',
+                    success: function(respuesta) {
+                        if (respuesta.success) {
+                            let mensaje = respuesta.message;
+                            let footer = '';
+                            if (respuesta.pos_order.tipo_comprobante != 12) {
+                                // impirmir el mensje y añadir dos botones para abri una url
+                                mensaje = `<div class="text-center">
+                                    <h5>Comprobante: ${respuesta.pos_order.tipo_comprobante}</h5>
+                                    <a href="${respuesta.cpe_response.enlace_del_pdf}" target="_blank" class="btn btn-primary">Imprimir Comprobante</a>
+                                    
+                                </div>`;
+                                footer = `<div class="text-center">
+                                   <a href="${respuesta.cpe_response.enlace}"  target="_blank">ver opciones del Comprobante</a>
+                                   
+                                </div>`;
+                            }
+                            Swal.fire({
+                                icon: 'success',
+                                html: mensaje,
+                                footer: footer,
+                                // sin boton de cerrar
+                                showCloseButton: false,
+
+                            });
+                            // Limpiar el carrito
                             table.clear().draw();
+                            // Limpiar los inputs de pago
                             $('#pago_efectivo, #pago_tarjeta, #pago_yape, #pago_transferencia')
-                                .val(0);
+                                .val('0.00').prop('disabled', true);
+                            // Volver a activar los botones de pago
+                            $('.procesar_venta').prop('disabled', false);
+                            // Actualizar el total del recibo
+                            $("#TotalRecibo").text('0.00');
+                            // Enfocar el input de búsqueda
+                            $('#search-box').focus();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                html: respuesta.message,
+                                footer: 'Intenta nuevamente!'
+                            });
                             $("#TotalRecibo").text('0.00');
                             // Volver a activar los botones de pago
                             $('.procesar_venta').prop('disabled', false);
-
-                        });
-                    } else {
+                        }
+                    },
+                    error: function(xhr, status, error) {
                         Swal.fire({
                             icon: 'error',
-                            html: respuesta.message,
-                            footer: 'Intenta nuevamente!'
+                            html: 'Error al procesar el pago: ' + xhr.responseJSON
+                                .message,
+                            footer: 'Intenta nuevamente! presione f5 para recargar la pagina    '
                         });
                     }
-                },
-                error: function(xhr, status, error) {
-                    Swal.fire({
-                        icon: 'error',
-                        html: 'Error al procesar el pago: ' + xhr.responseJSON
-                            .message,
-                        footer: 'Intenta nuevamente! presione f5 para recargar la pagina    '
-                    });
-                }
-            });
-
+                });
+            }
 
         });
 

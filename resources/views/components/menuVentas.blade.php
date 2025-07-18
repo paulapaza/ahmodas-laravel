@@ -21,3 +21,6 @@
         
         </ul>
 </li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{{route('ventas.cliente.index')}}" class="nav-link">clientes</a>
+</li>

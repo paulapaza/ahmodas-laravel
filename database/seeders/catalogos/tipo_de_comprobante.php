@@ -44,11 +44,13 @@ class tipo_de_comprobante extends Seeder
         */
         DB::table('sunat_tipo_comprobante')->insert([
             'codigo' => '01',
+            'codigo_nubefact' => '1',
             'descripcion' => 'Factura',
             'estado' => 1,
         ]);
         DB::table('sunat_tipo_comprobante')->insert([
             'codigo' => '03',
+            'codigo_nubefact' => '2',
             'descripcion' => 'Boleta de venta',
             'estado' => 1,
         ]);
@@ -59,11 +61,13 @@ class tipo_de_comprobante extends Seeder
         ]);
         DB::table('sunat_tipo_comprobante')->insert([
             'codigo' => '07',
+            'codigo_nubefact' => '3',
             'descripcion' => 'Nota de crédito',
             'estado' => 1,
         ]);
         DB::table('sunat_tipo_comprobante')->insert([
             'codigo' => '08',
+            'codigo_nubefact' => '4',
             'descripcion' => 'Nota de débito',
             'estado' => 1,
         ]);

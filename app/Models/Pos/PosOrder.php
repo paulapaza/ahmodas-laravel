@@ -5,6 +5,7 @@ use App\Models\Inventario\Tienda;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Cliente;
 
 class Posorder extends Model
 {
@@ -49,4 +50,14 @@ class Posorder extends Model
     {
         return $this->hasMany(PosorderLine::class, 'posorder_id'); // usa el nombre de la clave foránea real
     } */
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id'); // Asumiendo que el cliente es un usuario
+    }
+    // relacion con Cpe
+    public function cpe()
+    {
+        return $this->hasOne(\App\Models\Facturacion\Cpe::class, 'pos_order_id', 'id');
+    }   
 }

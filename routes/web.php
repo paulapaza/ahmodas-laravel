@@ -49,6 +49,12 @@ Route::middleware([
     Route::put('/ventas/posorder/cancel/{id}', [PosOrderController::class, 'cancel'])->name('ventas.posorder.cancel');
     Route::get('/ventas/visor/posorder/{fecha_inicio?}/{fecha_fin?}', [PosOrderController::class, 'postOrderPanel'])->name('ventas.visor.posorderpanel');
     Route::get('/ventas/visor/posorderline', [PosOrderController::class, 'postOrderLinePanel'])->name('ventas.visor.posorderlinepanel');
+
+    //clientes
+    Route::view('/ventas/clientes', 'modules.clientes.index')->name('ventas.cliente.index');
+    Route::resource('/ventas/cliente', \App\Http\Controllers\ClienteController::class)->except(['show']);
+  
+
     /*************************
      MODULO DE INVENTARIO
      ************************/ 

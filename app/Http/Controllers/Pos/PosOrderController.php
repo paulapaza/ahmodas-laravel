@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PosOrderStore;
 use App\Models\Inventario\Tienda;
 use App\Models\Pos\Posorder;
+use App\Services\CpeServices;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
 use Carbon\Carbon;
@@ -55,7 +56,7 @@ class PosOrderController extends Controller
             $tienda_id,
             $request->input('codigo_tipo_comprobante')
         );
-
+        $cliente = $posServices->procesarCliente($request->input('cliente'));
         $pos_order = PosOrder::create([
             'serie' => $cpeSerie->serie, // Serie del comprobante
             'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
@@ -64,7 +65,7 @@ class PosOrderController extends Controller
             'total_amount' => $request->input('total'),
             'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
             'user_id' => Auth::user()->id, // ID del usuario autenticado
-            'cliente_id' => $request->input('cliente_id', 1), // ID del cliente, si se proporciona
+            'cliente_id' => $cliente->id, // ID del cliente, si se proporciona
             'estado' => 'completed', // Estado de la orden, puedes ajustarlo según tu lógica
         ]);
 
@@ -100,17 +101,25 @@ class PosOrderController extends Controller
                 $line['cantidad']
             );
         }
-
+        $cpeServices = new CpeServices();
+        // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
+       
+        if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
+                       
+            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, $pos_order_lines);
+        } 
 
         // Aumentar el correlativo del CPE
-        (new PosServices())->increase_CpeSerie($cpeSerie);
+        $posServices->increase_CpeSerie($cpeSerie);
+
         DB::Commit();
         // Retornar una respuesta JSON
 
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',
-            'data' => $pos_order,
+            'pos_order' => $pos_order,
+            'cpe_response' => isset($api_response) ? $api_response : null,
         ]);
     }
 

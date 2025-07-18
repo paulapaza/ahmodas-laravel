@@ -6,7 +6,7 @@ use App\Models\Inventario\Marca;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MarcaRequest;
-use App\Http\Services\AjaxResponseService;
+use App\Services\AjaxResponseService;
 
 class MarcaController extends Controller
 {

@@ -53,13 +53,13 @@ class DatabaseSeeder extends Seeder
         Producto::factory()->count(20)->create();
         // cliente
         Cliente::create([
-            'nombre' => 'Cliente Generico',
+            'nombre' => 'Cliente Varios',
             'tipo_documento_identidad' => 'DNI', // DNI
             'numero_documento_identidad' => '00000000',
             'nacionalidad' => 'peruana',
             'pais' => 'Perú',
             'ubigeo' => '000000',
-            'direccion' => '',
+            'direccion' => 's/d',
             'email' => '',
             'telefono' => '',
             

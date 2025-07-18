@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoriaRequest;
 use App\Models\Inventario\Categoria;
 use Illuminate\Http\Request;
-use App\Http\Services\AjaxResponseService;
+use App\Services\AjaxResponseService;
 
 class CategoriaController extends Controller
 {

@@ -16,6 +16,8 @@ class SunatTipoComprobante extends Migration
         Schema :: create('sunat_tipo_comprobante', function (Blueprint $table) {
             //Catálogo No. 01: Código de Tipo de documento 
             $table -> string('codigo', 2)->primary();
+            // Código del tipo de comprobante
+            $table -> string('codigo_nubefact', 2)->nullable();
             $table -> string('descripcion', 254);
             $table -> tinyInteger('estado');
                         

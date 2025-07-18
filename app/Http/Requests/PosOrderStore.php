@@ -21,36 +21,7 @@ class PosOrderStore extends FormRequest
      */
     public function rules(): array
     {
-        /*
-        _token
-            lUQBFpQrACVx16N8MpyzNZOykW3MnP5sXrku8Psr
-            efectivo
-            205
-            tarjeta
-            0
-            yape
-            0
-            transferencia
-            0
-            total
-            205
-            productos[0][id]
-            2
-            productos[0][cantidad]
-            2
-            productos[0][precio_unitario]
-            70
-            productos[0][subtotal]
-            140
-            productos[1][id]
-            1
-            productos[1][cantidad]
-            1
-            productos[1][precio_unitario]
-            65
-            productos[1][subtotal]
-            65
-        */
+      
         
         return [
             '_token' => 'required',
@@ -63,7 +34,13 @@ class PosOrderStore extends FormRequest
             'productos.*.id' => 'required|integer|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1',
             'productos.*.precio_unitario' => 'required|numeric|min:0',
-            'productos.*.subtotal' => 'required|numeric|min:0'
+            'productos.*.subtotal' => 'required|numeric|min:0',
+            'cliente.dni' => 'nullable|regex:/^\d{8}$/',
+            'cliente.nombre' => 'nullable|string|max:255',
+            'cliente.direccion' => 'nullable|string|max:255|required_if:codigo_tipo_comprobante,01',
+            'cliente.ruc' => 'required_if:codigo_tipo_comprobante,01|regex:/^\d{11}$/',
+            'cliente.razonSocial' => 'required_if:codigo_tipo_comprobante,01|string|max:255'            ,
+
         ];
     }
 }

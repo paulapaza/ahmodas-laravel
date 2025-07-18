@@ -244,3 +244,32 @@ verde: #54C392
     border: 0px;
     border-bottom: 4px solid transparent;
 }
+/* modal pos, datos de cliente*/
+.form-modal {
+  width: 650px !important;
+  padding: 25px !important;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.form-contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: #0078D7; /* color destacado */
+  outline: none;
+}

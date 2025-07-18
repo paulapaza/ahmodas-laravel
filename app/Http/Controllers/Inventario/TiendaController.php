@@ -25,6 +25,8 @@ class TiendaController extends Controller
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
+        $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
+        $tienda->token_facturacion = $request->token_facturacion;
         $tienda->save();
         return response()->json(
             [
@@ -41,6 +43,8 @@ class TiendaController extends Controller
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
+        $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
+        $tienda->token_facturacion = $request->token_facturacion;
         $tienda->save();
         return response()->json([
             'success' => true,

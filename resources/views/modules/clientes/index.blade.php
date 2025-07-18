@@ -2,14 +2,19 @@
     <x-slot name="menu">
         <x-menuInventario></x-menuInventario>
     </x-slot>
-    <x-slot name="pagetitle">Tiendas</x-slot>
+    <x-slot name="pagetitle">Clientes</x-slot>
 
     <x-table>
         <th>id</th>
         <th>Nombre</th>
-        <th>Direccion</th>
+        <th>Tipo Doc </th>
+        <th>Nro Doc</th>
+        <th>Ubigeo</th>
+        <th>direccion</th>
         <th>Telefono</th>
-        <th>Estado</th>
+        <th>Email</th>
+        <th>acciones</th>
+        
     </x-table>
 
     <x-mymodal>
@@ -23,42 +28,55 @@
                 </div>
             </div>
             
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="tipo_documento_identidad">Tipo Doc Identidad</label>
+                   <select name="tipo_documento_identidad" id="tipo_documento_identidad" class="form-control" required>
+                       <option value="">Seleccione</option>
+                       <option value="1">DNI</option>
+                       <option value="6">RUC</option>
+                       <option value="0">Doc.trib.no.dom.sin.ruc</option>
+                       <option value="4">Carnet extranjeria</option>
+                       <option value="7">Pasaporte</option>
+                       <option value="E">TAM- Tarjeta Andina de Migración</option>
+
+                   </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="numero_documento_identidad">Numero Doc Identidad</label>
+                    <input type="text" class="form-control" id="numero_documento_identidad" name="numero_documento_identidad" required>
+                </div>
+            </div>
             <div class="col-md-12">
                 <div class="form-group">
                     <label for="direccion">Direccion</label>
                     <input type="text" class="form-control" id="direccion" name="direccion" required>
                 </div>
             </div>
-            <div class="col-md-12">
+         
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="ubigeo">Ubigeo</label>
+                    <input type="text" class="form-control" id="ubigeo" name="ubigeo" >
+                </div>
+            </div>
+          
+            <div class="col-md-6">
                 <div class="form-group">
                     <label for="telefono">Telefono</label>
-                    <input type="text" class="form-control" id="telefono" name="telefono" required>
+                    <input type="text" class="form-control" id="telefono" name="telefono">
                 </div>
-            </div>
+            </div>     
             
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="form-group">
-                    <label for="estado">Estado</label>
-                    <select class="form-control" id="estado" name="estado" required>
-                        <option value="1">Activo</option>
-                        <option value="0">Inactivo</option>
-                    </select>
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email">
                 </div>
             </div>
-       
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="ruta_api_facturacion">Ruta API Facturación</label>
-                    <input type="text" class="form-control" id="ruta_api_facturacion" name="ruta_api_facturacion" required>
-                </div>
-            </div>
-           
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="token_facturacion">Token Facturación</label>
-                    <input type="text" class="form-control" id="token_facturacion" name="token_facturacion" required>
-                </div>
-            </div>
+
         </div>
 
     </x-mymodal>
@@ -71,9 +89,9 @@
         let csrf = $('input[name="_token"]').val();
         // Inicializamos las variables para tipo de envio por ajax en Store record
         let dataCrud = {
-            route: "/inventario/tienda",
-            subject: 'Tienda',
-            model: "Tienda",
+            route: "/ventas/cliente",
+            subject: 'Cliente',
+            model: "Cliente",
             csrf: csrf,
         };
         let table = new Larajax({
@@ -84,27 +102,44 @@
                 {
                     data: 'nombre'
                 },
+                {
+                    data: 'tipo_documento_identidad',
+                    render: function(data, type, row) {
+                        return data == 1 ? 'DNI' : 
+                               data == 6 ? 'RUC' : 
+                               data == 0 ? 'Doc.trib.no.dom.sin.ruc' : 
+                               data == 4 ? 'Carnet extranjeria' : 
+                               data == 7 ? 'Pasaporte' : 
+                               data == 'E' ? 'TAM- Tarjeta Andina de Migración' : '';
+                    }
+                },
+                {
+                    data: 'numero_documento_identidad'
+
+                },
                 
                 {
-                    data: 'direccion'
+                    data: 'ubigeo'
+                },
+                {
+                    data: 'direccion',
+                    width: "20%" 
+                    
                 },
                 {
                     data: 'telefono'
                 },
                 {
-                    data: 'estado',
-                    render: function(data) {
-                        return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
-                    }
-                },
-               
+                    data: 'email'
+                }
+
 
             ],
             actionsButtons: {
                 edit: true,
                 destroy:true
-            },
-            alingCenter: [3]
+            }
+            
         })
 
        

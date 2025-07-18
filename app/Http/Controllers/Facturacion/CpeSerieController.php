@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Facturacion;
 
 use App\Http\Controllers\Controller;
-use App\Http\Services\AjaxResponseService;
+use App\Services\AjaxResponseService;
 use App\Models\Facturacion\CpeSerie;
 use Illuminate\Http\Request;
 
