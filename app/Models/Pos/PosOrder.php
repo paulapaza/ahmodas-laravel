@@ -23,6 +23,7 @@ class Posorder extends Model
         'tienda_id',
         'cliente_id',
         'total_amount',
+        'moneda', // 1 for PEN, 2 for USD
         'status',
     ];
 
@@ -60,4 +61,16 @@ class Posorder extends Model
     {
         return $this->hasOne(\App\Models\Facturacion\Cpe::class, 'pos_order_id', 'id');
     }   
+    
+    public function notasCredito()
+    {
+        return $this->hasMany(\App\Models\Facturacion\Cpe::class, 'comprobante_modificado_id', 'id')
+                    ->where('tipo_comprobante', '3'); // Nota de crédito
+    }
+
+    public function notasDebito()
+    {
+        return $this->hasMany(\App\Models\Facturacion\Cpe::class, 'pos_order_id', 'id')
+                    ->where('tipo_comprobante', '4'); // Nota de débito
+    }
 }

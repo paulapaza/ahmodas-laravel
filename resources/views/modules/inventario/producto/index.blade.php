@@ -63,6 +63,40 @@
 
                 </select>
             </div>
+          
+            <div class="form-group col-4">
+                <label for="moneda" class="form-label">Tipo de Moneda</label>
+                <select class="form-control" id="moneda" name="moneda" required>
+                    <option value="1" selected>PEN</option>
+                    <option value="2">USD</option>
+                </select>
+            </div>
+         
+            <div class="form-group col-8">
+                <label for="tipo_de_igv" class="form-label">Tipo de IGV</label>
+                <select class="form-control" id="tipo_de_igv" name="tipo_de_igv" required>
+                   
+                    <option value="1" selected>Gravado - Operación Onerosa</option>
+                    <option value="8">Exonerado - Operación Onerosa</option>
+                    <option value="9">Inafecto - Operación Onerosa</option>
+                    <option value="17">Exonerado - Transferencia Gratuita</option>
+                    <option value="20">Inafecto - Transferencia Gratuita</option>
+                    <option value="16">Exportación</option>
+                    {{-- <option value="2">Gravado - Retiro por premio</option>
+                    <option value="3">Gravado - Retiro por donación</option>
+                    <option value="4">Gravado - Retiro</option>
+                    <option value="5">Gravado - Retiro por publicidad</option>
+                    <option value="6">Gravado - Bonificaciones</option>
+                    <option value="7">Gravado - Retiro por entrega a trabajadores</option>
+                    <option value="10">Inafecto - Retiro por Bonificación</option>
+                    <option value="11">Inafecto - Retiro</option>
+                    <option value="12">Inafecto - Retiro por Muestras Médicas</option>
+                    <option value="13">Inafecto - Retiro por Convenio Colectivo</option>
+                    <option value="14">Inafecto - Retiro por premio</option>
+                    <option value="15">Inafecto - Retiro por publicidad</option> --}}
+                   
+                </select>
+            </div>
         </div>
         <h5>Stock por tienda</h5>
         <div id="stocks_por_tienda"></div>
@@ -248,6 +282,7 @@
                     success: function(data) {
                         let html = '';
                         data.forEach(tienda => {
+                           
                             html += `
                         <div class="form-group mb-2">
                             <label for="stock_tienda_${tienda.id}">${tienda.nombre}</label>

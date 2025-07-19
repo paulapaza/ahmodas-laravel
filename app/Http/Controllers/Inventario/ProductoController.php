@@ -22,6 +22,8 @@ class ProductoController extends Controller
                 'precio_minimo',
                 'categoria_id',
                 'marca_id',
+                'tipo_de_igv',
+                'moneda',
                 'estado'
             )
             ->get();
@@ -47,6 +49,7 @@ class ProductoController extends Controller
         $producto->precio_minimo = $request->precio_minimo;
         $producto->marca_id = $request->marca_id;
         $producto->categoria_id = $request->categoria_id;
+        $producto->tipo_de_igv = $request->tipo_de_igv;
         $producto->save();
 
         $stocks = $request->input('stocks', []);
@@ -78,6 +81,7 @@ class ProductoController extends Controller
         $producto->precio_minimo = $request->precio_minimo;
         $producto->marca_id = $request->marca_id;
         $producto->categoria_id = $request->categoria_id;
+        $producto->tipo_de_igv = $request->tipo_de_igv;
         $producto->save();
         // Actualizar stocks
         $stocks = $request->input('stocks', []);
@@ -152,5 +156,26 @@ class ProductoController extends Controller
         } */
 
         return response()->json($productos);
+    }
+    // eliminar
+    public function destroy($id)
+    {
+        $producto = Producto::find($id);
+        if (!$producto) {
+            return response()->json([
+                "success" => false,
+                "message" => "Producto no encontrado",
+            ], 404);    
+        }
+        // Eliminar las relaciones con tiendas
+        $producto->tiendas()->detach();
+        // Eliminar el producto
+        $producto->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Producto eliminado correctamente",
+        ]);
+    
     }
 }

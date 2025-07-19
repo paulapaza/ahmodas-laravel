@@ -6,19 +6,84 @@ use App\Models\Cliente;
 use App\Models\Facturacion\Cpe;
 use App\Models\Facturacion\CpeSerie;
 use App\Models\Inventario\Producto;
+use Exception;
 use Illuminate\Http\JsonResponse;
 
 class PosServices
 
 {
     // obtener numero de serie
-    public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante): ?CpeSerie
+    public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
     {
-        // Obtener el CPE correspondiente al tipo de comprobante
-        return CpeSerie::where('codigo_tipo_comprobante', $codigo_tipo_comprobante)
-            ->where('tienda_id', $tienda_id)
-            ->where('estado', 'activo')
-            ->first();
+        // si el codigo tipo comprobante es 07, buscar  si es para boleta o factura
+        //dd ($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar);
+        //      1               3                           2
+        if ($codigo_tipo_comprobante == '3') {
+            
+                if ($codigo_tipo_comprobante == 3) {
+                    $tipo_de_comprobante = "07"; // Nota de crédito
+                } elseif ($codigo_tipo_comprobante == 4) {
+                    $tipo_de_comprobante = "08"; // Nota de débito
+                } else {
+                    throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+                }
+            if ($tipo_documento_a_modificar == '1') {
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                    ->where('tienda_id', $tienda_id)
+                    ->where('serie', 'like', '%FC%') // buscar serie de boleta
+                    ->where('estado', 'activo')
+                    ->first();
+            } else if ($tipo_documento_a_modificar = '2') {
+                // si no se especifica tipo de documento, buscar el primero activo
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                    ->where('tienda_id', $tienda_id)
+                    ->where('serie', 'like', '%BC%') // buscar serie de factura
+                    ->where('estado', 'activo')
+                    ->first();
+            }
+            
+        }else if($codigo_tipo_comprobante == '4'){
+              if ($codigo_tipo_comprobante == 3) {
+                    $tipo_de_comprobante = "07"; // Nota de crédito
+                } elseif ($codigo_tipo_comprobante == 4) {
+                    $tipo_de_comprobante = "08"; // Nota de débito
+                } else {
+                    throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+                }
+            if ($tipo_documento_a_modificar == '1') {
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                    ->where('tienda_id', $tienda_id)
+                    ->where('serie', 'like', '%FD%') // buscar serie de boleta
+                    ->where('estado', 'activo')
+                    ->first();
+            } else if ($tipo_documento_a_modificar = '2') {
+                // si no se especifica tipo de documento, buscar el primero activo
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                    ->where('tienda_id', $tienda_id)
+                    ->where('serie', 'like', '%BD%') // buscar serie de factura
+                    ->where('estado', 'activo')
+                    ->first();
+            }
+        }
+        else if ($codigo_tipo_comprobante == '1') {
+            // buscar el CPE correspondiente al tipo de comprobante
+            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "01") // Factura
+                ->where('tienda_id', $tienda_id)
+                ->where('estado', 'activo')
+                ->first();
+        }else if ($codigo_tipo_comprobante == '2') {
+            // buscar el CPE correspondiente al tipo de comprobante
+            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "03") // Boleta
+                ->where('tienda_id', $tienda_id)
+                ->where('estado', 'activo')
+                ->first();
+        } else {
+            throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+        }
+        
+        return $cpeSerie;
+
+        
     }
     // aumentar correlativo
     public function increase_CpeSerie($cpe_serie): CpeSerie
@@ -37,6 +102,10 @@ class PosServices
             $this->decreaseStock($producto_id, $tienda_id, $cantidad);
         } elseif ($tipo_transaccion === 'anulacion') {
             $this->increaseStock($producto_id, $tienda_id, $cantidad);
+        } elseif ($tipo_transaccion === 'nota_credito') {
+            $this->increaseStock($producto_id, $tienda_id, $cantidad);
+        } else {
+            throw new Exception('Tipo de transacción no soportado: ' . $tipo_transaccion);
         }
     }
     // disminuir stock

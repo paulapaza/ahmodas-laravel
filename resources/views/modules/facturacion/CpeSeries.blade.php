@@ -34,6 +34,8 @@
                         <option value="03">Boleta</option>
                         <option value="01">Factura</option>
                         <option value="12">Ticket</option>
+                        <option value="07">Nota de crédito</option>
+                        <option value="08">Nota de débito</option>
                     </select> 
                 </div>
             </div>
@@ -91,6 +93,8 @@
                         return (data == "01") ? '<span class="badge badge-xprimary">Factura</span>' :
                             (data == "12") ? '<span class="badge badge-xdanger">Ticket</span>' :
                             (data == "03") ? '<span class="badge badge-xsuccess ">Boleta</span>' :
+                            (data == "07") ? '<span class="badge badge-xwarning">Nota de crédito</span>' :
+                            (data == "08") ? '<span class="badge badge-xinfo ">Nota de débito</span>' :
                             '<span class="badge bg-xdanger text-white">Otro</span>';
                     }
                 },

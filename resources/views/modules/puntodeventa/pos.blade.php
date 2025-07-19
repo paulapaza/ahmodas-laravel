@@ -76,11 +76,21 @@
                             </table>
                         </div>
                         <div class="row">
-
-                            <div class="col-md-12 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
+                            
+                            <div class="col-md-6 text-left pl-4 my-2">
+                                <label for="moneda" class="font-weight-bold">Moneda:</label>
+                                <select class="form-control d-inline-block w-auto" id="moneda"
+                                    name="moneda" required>
+                                    <option value="1" selected>PEN</option>
+                                    <option value="2">USD</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
+                               
                                 Total
-                                <span id="MonedaServicios"></span> <span id="SimboloMonedaservicios"></span> <span
-                                    id="TotalRecibo">0.00</span>
+                                
+                                <span id="simbolo_moneda">S/.</span>
+                                <span id="TotalRecibo">0.00</span>
                             </div>
                         </div>
                         <div class="row align-items-center mb-0">
@@ -832,6 +842,7 @@
                         'tarjeta': tarjeta,
                         'yape': yape,
                         'transferencia': transferencia,
+                        'moneda': $('#moneda').val(),
                         'total': totalCarrito,
                         'codigo_tipo_comprobante': codigo_tipo_comprobante,
                         'cliente': cliente,
@@ -895,6 +906,18 @@
                 });
             }
 
+        });
+
+        // manejar el cambio de moneda
+        $('#moneda').change(function() {
+            let monedaSeleccionada = $(this).val();
+            if (monedaSeleccionada == '1') {
+                // Si es PEN, mostrar el símbolo de Sol
+                $('#simbolo_moneda').text('S/ ');
+            } else if (monedaSeleccionada == '2') {
+                // Si es USD, mostrar el símbolo de Dólar
+                $('#simbolo_moneda').text('$ ');
+            }
         });
 
 

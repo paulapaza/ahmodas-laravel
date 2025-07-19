@@ -9,7 +9,8 @@ use Exception;
 class CpeServices
 {
     // Obtener el CPE correspondiente al tipo de comprobante
-    public function SendCep($cpeSerie, $cliente, $pos_order)
+    public function SendCep($cpeSerie, $cliente, $pos_order ,$tipo_de_nota = null, $nota = null)
+    
     {
         // Lógica para enviar el CPE al api que coonfigure pra esta tienda 
         // tienda->api_url_facturador u tienda->token_facturador,
@@ -17,7 +18,6 @@ class CpeServices
         
         $ruta = $pos_order->tienda->ruta_api_facturacion;
         $token = $pos_order->tienda->token_facturacion;
-
         $porcentaje_de_igv = 18;
         $total = $pos_order->total_amount;
 
@@ -54,13 +54,20 @@ class CpeServices
 
                 )
         */
+
+        $sunat_transaction = 1; // Asumiendo que es una venta normal
+        $porcentaje_de_igv_string = "18.00"; // Porcentaje de IGV como string
         // Inicializar array para items
         $pos_order_lines = [];
+        $total_gravada = 0;
+        $total_exonerada = 0;
+        $total_inafecta = 0;
+        $total_igv = 0;
 
         foreach ($pos_order->orderLines as $line) {
             $precio_total_linea = $line['price'] * $line['quantity']; // Total de la línea
-            $subtotal = round($precio_total_linea / (1 + ($porcentaje_de_igv / 100)), 2);
-            $igv = round($precio_total_linea - $subtotal, 2);
+            $subtotal = $line->producto->tipo_de_igv == 1 ?  round($precio_total_linea / (1 + ($porcentaje_de_igv / 100)), 2) : $precio_total_linea;
+            $igv = $line->producto->tipo_de_igv == 1 ? round($precio_total_linea - $subtotal, 2) : 0  ; // IGV solo si es gravado
             $valor_unitario = round($subtotal / $line['quantity'], 2);
 
             $pos_order_lines[] = [
@@ -74,13 +81,29 @@ class CpeServices
                 'subtotal' => $subtotal,
                 'igv' => $igv,
                 'total' => $precio_total_linea,
-                'tipo_de_igv' => 1,
+                'tipo_de_igv' => $line->producto->tipo_de_igv,
                 'anticipo_regularizacion' => false,
                 'anticipo_documento_serie' => '',
                 'anticipo_documento_numero' => ''
             ];
+            if ($line->producto->tipo_de_igv == 1) {
+                $total_gravada += $subtotal;
+                $total_igv += $igv;
+            } elseif ($line->producto->tipo_de_igv == 8) {
+                $total_exonerada += $precio_total_linea;
+            } elseif ($line->producto->tipo_de_igv == 9) {
+                $total_inafecta += $precio_total_linea;
+            } elseif ($line->producto->tipo_de_igv == 16) {
+                $total_gravada += $precio_total_linea; // Tipo de IGV 16 (exportacion)
+                $pos_order->moneda = 2;
+                $sunat_transaction = 2; // Cambiar a exportación
+                $porcentaje_de_igv_string = "0.00"; // Sin IGV para exportación
+            } else {
+                throw new Exception("Tipo de IGV no soportado: " . $line->producto->tipo_de_igv);
+            }
+            
         }
-
+        //dd($total_gravada, $total_exonerada, $total_inafecta);
         // Validar 
         // Validar (usando el array procesado)
         $suma_subtotales = array_sum(array_column($pos_order_lines, 'subtotal'));
@@ -111,13 +134,34 @@ class CpeServices
         } else {
             throw new Exception("Tipo de comprobante no soportado: " . $cpeSerie->codigo_tipo_comprobante);
         }
+        //preparar los datos para nota de credito y nota de debito
+        
+        if ($cpeSerie->codigo_tipo_comprobante == '07' || $cpeSerie->codigo_tipo_comprobante == '08') {
+            $tipo_documento_a_modificar = $pos_order->cpe->tipo_comprobante; // tipo de comprobante a modificar
+            $documento_que_se_modifica_serie = $pos_order->cpe->serie;
+            $documento_que_se_modifica_numero = $pos_order->cpe->numero;
+            if ($cpeSerie->codigo_tipo_comprobante == '07'){
+                $tipo_de_nota_de_credito = $tipo_de_nota;
+                $tipo_de_nota_de_debito = "";
+            }else {
+                $tipo_de_nota_de_credito = "";
+                $tipo_de_nota_de_debito = $tipo_de_nota;
+            }
+
+        } else {
+            $tipo_documento_a_modificar = ""; // No aplica para factura o boleta
+            $documento_que_se_modifica_serie = "";
+            $documento_que_se_modifica_numero = "";
+            $tipo_de_nota_de_credito = "";
+            $tipo_de_nota_de_debito = "";
+        }
 
         $data = array(
             "operacion"                         => "generar_comprobante",
             "tipo_de_comprobante"               => $tipo_de_comprobante, // 1: Factura, 2: Boleta, 3: Nota de crédito, 4: Nota de débito
             "serie"                             => $cpeSerie->serie,
             "numero"                            => $cpeSerie->correlativo,
-            "sunat_transaction"                 => "1", // 1: Venta, 2: Exportación, 3: Retención, 4: Percepción
+            "sunat_transaction"                 => $sunat_transaction, // 1: Venta, 2: Exportación, 3: Retención, 4: Percepción
             "cliente_tipo_de_documento"         => $cliente->tipo_documento_identidad, // 1: DNI, 6: RUC, 7: Carnet de extranjería, 4: Pasaporte, etc.
             "cliente_numero_de_documento"       => $cliente->numero_documento_identidad,
             "cliente_denominacion"              => $cliente->nombre,
@@ -127,16 +171,16 @@ class CpeServices
             "cliente_email_2"                   => "",
             "fecha_de_emision"                  => date('d-m-Y'),
             "fecha_de_vencimiento"              => "",
-            "moneda"                            => "1",
-            "tipo_de_cambio"                    => "",
-            "porcentaje_de_igv"                 => "18.00",
+            "moneda"                            => $pos_order->moneda,
+            "tipo_de_cambio"                    => $pos_order->moneda == 1 ? "" : 3.556, // Asumiendo que 3.8 es el tipo de cambio para USD
+            "porcentaje_de_igv"                 => $porcentaje_de_igv_string,
             "descuento_global"                  => "",
             "descuento_global"                  => "",
             "total_descuento"                   => "",
             "total_anticipo"                    => "",
-            "total_gravada"                     => $total_gravada,
-            "total_inafecta"                    => "",
-            "total_exonerada"                   => "",
+            "total_gravada"                     => $total_gravada == 0 ? "" : $total_gravada,
+            "total_inafecta"                    => $total_inafecta = 0 ? "" : $total_inafecta,
+            "total_exonerada"                   => $total_exonerada = 0 ? "" : $total_exonerada,
             "total_igv"                         => round($total_igv, 2),
             "total_gratuita"                    => "",
             "total_otros_cargos"                => "",
@@ -147,11 +191,11 @@ class CpeServices
             "total_incluido_percepcion"         => "",
             "detraccion"                        => "false",
             "observaciones"                     => "",
-            "documento_que_se_modifica_tipo"    => "",
-            "documento_que_se_modifica_serie"   => "",
-            "documento_que_se_modifica_numero"  => "",
-            "tipo_de_nota_de_credito"           => "",
-            "tipo_de_nota_de_debito"            => "",
+            "documento_que_se_modifica_tipo"    => $tipo_documento_a_modificar,
+            "documento_que_se_modifica_serie"   => $documento_que_se_modifica_serie,
+            "documento_que_se_modifica_numero"  => $documento_que_se_modifica_numero,
+            "tipo_de_nota_de_credito"           => $tipo_de_nota_de_credito,
+            "tipo_de_nota_de_debito"            => $tipo_de_nota_de_debito,
             "enviar_automaticamente_a_la_sunat" => "true",
             "enviar_automaticamente_al_cliente" => "false",
             "codigo_unico"                      => "",
@@ -199,7 +243,7 @@ class CpeServices
             "items" => $pos_order_lines
         );
         $data_json = json_encode($data);
-        //dd($data_json);
+       dd($data_json);
                 /*
         #########################################################
         #### PASO 3: ENVIAR EL ARCHIVO A NUBEFACT ####
@@ -216,7 +260,7 @@ class CpeServices
         # - Adjuntar en el CUERPO o BODY el archivo JSON o TXT
         +++++++++++++++++++++++++++++++++++++++++++++++++++++++
         */
-        
+       //dd($data_json);
         //Invocamos el servicio de NUBEFACT
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $ruta);
@@ -240,13 +284,19 @@ class CpeServices
             throw new Exception("Error al enviar el CPE: " . $respuesta['errors']
                         . " - Mensaje: " . $data_json);
         }
-        $this->storeCpeResponseData($respuesta, $pos_order->id);
+        $this->storeCpeResponseData($respuesta, $pos_order->id, $nota);
         return $respuesta;
     }
 
-    private function storeCpeResponseData($respuesta,$pos_order_id){
+    private function storeCpeResponseData($respuesta,$pos_order_id, $nota = null){
         //dd($respuesta);
         $cpe = new Cpe();
+        if ($nota !== null) {
+            $cpe->comprobante_modificado_id = $pos_order_id; // Referencia a la nota de crédito o débito
+            $pos_order_id = $nota->id; // Usar el ID de la nota como pos_order_id
+        } else {
+            $cpe->comprobante_modificado_id = null; // No hay comprobante modificado
+        }
         $cpe->pos_order_id = $pos_order_id;
         $cpe->tipo_comprobante = $respuesta['tipo_de_comprobante'];
         $cpe->serie = $respuesta['serie'];
@@ -264,4 +314,7 @@ class CpeServices
         $cpe->codigo_hash = $respuesta['codigo_hash'] ?? null;
         $cpe->save();
     }
+
+    // nota de credito
+    
 }

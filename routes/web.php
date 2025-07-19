@@ -53,7 +53,10 @@ Route::middleware([
     //clientes
     Route::view('/ventas/clientes', 'modules.clientes.index')->name('ventas.cliente.index');
     Route::resource('/ventas/cliente', \App\Http\Controllers\ClienteController::class)->except(['show']);
-  
+    Route::post('/ventas/posorder/anular/{id}', [PosOrderController::class, 'anular'])->name('ventas.posorder.anular.cpe');
+    //nota de credito
+    Route::post('/ventas/nota-de-credito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadecredito');
+    Route::post('/ventas/nota-de-debito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadebito');
 
     /*************************
      MODULO DE INVENTARIO

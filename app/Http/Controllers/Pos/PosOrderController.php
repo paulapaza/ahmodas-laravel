@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class PosOrderController extends Controller
 {
@@ -41,6 +42,7 @@ class PosOrderController extends Controller
 
     public function store(PosOrderStore $request)
     {
+       
         $posServices = new PosServices();
         DB::beginTransaction();
         // Aquí puedes implementar la lógica para guardar la venta
@@ -52,10 +54,15 @@ class PosOrderController extends Controller
                 'message' => 'El usuario no tiene una tienda asociada.',
             ], 400);
         }
+        $codigo_tipo_comprobante = [
+            '01' => '1',
+            '03' => '2',
+        ];
         $cpeSerie = $posServices->get_CpeSerie(
             $tienda_id,
-            $request->input('codigo_tipo_comprobante')
+            $codigo_tipo_comprobante[$request->input('codigo_tipo_comprobante')],
         );
+       
         $cliente = $posServices->procesarCliente($request->input('cliente'));
         $pos_order = PosOrder::create([
             'serie' => $cpeSerie->serie, // Serie del comprobante
@@ -63,6 +70,7 @@ class PosOrderController extends Controller
             'order_date' => now(), // Fecha y hora actual
             'tipo_comprobante' => $request->input('codigo_tipo_comprobante'), // Tipo de comprobante, por ejemplo 'boleta', 'factura', etc.
             'total_amount' => $request->input('total'),
+            'moneda' => (int)$request->input('moneda'), // Moneda, 1 para PEN, 2 para USD
             'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
             'user_id' => Auth::user()->id, // ID del usuario autenticado
             'cliente_id' => $cliente->id, // ID del cliente, si se proporciona
@@ -211,5 +219,90 @@ class PosOrderController extends Controller
         $alltiendas = Tienda::all();
 
         return view('modules.ventas.posorder.posorderlinepanel', compact('alltiendas'));
+    }
+    public function emitirNota($id, Request $request)
+    {
+       
+        
+        $posServices = new PosServices();
+        
+        $tienda_id = Auth::user()->tienda_id; // Obtener el ID de la tienda del usuario autenticado
+        // Validar que el usuario tenga una tienda asociada
+        if (!$tienda_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El usuario no tiene una tienda asociada.',
+            ], 400);
+        }
+        $pos_order = Posorder::findOrFail($id);
+
+       
+        
+        $cpeSerie = $posServices->get_CpeSerie(
+            $tienda_id,
+            $request->input('codigo_tipo_comprobante'),
+            $pos_order->cpe->tipo_comprobante // tipo de comprobante a modificar
+        );
+        
+        // Validar que la serie y correlativo existan
+        if (!$cpeSerie) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Serie y correlativo no encontrados.',
+            ], 404);
+        }
+         // buscamos la orden 
+       
+        $cliente = $pos_order->cliente;
+        DB::beginTransaction();
+        $nota = PosOrder::create([
+                'serie' => $cpeSerie->serie, // Serie del comprobante
+                'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
+                'order_date' => now(), // Fecha y hora actual
+                'tipo_comprobante' => $request->input('codigo_tipo_comprobante'), // Tipo de comprobante, por ejemplo 'boleta', 'factura', etc.
+                'total_amount' => $pos_order->total_amount,
+                'moneda' => $pos_order->moneda, // Moneda, 1 para PEN, 2 para USD
+                'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
+                'user_id' => Auth::user()->id, // ID del usuario autenticado
+                'cliente_id' => $cliente->id, // ID del cliente, si se proporciona
+                'estado' => 'emitido', // Estado de la orden, puedes ajustarlo según tu lógica
+            ]);
+         // Procesar los productos vendidos
+        $pos_order_lines = $pos_order->orderLines->map(function ($line) {
+            return [
+                'id' => $line->producto_id,
+                'cantidad' => $line->quantity,
+                'precio_unitario' => $line->price,
+                'subtotal' => $line->subtotal,
+            ];
+        })->toArray();
+
+        foreach ($pos_order_lines as $line) {
+            $nota->orderlines()->create([
+                'producto_id' => $line['id'],
+                'quantity' => $line['cantidad'],
+                'price' => $line['precio_unitario'],
+                'subtotal' => $line['subtotal'],
+            ]);
+            $posServices->updateStockProductoTienda(
+                $line['id'],
+                $tienda_id,
+                'nota_credito', // o 'nota_debito' según el tipo de nota
+                $line['cantidad']
+            );
+        }
+        // enviamos la orden al servicio de CPE
+        $cpeServices = new CpeServices();
+        $cpeResponse = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, $request->input('tipo_de_nota'),$nota);
+        // Aumentar el correlativo del CPE
+        $posServices->increase_CpeSerie($cpeSerie);
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'message' => 'Nota emitida correctamente',
+            'nota' => $nota,
+            'cpe_response' => $cpeResponse,
+        ]);
+        
     }
 }

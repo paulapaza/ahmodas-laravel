@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('tipo_comprobante', 20);
             $table->string('serie')->default('001');
             $table->decimal('total_amount', 10, 2);
+            //moneda
+            $table->TinyInteger('moneda'); // 1 for PEN, 2 for USD
             $table->unsignedBigInteger('cliente_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('tienda_id')->nullable();

@@ -59,6 +59,14 @@ return new class extends Migration
             $table->string('sunat_soap_error')->nullable();
             $table->string('cadena_para_codigo_qr')->nullable();
             $table->string('codigo_hash')->nullable();
+
+            // Si no existe, agregar referencia al comprobante que modifica
+            $table->unsignedBigInteger('comprobante_modificado_id')->nullable()->after('pos_order_id');
+            $table->foreign('comprobante_modificado_id')->references('id')->on('cpes');
+            
+            // Índices para optimizar consultas
+            $table->index(['pos_order_id', 'codigo_tipo_comprobante']);
+            $table->index(['comprobante_modificado_id']);
         });
     }
 
