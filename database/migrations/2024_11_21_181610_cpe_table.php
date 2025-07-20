@@ -64,6 +64,7 @@ return new class extends Migration
             $table->unsignedBigInteger('comprobante_modificado_id')->nullable()->after('pos_order_id');
             $table->foreign('comprobante_modificado_id')->references('id')->on('cpes');
             
+
             // Índices para optimizar consultas
             $table->index(['pos_order_id', 'codigo_tipo_comprobante']);
             $table->index(['comprobante_modificado_id']);

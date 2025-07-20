@@ -19,14 +19,14 @@ class PosServices
         //dd ($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar);
         //      1               3                           2
         if ($codigo_tipo_comprobante == '3') {
-            
-                if ($codigo_tipo_comprobante == 3) {
-                    $tipo_de_comprobante = "07"; // Nota de crédito
-                } elseif ($codigo_tipo_comprobante == 4) {
-                    $tipo_de_comprobante = "08"; // Nota de débito
-                } else {
-                    throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
-                }
+
+            if ($codigo_tipo_comprobante == 3) {
+                $tipo_de_comprobante = "07"; // Nota de crédito
+            } elseif ($codigo_tipo_comprobante == 4) {
+                $tipo_de_comprobante = "08"; // Nota de débito
+            } else {
+                throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+            }
             if ($tipo_documento_a_modificar == '1') {
                 $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
                     ->where('tienda_id', $tienda_id)
@@ -41,15 +41,14 @@ class PosServices
                     ->where('estado', 'activo')
                     ->first();
             }
-            
-        }else if($codigo_tipo_comprobante == '4'){
-              if ($codigo_tipo_comprobante == 3) {
-                    $tipo_de_comprobante = "07"; // Nota de crédito
-                } elseif ($codigo_tipo_comprobante == 4) {
-                    $tipo_de_comprobante = "08"; // Nota de débito
-                } else {
-                    throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
-                }
+        } else if ($codigo_tipo_comprobante == '4') {
+            if ($codigo_tipo_comprobante == 3) {
+                $tipo_de_comprobante = "07"; // Nota de crédito
+            } elseif ($codigo_tipo_comprobante == 4) {
+                $tipo_de_comprobante = "08"; // Nota de débito
+            } else {
+                throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+            }
             if ($tipo_documento_a_modificar == '1') {
                 $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
                     ->where('tienda_id', $tienda_id)
@@ -64,26 +63,29 @@ class PosServices
                     ->where('estado', 'activo')
                     ->first();
             }
-        }
-        else if ($codigo_tipo_comprobante == '1') {
+        } else if ($codigo_tipo_comprobante == '1') {
             // buscar el CPE correspondiente al tipo de comprobante
             $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "01") // Factura
                 ->where('tienda_id', $tienda_id)
                 ->where('estado', 'activo')
                 ->first();
-        }else if ($codigo_tipo_comprobante == '2') {
+        } else if ($codigo_tipo_comprobante == '2') {
             // buscar el CPE correspondiente al tipo de comprobante
             $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "03") // Boleta
+                ->where('tienda_id', $tienda_id)
+                ->where('estado', 'activo')
+                ->first();
+        } elseif ($codigo_tipo_comprobante == '12') {
+            // buscar el CPE correspondiente al tipo de comprobante
+            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "12") // Nota de crédito
                 ->where('tienda_id', $tienda_id)
                 ->where('estado', 'activo')
                 ->first();
         } else {
             throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
         }
-        
-        return $cpeSerie;
 
-        
+        return $cpeSerie;
     }
     // aumentar correlativo
     public function increase_CpeSerie($cpe_serie): CpeSerie
@@ -134,13 +136,45 @@ class PosServices
             throw new \Exception('Producto no encontrado.');
         }
     }
-    public function procesarCliente($cliente): Cliente
+    public function procesarCliente($cliente, $tipo_venta = 'local', $codigo_tipo_comprobante = null): Cliente
     {
-        // si el a
+        // si tipo_venta es exportacion, usar cliente por defecto
+
+        if ($tipo_venta === 'exportacion') {
+
+            // Validación de campos obligatorios para boleta de exportación
+            if ($codigo_tipo_comprobante == '2' && empty($cliente['nombre']) && empty($cliente['direccion'])) {
+                throw new \Exception('Para una venta de exportación se  requiere nombre y dirección del cliente.');
+            }
+            if ($codigo_tipo_comprobante == '1' && empty($cliente['razonSocial']) && empty($cliente['direccion'])) {
+                throw new \Exception('Para una venta de exportación se requiere nombre y dirección del cliente.');
+            }
+            if ($codigo_tipo_comprobante == '2'){
+                $nombreCliente = trim(strtolower($cliente['nombre']));
+            }
+            if ($codigo_tipo_comprobante == '1') {
+                $nombreCliente = trim(strtolower($cliente['razonSocial']));
+            } 
+
+            // Normalizar nombre para evitar duplicados por espacios o mayúsculas
+
+            // Guardar o actualizar cliente
+            return Cliente::updateOrCreate(
+                ['nombre' => $nombreCliente], // Condición de búsqueda
+                [
+                    'nombre' => $nombreCliente,
+                    'tipo_documento_identidad' => 0,
+                    'direccion' => $cliente['direccion'],
+                    'numero_documento_identidad' => "BUSINESS-ID", // RUC por defecto
+                ]
+            );
+        }
+
+
         if ($cliente === null || empty($cliente)) {
             return Cliente::find(1); // Cliente predeterminado (ej. "Cliente final")
         }
-        
+
         $tipoDocumento = $cliente['tipo_documento'] ?? null;
 
         // Si es boleta (tipo 1) y datos vacíos, usar cliente por defecto

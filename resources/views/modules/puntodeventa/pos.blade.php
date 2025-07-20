@@ -67,7 +67,6 @@
                                         <th>Total</th>
                                         <th>id</th>
                                         <th></th>
-
                                     </tr>
                                     </tr>
                                 </thead>
@@ -77,7 +76,7 @@
                         </div>
                         <div class="row">
                             
-                            <div class="col-md-6 text-left pl-4 my-2">
+                            <div class="col-md-4 text-left pl-4 my-2">
                                 <label for="moneda" class="font-weight-bold">Moneda:</label>
                                 <select class="form-control d-inline-block w-auto" id="moneda"
                                     name="moneda" required>
@@ -85,7 +84,15 @@
                                     <option value="2">USD</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
+                            <div class="col-md-4 text-right pr-4 my-2">
+                                <label for="tipo_venta" class="font-weight-bold">Venta:</label>
+                                <select class="form-control d-inline-block w-auto" id="tipo_venta"
+                                    name="tipo_venta" required>
+                                    <option value="local" selected>Local</option>
+                                    <option value="exportacion">Exportación</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
                                
                                 Total
                                 
@@ -847,8 +854,20 @@
                         'codigo_tipo_comprobante': codigo_tipo_comprobante,
                         'cliente': cliente,
                         'productos': productos,
+                        'tipo_venta': $('#tipo_venta').val() // Añadir tipo de venta
                     },
                     dataType: 'json',
+                    //mientras espera la respuesta mostrar un loading
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Procesando venta...',
+                            html: 'Por favor, espere un momento. <br> esto puede tardar unos 5 segundos.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
                     success: function(respuesta) {
                         if (respuesta.success) {
                             let mensaje = respuesta.message;

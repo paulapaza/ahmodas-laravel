@@ -18,5 +18,10 @@ class Cpe extends Model
     {
         return $this->belongsTo(\App\Models\Pos\PosOrder::class, 'pos_order_id', 'id');
     }
+    //relacion con CpeBaja
+    public function cpeBajas()
+    {
+        return $this->hasMany(CpeBaja::class, 'cpe_id', 'id');
+    }
     
 }

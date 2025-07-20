@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PosOrderStore;
+use App\Models\Facturacion\Cpe;
+use App\Models\Facturacion\CpeBaja;
 use App\Models\Inventario\Tienda;
 use App\Models\Pos\Posorder;
 use App\Services\CpeServices;
@@ -57,13 +59,15 @@ class PosOrderController extends Controller
         $codigo_tipo_comprobante = [
             '01' => '1',
             '03' => '2',
+            '12' => '12',
         ];
         $cpeSerie = $posServices->get_CpeSerie(
             $tienda_id,
             $codigo_tipo_comprobante[$request->input('codigo_tipo_comprobante')],
         );
        
-        $cliente = $posServices->procesarCliente($request->input('cliente'));
+        $cliente = $posServices->procesarCliente($request->input('cliente'),$request->input('tipo_venta'), $request->input('codigo_tipo_comprobante'));
+   
         $pos_order = PosOrder::create([
             'serie' => $cpeSerie->serie, // Serie del comprobante
             'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
@@ -113,8 +117,8 @@ class PosOrderController extends Controller
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
        
         if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
-                       
-            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, $pos_order_lines);
+            $tipo_venta = $request->input('tipo_venta','local'); // Obtener el tipo de venta, por defecto 'local'
+            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null ,null,$tipo_venta);
         } 
 
         // Aumentar el correlativo del CPE
@@ -304,5 +308,114 @@ class PosOrderController extends Controller
             'cpe_response' => $cpeResponse,
         ]);
         
+    }
+    // Consultar el estado del CPE
+    public function consultarEstadoCpe($cpe_id)
+    {
+        //dd("Consultando estado del CPE con ID: $cpe_id");
+        $cpeServices = new CpeServices();
+        $estado = $cpeServices->consultarEstadoCpe($cpe_id);
+        if (!$estado) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo obtener el estado del CPE.',
+            ], 404);
+        }
+        //actulizar estado en la base de datos
+        $cpe = Cpe::find($cpe_id);
+        if ($cpe) {
+            $cpe->aceptada_por_sunat = $estado['aceptada_por_sunat'];
+            $cpe->sunat_description = $estado['sunat_description'] ?? '';
+            $cpe->save();
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró el CPE con ID: ' . $cpe_id,
+            ], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'estado' => $estado,
+        ]);
+    }
+    // comunicar baj de CPE
+    public function comunicarBajaCpe(REQUEST $request)
+    {
+        //dd("Comunicando baja del CPE con ID: " . $request->input('cpe_id'));
+        $cpeServices = new CpeServices();
+        $cpe_id = $request->input('cpe_id');
+        $motivo = $request->input('motivo');
+        $respuesta = $cpeServices->comunicarBaja($cpe_id, $motivo);
+        if (!$respuesta) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo comunicar la baja del CPE.',
+            ], 404);
+        }
+           
+        $cpeBaja = CpeBaja::create([
+            'cpe_id' => $cpe_id,
+            'motivo' => $motivo,
+            'numero' => $respuesta['numero'] ?? null,
+            'enlace' => $respuesta['enlace'] ?? null,
+            'sunat_ticket_numero' => $respuesta['sunat_ticket_numero'] ?? null,
+            'aceptada_por_sunat' => $respuesta['aceptada_por_sunat'] ?? false,
+            'sunat_description' => $respuesta['sunat_description'] ?? null,
+            'sunat_note' => $respuesta['sunat_note'] ?? null,
+            'sunat_responsecode' => $respuesta['sunat_responsecode'] ?? '0',
+            'sunat_soap_error' => $respuesta['sunat_soap_error'] ?? null,
+            'xml_zip_base64' => $respuesta['xml_zip_base64'] ?? null,
+            'pdf_zip_base64' => $respuesta['pdf_zip_base64'] ?? null,
+            'cdr_zip_base64' => $respuesta['cdr_zip_base64'] ?? null,
+            'enlace_del_pdf' => $respuesta['enlace_del_pdf'] ?? null,
+            'enlace_del_xml' => $respuesta['enlace_del_xml'] ?? null,
+            'enlace_del_cdr' => $respuesta['enlace_del_cdr'],
+        ])->save();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $cpeBaja,
+            'respuesta' => $respuesta,
+        ]);
+
+    }
+
+    // consultar estado de la baja
+    public function consultarComunicacionBaja($cpe_id)
+    {
+        $cpeServices = new CpeServices();
+        $respuesta = $cpeServices->consultarEstadoBaja($cpe_id);
+        if (!$respuesta) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo obtener el estado de la baja del CPE.',
+            ], 404);
+        }
+        // crear o actualizar la comunicacion de baja
+        $cpeBaja = CpeBaja::updateOrCreate(
+            ['cpe_id' => $cpe_id],
+            [
+                'cpe_id' => $cpe_id,
+                'numero' => $respuesta['numero'] ?? null,
+                'enlace' => $respuesta['enlace'] ?? null,
+                'sunat_ticket_numero' => $respuesta['sunat_ticket_numero'] ?? null,
+                'aceptada_por_sunat' => $respuesta['aceptada_por_sunat'] ?? false,
+                'sunat_description' => $respuesta['sunat_description'] ?? null,
+                'sunat_note' => $respuesta['sunat_note'] ?? null    ,
+                'sunat_responsecode' => $respuesta['sunat_responsecode'] ?? '0',
+                'sunat_soap_error' => $respuesta['sunat_soap_error'] ?? null,
+                'xml_zip_base64' => $respuesta['xml_zip_base64'] ?? null,
+                'pdf_zip_base64' => $respuesta['pdf_zip_base64'] ?? null,
+                'cdr_zip_base64' => $respuesta['cdr_zip_base64'] ?? null,
+                'enlace_del_pdf' => $respuesta['enlace_del_pdf'] ?? null,
+                'enlace_del_xml' => $respuesta['enlace_del_xml'] ?? null,
+                'enlace_del_cdr' => $respuesta['enlace_del_cdr'] ?? null,
+            ]
+        );
+        return response()->json([
+            'success' => true,
+            'estado' => $respuesta,
+            'cpe_baja' => $cpeBaja,
+        ]);
     }
 }

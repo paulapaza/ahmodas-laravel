@@ -12,6 +12,12 @@
                             <h5 class="text-center">Anulado</h5>
                         </div>
                     @endif
+                    @if ($posorder->cpe && $posorder->cpe->cpeBajas && $posorder->cpe->cpeBajas->count() >= 1)
+                        <div class="alert alert-danger w-100" role="alert">
+                            <h5 class="text-center">Baja Comunicada para este decoumento</h5>
+                            <p class="text-center">Estado: {{ $posorder->cpe->cpeBajas->last()->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada' }}</p>
+                        </div>
+                    @endif   
                     <div class="col-12 text-center">
                         <h4>{{ $posorder->tipo_comprobante == '01' ? 'Factura' : ($posorder->tipo_comprobante == '03' ? 'Boleta' : 'Ticket') }}
                             :
@@ -112,22 +118,24 @@
                 <div class="row">
                     <div class="col-12 text-center">
                         <p class="text-bold">Comprobante Electrónico</p>
-                        <p>Estado: {{ $posorder->cpe->aceptada_por_sunat }}</p>
+                        <p>Estado: {{ $posorder->cpe->aceptada_por_sunat == 0 ? 'Pendiente' : ($posorder->cpe->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada') }} 
+                            <button class="btn btn-info" id="consultarEstadoCpe" cpe_id="{{ $posorder->cpe->id }}">Consultar Estado</button></p>
                         <p>Enlace: <a href="{{ $posorder->cpe->enlace }}"
                                 target="_blank">{{ $posorder->cpe->enlace }}</a></p>
                         <p>XML: <a href="{{ $posorder->cpe->enlace_del_xml }}"
                                 target="_blank">{{ $posorder->cpe->enlace_del_xml }}</a></p>
                     </div>
                 </div>
+                @if ($posorder->cpe && $posorder->cpe->cpeBajas && $posorder->cpe->cpeBajas->count() === 0)
 
                 <div class="row mb-3">
                     <div class="col-4 text-center">
-                        <form action="{{ route('ventas.posorder.anular.cpe', $posorder->id) }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                class="btn btn-danger tipo_de_comprobante_a_anular={{ $posorder->cpe->tipo_de_comprobante }}">Anular
-                                Venta</button>
-                        </form>
+                            <button type="submit"class="btn btn-danger"  id="comunicarBajaCpe" cpe_id="{{ $posorder->cpe->id }}" 
+                                {{$posorder->cpe->cpeBajas->count() >= 1 ? 'disabled' : ''}} >
+                                
+                                Anular en Sunat
+                            </button>
+                       
                     </div>
                     <div class="col-4 text-center">
                         <form action="{{ route('ventas.posorder.notadecredito', $posorder->id) }}" method="POST">
@@ -145,6 +153,7 @@
                         </form>
                     </div>
                 </div>
+                @endif
             @endif
             <div class="row">
                 <div class="col-6">
@@ -262,6 +271,77 @@
             }
 
 
+        });
+
+        // Consultar estado del CPE
+        $('#consultarEstadoCpe').on('click', function(e) {
+            e.preventDefault();
+            var cpe_id = $(this).attr('cpe_id');
+            $.ajax({
+                url: "{{ route('ventas.posorder.consultarEstadoCpe', '') }}/" + cpe_id,
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+
+                        Swal.fire({
+                            title: 'Estado del CPE',
+                            text: 'El estado del CPE es: ' + (response.estado.aceptada_por_sunat == true ? 'Aceptada' : 'No Aceptada'),
+                            footer: response.estado.sunat_description || '' + '<br>' +
+                                'nota: ' + response.estado.sunat_note,
+                            icon: 'info'
+                        });
+                    }
+                }
+            });
+        });
+        // Función para comunicar baja del CPE
+        $('#comunicarBajaCpe').on('click', function(e) {
+            e.preventDefault();
+            cpe_id = $(this).attr('cpe_id');
+            Swal.fire({
+                title: 'Motivo de la baja',
+                input: 'text',
+                inputPlaceholder: 'Ingrese el motivo de la baja',
+                showCancelButton: true,
+                confirmButtonText: 'Comunicar Baja',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    $.ajax({
+                        url: "{{ route('comunicarBajaCpe')}}" ,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            cpe_id: cpe_id,
+                            motivo: result.value
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'Baja Comunicada',
+                                    text: 'La baja del CPE se ha comunicado, revise su estado estado.',
+                                    footer: response.data.sunat_description || '' + '<br>' +
+                                        'nota: ' + response.data.sunat_note,
+                                    icon: 'success'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.message,
+                                    icon: 'error'
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: 'Error',
+                                text: xhr.responseJSON.message || 'Ocurrió un error al comunicar la baja.',
+                                icon: 'error'
+                            });
+                        }
+                    });
+                }
+            });
         });
     });
 </script>

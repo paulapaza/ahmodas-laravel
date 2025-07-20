@@ -9,13 +9,13 @@ use Exception;
 class CpeServices
 {
     // Obtener el CPE correspondiente al tipo de comprobante
-    public function SendCep($cpeSerie, $cliente, $pos_order ,$tipo_de_nota = null, $nota = null)
+    public function SendCep($cpeSerie, $cliente, $pos_order ,$tipo_de_nota = null, $nota = null, $tipo_venta=null)
     
     {
         // Lógica para enviar el CPE al api que coonfigure pra esta tienda 
         // tienda->api_url_facturador u tienda->token_facturador,
         // cada usiario tien su tienda asignada, asi sabemos que tienda usarr (user->tienda_id)
-        
+       
         $ruta = $pos_order->tienda->ruta_api_facturacion;
         $token = $pos_order->tienda->token_facturacion;
         $porcentaje_de_igv = 18;
@@ -75,29 +75,30 @@ class CpeServices
                 'codigo' => '',
                 'descripcion' => $line->producto->nombre,
                 'cantidad' => $line['quantity'],
-                'valor_unitario' => $valor_unitario,
+                'valor_unitario' => $tipo_venta == "exportacion" ? $line['price'] : $valor_unitario,
                 'precio_unitario' => $line['price'],
                 'descuento' => "",
-                'subtotal' => $subtotal,
-                'igv' => $igv,
+                'subtotal' => $tipo_venta == "exportacion" ? $precio_total_linea : $subtotal,
+                'igv' => $tipo_venta == "exportacion" ? 0 : $igv,
                 'total' => $precio_total_linea,
-                'tipo_de_igv' => $line->producto->tipo_de_igv,
+                'tipo_de_igv' => $tipo_venta == "exportacion" ? 16 : $line->producto->tipo_de_igv, // Asignar tipo de IGV
                 'anticipo_regularizacion' => false,
                 'anticipo_documento_serie' => '',
                 'anticipo_documento_numero' => ''
             ];
-            if ($line->producto->tipo_de_igv == 1) {
+            if ($tipo_venta == "exportacion") {
+                $total_inafecta += $precio_total_linea; // Tipo de IGV 16 (exportacion)
+                $sunat_transaction = 2; // Cambiar a exportación
+                $cliente->tipo_documento_identidad = 0; // RUC para exportación
+                $line->producto->tipo_de_igv = 16; // Asignar tipo de IGV para exportación
+
+            } elseif ($line->producto->tipo_de_igv == 1) {
                 $total_gravada += $subtotal;
                 $total_igv += $igv;
             } elseif ($line->producto->tipo_de_igv == 8) {
                 $total_exonerada += $precio_total_linea;
             } elseif ($line->producto->tipo_de_igv == 9) {
                 $total_inafecta += $precio_total_linea;
-            } elseif ($line->producto->tipo_de_igv == 16) {
-                $total_gravada += $precio_total_linea; // Tipo de IGV 16 (exportacion)
-                $pos_order->moneda = 2;
-                $sunat_transaction = 2; // Cambiar a exportación
-                $porcentaje_de_igv_string = "0.00"; // Sin IGV para exportación
             } else {
                 throw new Exception("Tipo de IGV no soportado: " . $line->producto->tipo_de_igv);
             }
@@ -109,7 +110,7 @@ class CpeServices
         $suma_subtotales = array_sum(array_column($pos_order_lines, 'subtotal'));
         $suma_igv = array_sum(array_column($pos_order_lines, 'igv'));
         $suma_totales = array_sum(array_column($pos_order_lines, 'total'));
-
+        //dd("Suma Subtotales: $suma_subtotales, Suma IGV: $suma_igv, Suma Totales: $suma_totales");
         if (abs(($suma_subtotales + $suma_igv) - $suma_totales) > 0.01) {
             throw new Exception("Error en cálculos: Subtotal + IGV no coincide con Total");
         }
@@ -155,7 +156,7 @@ class CpeServices
             $tipo_de_nota_de_credito = "";
             $tipo_de_nota_de_debito = "";
         }
-
+        $total_gravada =round($total_gravada, 2);
         $data = array(
             "operacion"                         => "generar_comprobante",
             "tipo_de_comprobante"               => $tipo_de_comprobante, // 1: Factura, 2: Boleta, 3: Nota de crédito, 4: Nota de débito
@@ -243,7 +244,7 @@ class CpeServices
             "items" => $pos_order_lines
         );
         $data_json = json_encode($data);
-       dd($data_json);
+       //dd($data_json);
                 /*
         #########################################################
         #### PASO 3: ENVIAR EL ARCHIVO A NUBEFACT ####
@@ -315,6 +316,159 @@ class CpeServices
         $cpe->save();
     }
 
-    // nota de credito
-    
+    // consultacpe
+    public function consultarEstadoCpe($cpe_id)
+    {
+        $cpe = Cpe::find($cpe_id);
+        if (!$cpe) {
+            throw new Exception("CPE no encontrado con ID: " . $cpe_id);
+        }
+        if (!$cpe->posOrder) {
+            throw new \Exception("No se encontró la orden POS asociada al CPE con ID: " . $cpe_id);
+        }
+
+        if (!$cpe->posOrder->tienda) {
+            throw new \Exception("No se encontró la tienda asociada a la orden POS del CPE con ID: " . $cpe_id);
+        }
+
+
+        // Lógica para consultar el CPE en la API de NUBEFACT
+        $ruta = $cpe->posOrder->tienda->ruta_api_facturacion;
+        $token = $cpe->posOrder->user->tienda->token_facturacion;
+        /*
+            {
+                "operacion": "consultar_comprobante",
+                "tipo_de_comprobante": "1",
+                "serie": "FFF1",
+                "numero": "1"
+            } 
+        */
+        $data = array(
+            "operacion" => "consultar_comprobante",
+            "tipo_de_comprobante" => $cpe->tipo_comprobante,
+            "serie" => $cpe->serie,
+            "numero" => $cpe->numero
+        );
+        $data_json = json_encode($data);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $ruta);
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            array(
+                'Authorization: Token token="' . $token . '"',
+                'Content-Type: application/json',
+            )
+        );
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $respuesta  = curl_exec($ch);
+        $respuesta = json_decode($respuesta, true);
+        curl_close($ch);
+
+        return $respuesta;
+    }
+
+    // anulacion de CPE- comunicar baja
+    public function comunicarBaja($cpe_id, $motivo){
+        /*
+        {
+            "operacion": "generar_anulacion",
+            "tipo_de_comprobante": "2",
+            "serie": "BBB1",
+            "numero": "1",
+            "motivo": "ERROR DEL SISTEMA",
+            "codigo_unico": ""
+            }
+        */
+        $cpe = Cpe::find($cpe_id);
+        if (!$cpe) {
+            throw new Exception("CPE no encontrado con ID: " . $cpe_id);
+        }
+        if (!$cpe->posOrder) {
+            throw new \Exception("No se encontró la orden POS asociada al CPE con ID: " . $cpe_id);
+        }
+        if (!$cpe->posOrder->tienda) {
+            throw new \Exception("No se encontró la tienda asociada a la orden POS del CPE con ID: " . $cpe_id);
+        }
+        $ruta = $cpe->posOrder->tienda->ruta_api_facturacion;
+        $token = $cpe->posOrder->user->tienda->token_facturacion;
+        $data = array(
+            "operacion" => "generar_anulacion",
+            "tipo_de_comprobante" => $cpe->tipo_comprobante,
+            "serie" => $cpe->serie,
+            "numero" => $cpe->numero,
+            "motivo" => $motivo,
+            "codigo_unico" => ""
+        );
+        $data_json = json_encode($data);
+       $data_json = json_encode($data);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $ruta);
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            array(
+                'Authorization: Token token="' . $token . '"',
+                'Content-Type: application/json',
+            )
+        );
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $respuesta  = curl_exec($ch);
+        $respuesta = json_decode($respuesta, true);
+        curl_close($ch);
+
+        return $respuesta;
+    }
+    // Consultar el estado de comunicacaion de baja
+    public function consultarEstadoBaja($cpe_id)
+    {
+        $cpe = Cpe::find($cpe_id);
+        if (!$cpe) {
+            throw new Exception("CPE no encontrado con ID: " . $cpe_id);
+        }
+        if (!$cpe->posOrder) {
+            throw new \Exception("No se encontró la orden POS asociada al CPE con ID: " . $cpe_id);
+        }
+        if (!$cpe->posOrder->tienda) {
+            throw new \Exception("No se encontró la tienda asociada a la orden POS del CPE con ID: " . $cpe_id);
+        }
+
+        // Lógica para consultar el estado de baja en la API de NUBEFACT
+        $ruta = $cpe->posOrder->tienda->ruta_api_facturacion;
+        $token = $cpe->posOrder->user->tienda->token_facturacion;
+      
+        $data = array(
+            "operacion" => "consultar_anulacion",
+            "tipo_de_comprobante" => $cpe->tipo_comprobante,
+            "serie" => $cpe->serie,
+            "numero" => $cpe->numero
+        );
+        $data_json = json_encode($data);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $ruta);
+        curl_setopt(
+            $ch,
+            CURLOPT_HTTPHEADER,
+            array(
+                'Authorization: Token token="' . $token . '"',
+                'Content-Type: application/json',
+            )
+        );
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $respuesta  = curl_exec($ch);
+        $respuesta = json_decode($respuesta, true);
+        curl_close($ch);
+
+        return $respuesta;
+    }
 }

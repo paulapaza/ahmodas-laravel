@@ -57,7 +57,10 @@ Route::middleware([
     //nota de credito
     Route::post('/ventas/nota-de-credito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadecredito');
     Route::post('/ventas/nota-de-debito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadebito');
-
+    //consultar estado del CPE
+    Route::get('/consultar-estado-cpe/{cpe_id}', [PosOrderController::class, 'consultarEstadoCpe'])->name('ventas.posorder.consultarEstadoCpe');    
+    Route::POST('/comunicar-baja', [PosOrderController::class, 'comunicarBajaCpe'])->name('comunicarBajaCpe');
+    Route::get('/consultar-cumunicacion-de-baja/{cpe_id}', [PosOrderController::class, 'consultarComunicacionBaja'])->name('consultarComunicacionBaja');
     /*************************
      MODULO DE INVENTARIO
      ************************/ 
