@@ -7,7 +7,7 @@ use App\Http\Requests\PosOrderStore;
 use App\Models\Facturacion\Cpe;
 use App\Models\Facturacion\CpeBaja;
 use App\Models\Inventario\Tienda;
-use App\Models\Pos\Posorder;
+use App\Models\Pos\PosOrder;
 use App\Services\CpeServices;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
@@ -22,13 +22,13 @@ class PosOrderController extends Controller
     public function index()
     {
         // traer orden con relacion con tienda
-        $orders = Posorder::with('tienda', 'user')->get();
+        $orders = PosOrder::with('tienda', 'user')->get();
 
         return response()->json($orders);
     }
     public function indexByDate($fecha_inicio = null, $fecha_fin = null)
     {
-        return Posorder::with(['tienda', 'user'])
+        return PosOrder::with(['tienda', 'user'])
 
             ->whereDate('order_date', '>=', $fecha_inicio ? Carbon::parse($fecha_inicio)->format('Y-m-d') : now()->format('Y-m-d'))
             ->whereDate('order_date', '<=', $fecha_fin ? Carbon::parse($fecha_fin)->endOfDay()->format('Y-m-d H:i:s') : now()->endOfDay()->format('Y-m-d H:i:s'))
@@ -37,7 +37,7 @@ class PosOrderController extends Controller
     // show
     public function show($id)
     {
-        $posorder = Posorder::with(['tienda', 'user', 'orderLines.producto', 'payments'])
+        $PosOrder = PosOrder::with(['tienda', 'user', 'orderLines.producto', 'payments'])
             ->findOrFail($id);
         return view('modules.ventas.posorder.show', compact('posorder'));
     }
@@ -138,7 +138,7 @@ class PosOrderController extends Controller
     public function cancel($id)
     {
         //1. poner la orden en estado anulado
-        $posOrder = Posorder::findOrFail($id);
+        $posOrder = PosOrder::findOrFail($id);
         if ($posOrder->estado === 'anulado') {
             return response()->json([
                 'success' => false,
@@ -238,7 +238,7 @@ class PosOrderController extends Controller
                 'message' => 'El usuario no tiene una tienda asociada.',
             ], 400);
         }
-        $pos_order = Posorder::findOrFail($id);
+        $pos_order = PosOrder::findOrFail($id);
 
        
         

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Cliente;
 
-class Posorder extends Model
+class PosOrder extends Model
 {
     use HasFactory;
 
@@ -49,7 +49,7 @@ class Posorder extends Model
     }
     /*  public function lines(): HasMany
     {
-        return $this->hasMany(PosorderLine::class, 'posorder_id'); // usa el nombre de la clave foránea real
+        return $this->hasMany(PosOrderLine::class, 'posorder_id'); // usa el nombre de la clave foránea real
     } */
 
     public function cliente()

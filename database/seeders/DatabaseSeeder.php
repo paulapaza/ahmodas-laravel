@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
         // cliente
         Cliente::create([
             'nombre' => 'Cliente Varios',
-            'tipo_documento_identidad' => 'DNI', // DNI
+            'tipo_documento_identidad' => '1', // DNI
             'numero_documento_identidad' => '00000000',
             'ubigeo' => '000000',
             'direccion' => 's/d',
@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
         // cliente ruc
         Cliente::create([
             'nombre' => 'COMPAÑIA MINERA ANTAMINA S.A.',
-            'tipo_documento_identidad' => 'RUC', // RUC
+            'tipo_documento_identidad' => '6', // RUC
             'numero_documento_identidad' => '20330262428',
             'ubigeo' => '000000',
             'direccion' => 'Av. el Derby Nro. 055 Dpto. 801 (Torre 1),Santiago de Surco,Lima',

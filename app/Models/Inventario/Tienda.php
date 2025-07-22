@@ -2,7 +2,7 @@
 
 namespace App\Models\Inventario;
 
-use App\Models\Pos\Posorder;
+use App\Models\Pos\PosOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,7 +36,7 @@ class Tienda extends Model
     // relacion con PosOrder
     public function posOrders()
     {
-        return $this->hasMany(Posorder::class, 'tienda_id');
+        return $this->hasMany(PosOrder::class, 'tienda_id');
     }
    
 }

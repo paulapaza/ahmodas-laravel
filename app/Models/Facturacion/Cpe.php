@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Cpe extends Model
 {
     use HasFactory;
-    protected $table = "Cpes";
+    protected $table = "cpes";
 
     //no usar timestamps ni create ni update
     public $timestamps = false;

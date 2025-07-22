@@ -1,7 +1,7 @@
 <?php 
 namespace App\Models;
 
-use App\Models\Pos\Posorder;
+use App\Models\Pos\PosOrder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -25,7 +25,7 @@ class Cliente extends Model
     
     public function posOrders()
     {
-        return $this->hasMany(Posorder::class, 'cliente_id');
+        return $this->hasMany(PosOrder::class, 'cliente_id');
     }
     
 }

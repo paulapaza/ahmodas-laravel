@@ -17,6 +17,6 @@ class PosOrderPayment extends Model
 
     public function order()
     {
-        return $this->belongsTo(Posorder::class, 'pos_order_id');
+        return $this->belongsTo(PosOrder::class, 'pos_order_id');
     }
 }

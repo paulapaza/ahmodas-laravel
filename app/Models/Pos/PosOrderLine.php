@@ -22,7 +22,7 @@ class PosOrderLine extends Model
 
     public function order()
     {
-        return $this->belongsTo(Posorder::class, 'order_id');
+        return $this->belongsTo(PosOrder::class, 'order_id');
     }
 
     public function producto()
