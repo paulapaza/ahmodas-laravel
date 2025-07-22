@@ -44,6 +44,7 @@ return new class extends Migration
             "enlace_del_cdr": null,
             */
             $table->string('tipo_comprobante'); // 1 for invoice
+            $table->unsignedBigInteger('comprobante_modificado_id')->nullable();
             $table->string('serie');
             $table->integer('numero')->default(1);
             $table->string('enlace')->nullable();
@@ -61,7 +62,6 @@ return new class extends Migration
             $table->string('codigo_hash')->nullable();
 
             // Si no existe, agregar referencia al comprobante que modifica
-            $table->unsignedBigInteger('comprobante_modificado_id')->nullable()->after('pos_order_id');
             $table->foreign('comprobante_modificado_id')->references('id')->on('cpes');
             
 
