@@ -18,33 +18,9 @@ return new class extends Migration
             $table->id();
             // pos order
             $table->unsignedBigInteger('pos_order_id');
-            /*
-            {
-            "tipo_de_comprobante": 2,
-            "serie": "BBB1",
-            "numero": 2,
-            "enlace": "https://www.nubefact.com/cpe/f2a2a3d5-9843-40ea-a779-4418a9c6a08f",
-            
-            "aceptada_por_sunat": false,
-            "sunat_description": null,
-            "sunat_note": null,
-            "sunat_responsecode": null,
-            "sunat_soap_error": "",
-            "anulado": false,
-            "pdf_zip_base64": null,
-            "xml_zip_base64": null,
-            "cdr_zip_base64": null,
-            "cadena_para_codigo_qr": "10406450258 | 03 | BBB1 | 000002 | 24.10 | 158.00 | 17/07/2025 | 1 | 00000000 | OiIY/Pg9DLK5gd3rV1VmByiMI9Bc7NY9eRnFSyUnfZg= |",
-            "codigo_hash": "OiIY/Pg9DLK5gd3rV1VmByiMI9Bc7NY9eRnFSyUnfZg=",
-            "codigo_de_barras": "10406450258 | 03 | BBB1 | 000002 | 24.10 | 158.00 | 17/07/2025 | 1 | 00000000 | OiIY/Pg9DLK5gd3rV1VmByiMI9Bc7NY9eRnFSyUnfZg= |",
-            "key": "f2a2a3d5-9843-40ea-a779-4418a9c6a08f",
-            "digest_value": "OiIY/Pg9DLK5gd3rV1VmByiMI9Bc7NY9eRnFSyUnfZg=",
-                "enlace_del_pdf": "https://www.nubefact.com/cpe/f2a2a3d5-9843-40ea-a779-4418a9c6a08f.pdf",
-                "enlace_del_xml": "https://www.nubefact.com/cpe/f2a2a3d5-9843-40ea-a779-4418a9c6a08f.xml",
-            "enlace_del_cdr": null,
-            */
-            $table->string('tipo_comprobante'); // 1 for invoice
             $table->unsignedBigInteger('comprobante_modificado_id')->nullable();
+           
+            $table->string('tipo_comprobante'); // 1 for invoice
             $table->string('serie');
             $table->integer('numero')->default(1);
             $table->string('enlace')->nullable();
@@ -63,11 +39,8 @@ return new class extends Migration
 
             // Si no existe, agregar referencia al comprobante que modifica
             $table->foreign('comprobante_modificado_id')->references('id')->on('cpes');
-            
 
-            // Índices para optimizar consultas
-            $table->index(['pos_order_id', 'codigo_tipo_comprobante']);
-            $table->index(['comprobante_modificado_id']);
+         
         });
     }
 

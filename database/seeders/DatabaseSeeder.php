@@ -56,8 +56,6 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'Cliente Varios',
             'tipo_documento_identidad' => 'DNI', // DNI
             'numero_documento_identidad' => '00000000',
-            'nacionalidad' => 'peruana',
-            'pais' => 'Perú',
             'ubigeo' => '000000',
             'direccion' => 's/d',
             'email' => '',
@@ -69,8 +67,6 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'COMPAÑIA MINERA ANTAMINA S.A.',
             'tipo_documento_identidad' => 'RUC', // RUC
             'numero_documento_identidad' => '20330262428',
-            'nacionalidad' => 'peruana',
-            'pais' => 'Perú',
             'ubigeo' => '000000',
             'direccion' => 'Av. el Derby Nro. 055 Dpto. 801 (Torre 1),Santiago de Surco,Lima',
             'email' => 'antamina♠4mail.com',
