@@ -105,7 +105,7 @@
                                                 <td><a
                                                         href="{{ route('posorder.show', $order->id) }}">{{ $order->serie }}-{{ $order->order_number }}</a>
                                                 </td>
-                                                <td>{{ \Carbon\Carbon::parse($order->order_date)->format('H:m') }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($order->order_date)->format('H:i') }}</td>
                                                 <td class="text-right">
                                                     {{ $efectivo > 0 ? '' . number_format($efectivo, 2) : '' }}</td>
                                                 <td class="text-right">
