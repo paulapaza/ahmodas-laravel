@@ -2,7 +2,10 @@
     <!-- Brand Logo -->
     <a href="{{ route('adminpanel') }}" class="brand-link text-light">
       <img src="{{ asset('img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight">Numis PE</span>
+      <span class="brand-text font-weight">
+       
+        {{ Auth::user()->tienda->nombre ?? 'Sistema de Ventas' }}
+      </span>
     </a>
 
     <!-- Sidebar -->

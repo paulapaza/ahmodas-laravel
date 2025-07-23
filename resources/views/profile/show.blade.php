@@ -13,6 +13,8 @@
 
                 <x-section-border />
             @endif
+              @livewire('profile.set-tienda-in-profile')
+            <x-section-border />
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
                 <div class="mt-10 sm:mt-0">
