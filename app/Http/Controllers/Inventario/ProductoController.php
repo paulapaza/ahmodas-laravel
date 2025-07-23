@@ -120,42 +120,12 @@ class ProductoController extends Controller
             return response()->json(['error' => 'Búsqueda vacía'], 400);
         }
 
-        /* ─────────────────────────────────────────────
-     | 1. Intento exacto por código de barras
-     ───────────────────────────────────────────── */
-        // Si la cadena son solo dígitos asumimos código de barras y no tiene espacios en blanco
-        if (preg_match('/^\d+$/', $stringBuscado)) {
-            $productoPorCodigo = Producto::where('codigo_barras', $stringBuscado)->first();
 
-            if ($productoPorCodigo) {
-                return response()->json([$productoPorCodigo]);
-            }
-            // Si no se encontró por código seguimos con búsqueda por nombre
-        }
 
-        /* ─────────────────────────────────────────────
-     | 2. Búsqueda flexible por nombre
-     ───────────────────────────────────────────── */
-        // Separamos por espacios, quitamos duplicados y tokens muy cortos
-        $tokens = collect(preg_split('/\s+/', $stringBuscado))
-            ->filter(fn($t) => strlen($t) > 1)   // ignora tokens de 1 letra
-            ->unique()
-            ->values();
-
-        // Construimos la consulta: todas las palabras deben estar presentes (AND)
-        $productos = Producto::where(function ($q) use ($tokens) {
-            foreach ($tokens as $token) {
-                $q->where('nombre', 'LIKE', '%' . $token . '%');
-            }
-        })
-            ->limit(20) // aumenta o pagina si lo necesitas
-            ->get();
-
-        /* if ($productos->isEmpty()) {
-            return response()->json([]);
-        } */
-
-        return response()->json($productos);
+        //quitar espacio adelante y atraz
+        $stringBuscado = trim($stringBuscado);
+        $productoPorCodigo = Producto::where('codigo_barras', $stringBuscado)->first();
+        return response()->json([$productoPorCodigo]);
     }
     // eliminar
     public function destroy($id)
@@ -165,7 +135,7 @@ class ProductoController extends Controller
             return response()->json([
                 "success" => false,
                 "message" => "Producto no encontrado",
-            ], 404);    
+            ], 404);
         }
         // Eliminar las relaciones con tiendas
         $producto->tiendas()->detach();
@@ -176,6 +146,5 @@ class ProductoController extends Controller
             "success" => true,
             "message" => "Producto eliminado correctamente",
         ]);
-    
     }
 }

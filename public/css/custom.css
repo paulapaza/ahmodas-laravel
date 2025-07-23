@@ -92,7 +92,6 @@ div.dt-container.dt-empty-footer tbody>tr:last-child>*{
 #carrito thead th{
     font-size: 12px;
     font-weight: bold;
-    text-transform: uppercase;
     color: #16325B;
     padding: 5px;
     height: 20px!important;

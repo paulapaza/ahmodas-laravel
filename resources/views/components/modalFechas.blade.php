@@ -126,10 +126,14 @@
                     day: 1
                 }).toString();
             } */
-
+           
             $("#modal-filter-fechas").modal("hide");
             //table.destroy();
             cargarTabla(fechaInicio, fechaFin);
+             filtro = $(this).attr('lbl');
+             $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: '+ $(this).attr('lbl'));
         });
     </script>
 @endsection
+
+       

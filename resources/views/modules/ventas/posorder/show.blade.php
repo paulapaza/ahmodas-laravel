@@ -2,26 +2,26 @@
     <x-slot name="menu">
         <x-menuVentas />
     </x-slot>
-    <x-slot name="pagetitle">Venta nro {{ $posorder->id }}</x-slot>
+    <x-slot name="pagetitle">Venta nro {{ $PosOrder->id }}</x-slot>
     <div class="bg-trama detalle-recibo">
         <div class="paper col-12 col-md-6 col-lg-5 col-xl-4 mx-auto bg-white">
             <div class="cabecera">
                 <div class="row">
-                    @if ($posorder->estado == 'anulado')
+                    @if ($PosOrder->estado == 'anulado')
                         <div class="alert alert-danger w-100" role="alert">
                             <h5 class="text-center">Anulado</h5>
                         </div>
                     @endif
-                    @if ($posorder->cpe && $posorder->cpe->cpeBajas && $posorder->cpe->cpeBajas->count() >= 1)
+                    @if ($PosOrder->cpe && $PosOrder->cpe->cpeBajas && $PosOrder->cpe->cpeBajas->count() >= 1)
                         <div class="alert alert-danger w-100" role="alert">
                             <h5 class="text-center">Baja Comunicada para este decoumento</h5>
-                            <p class="text-center">Estado: {{ $posorder->cpe->cpeBajas->last()->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada' }}</p>
+                            <p class="text-center">Estado: {{ $PosOrder->cpe->cpeBajas->last()->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada' }}</p>
                         </div>
                     @endif   
                     <div class="col-12 text-center">
-                        <h4>{{ $posorder->tipo_comprobante == '01' ? 'Factura' : ($posorder->tipo_comprobante == '03' ? 'Boleta' : 'Ticket') }}
+                        <h4>{{ $PosOrder->tipo_comprobante == '01' ? 'Factura' : ($PosOrder->tipo_comprobante == '03' ? 'Boleta' : 'Ticket') }}
                             :
-                            {{ $posorder->serie }}-{{ $posorder->order_number }}</h4>
+                            {{ $PosOrder->serie }}-{{ $PosOrder->order_number }}</h4>
                     </div>
                 </div>
 
@@ -31,7 +31,7 @@
                         <p class="text-bold">Cliente: </p>
                     </div>
                     <div class="col-12 col-md-9">
-                        {{ $posorder->cliente->nombre ?? 'Consumidor final' }}
+                        {{ $PosOrder->cliente->nombre ?? 'Consumidor final' }}
                     </div>
                 </div>
 
@@ -40,7 +40,7 @@
                         <p class="text-bold">Fecha: </p>
                     </div>
                     <div class="col-12 col-md-9">
-                        {{ $posorder->order_date }}
+                        {{ $PosOrder->order_date }}
                     </div>
                 </div>
 
@@ -49,7 +49,7 @@
                         <p class="text-bold">Cajero: </p>
                     </div>
                     <div class="col-12 col-md-9">
-                        {{ $posorder->user->name }}
+                        {{ $PosOrder->user->name }}
                     </div>
                 </div>
             </div>
@@ -64,7 +64,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($posorder->orderLines as $line)
+                        @foreach ($PosOrder->orderLines as $line)
                             <tr>
                                 <td>{{ $line->quantity }}</td>
                                 <td>{{ $line->producto->nombre }}</td>
@@ -80,18 +80,18 @@
             <div class="pie">
                 <div class="row">
                     <div class="col-7 pt-1">
-                        <p class="text-bold text-right">Total {{ $posorder->moneda == 1 ? 's/. ' : '$ ' }}</p>
+                        <p class="text-bold text-right">Total {{ $PosOrder->moneda == 1 ? 's/. ' : '$ ' }}</p>
                     </div>
                     <div class="col-5 text-right">
-                        <h3>{{ $posorder->total_amount }}</h3>
+                        <h3>{{ $PosOrder->total_amount }}</h3>
                     </div>
                 </div>
                 
-                @if ($posorder->notasCredito->isNotEmpty())
+                @if ($PosOrder->notasCredito->isNotEmpty())
                     <div class="row">
                         <div class="col-12">
                             <p class="text-bold">Notas de Crédito:</p>
-                            @foreach ($posorder->notasCredito as $nota)
+                            @foreach ($PosOrder->notasCredito as $nota)
                                 <p>{{ $nota->serie }}:{{ $nota->numero }} </p>
                                 <p>{{ $nota->sunat_description}} </p>
                             @endforeach
@@ -102,7 +102,7 @@
                 <div class="row">
                     <div class="col-12">
                         <p class="text-bold">Métodos de pago:</p>
-                        @foreach ($posorder->payments as $payment)
+                        @foreach ($PosOrder->payments as $payment)
                             <p>{{ $payment->payment_method }} : {{ $payment->amount }}</p>
                         @endforeach
                     </div>
@@ -111,44 +111,44 @@
             @php
                 $print_button = '<a href="#" class="btn btn-primary" onclick="window.print()">Imprimir</a>';
             @endphp
-            @if ($posorder->cpe)
+            @if ($PosOrder->cpe)
                 @php
-                    $print_button = "<a href='{$posorder->cpe->enlace_del_pdf}' target='_blank' class='btn btn-primary'>Imprimir Comprobante</a>";
+                    $print_button = "<a href='{$PosOrder->cpe->enlace_del_pdf}' target='_blank' class='btn btn-primary'>Imprimir Comprobante</a>";
                 @endphp
                 <div class="row">
                     <div class="col-12 text-center">
                         <p class="text-bold">Comprobante Electrónico</p>
-                        <p>Estado: {{ $posorder->cpe->aceptada_por_sunat == 0 ? 'Pendiente' : ($posorder->cpe->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada') }} 
-                            <button class="btn btn-info" id="consultarEstadoCpe" cpe_id="{{ $posorder->cpe->id }}">Consultar Estado</button></p>
-                        <p>Enlace: <a href="{{ $posorder->cpe->enlace }}"
-                                target="_blank">{{ $posorder->cpe->enlace }}</a></p>
-                        <p>XML: <a href="{{ $posorder->cpe->enlace_del_xml }}"
-                                target="_blank">{{ $posorder->cpe->enlace_del_xml }}</a></p>
+                        <p>Estado: {{ $PosOrder->cpe->aceptada_por_sunat == 0 ? 'Pendiente' : ($PosOrder->cpe->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada') }} 
+                            <button class="btn btn-info" id="consultarEstadoCpe" cpe_id="{{ $PosOrder->cpe->id }}">Consultar Estado</button></p>
+                        <p>Enlace: <a href="{{ $PosOrder->cpe->enlace }}"
+                                target="_blank">{{ $PosOrder->cpe->enlace }}</a></p>
+                        <p>XML: <a href="{{ $PosOrder->cpe->enlace_del_xml }}"
+                                target="_blank">{{ $PosOrder->cpe->enlace_del_xml }}</a></p>
                     </div>
                 </div>
-                @if ($posorder->cpe && $posorder->cpe->cpeBajas && $posorder->cpe->cpeBajas->count() === 0)
+                @if ($PosOrder->cpe && $PosOrder->cpe->cpeBajas && $PosOrder->cpe->cpeBajas->count() === 0)
 
                 <div class="row mb-3">
                     <div class="col-4 text-center">
-                            <button type="submit"class="btn btn-danger"  id="comunicarBajaCpe" cpe_id="{{ $posorder->cpe->id }}" 
-                                {{$posorder->cpe->cpeBajas->count() >= 1 ? 'disabled' : ''}} >
+                            <button type="submit"class="btn btn-danger"  id="comunicarBajaCpe" cpe_id="{{ $PosOrder->cpe->id }}" 
+                                {{$PosOrder->cpe->cpeBajas->count() >= 1 ? 'disabled' : ''}} >
                                 
                                 Anular en Sunat
                             </button>
                        
                     </div>
                     <div class="col-4 text-center">
-                        <form action="{{ route('ventas.posorder.notadecredito', $posorder->id) }}" method="POST">
+                        <form action="{{ route('ventas.posorder.notadecredito', $PosOrder->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-warning nota" tipo_de_comprobante="3" tipo_de_comprobante_a_modificar="{{$posorder->cpe->tipo_comprobante }}">Nota de
+                            <button type="submit" class="btn btn-warning nota" tipo_de_comprobante="3" tipo_de_comprobante_a_modificar="{{$PosOrder->cpe->tipo_comprobante }}">Nota de
                                 Crédito</button>
                         </form>
                     </div>
 
                     <div class="col-4 text-center">
-                        <form action="{{ route('ventas.posorder.notadebito', $posorder->id) }}" method="POST">
+                        <form action="{{ route('ventas.posorder.notadebito', $PosOrder->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-info nota" tipo_de_comprobante="4" tipo_de_comprobante_a_modificar="{{ $posorder->cpe->tipo_comprobante }}">Nota de
+                            <button type="submit" class="btn btn-info nota" tipo_de_comprobante="4" tipo_de_comprobante_a_modificar="{{ $PosOrder->cpe->tipo_comprobante }}">Nota de
                                 Débito</button>
                         </form>
                     </div>

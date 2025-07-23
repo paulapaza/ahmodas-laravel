@@ -3,9 +3,10 @@
         <x-menuVentas /> </x-slot>
 
     <x-slot name="pagetitle">Visor de ventas por tienda <button class="btn btn-select-fecha bg-xsuccess" type="button"
-            onclick="Selecionarfecha()"><span><i class="fas fa-calendar-alt "></i> Filtro: Hoy</span></button>
+            onclick="Selecionarfecha()"><span><i class="fas fa-calendar-alt " id="filter"></i> Filtro:
+                Hoy</span></button>
     </x-slot>
-    <x-modalFechas></x-modalFechas>
+    <x-modalFechas />
 
     @php $numeracion = 1; @endphp
 
@@ -64,6 +65,10 @@
                                         @endphp
                                         @foreach ($tienda->posOrders as $order)
                                             @php
+                                                // si el estado de la orden es 'anulado' o 'cancelado', no mostrar la línea
+                                                if ($order->estado == 'anulado' || $order->estado == 'cancelado') {
+                                                    continue;
+                                                }
                                                 // Inicializar montos de métodos de pago
                                                 $efectivo = 0;
                                                 $tarjeta = 0;
@@ -120,8 +125,13 @@
                             </div>
                         </div>
                         <div class="card-footer text-right text-bold text-xaccent">
-
-                            Total: {{ number_format($tienda->posOrders->sum('total_amount'), 2) }}
+                            
+                            @php
+                                $totalCompletado = $tienda->posOrders
+                                    ->where('estado', 'completado')
+                                    ->sum('total_amount');
+                            @endphp
+                            Total: {{ number_format($totalCompletado, 2) }}
 
                             <div class="row mt-2">
                                 <div class="col-6">
@@ -157,22 +167,33 @@
 </x-admin-layout>
 <script>
     $(document).ready(function() {
-        // Aquí puedes inicializar tu tabla si es necesario
-        // Por ejemplo, si estás usando DataTables:
-        // table = $('#yourTableId').DataTable();
-        function cargarTabla(fechaInicio, fechaFin) {
-            // Aquí puedes implementar la lógica para cargar la tabla con los datos filtrados por fecha
-            // Por ejemplo, usando AJAX para obtener los datos del servidor y luego actualizar la tabla
-            console.log("Cargando tabla desde " + fechaInicio + " hasta " + fechaFin);
-            // Implementa tu lógica de carga de tabla aquí
+        const urlParts = window.location.pathname.split('/');
+        const fechaInicio = urlParts[urlParts.length - 2];
+        const fechaFin = urlParts[urlParts.length - 1];
+
+        if (fechaInicio == fechaFin) {
+            $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio);
+
+        } else {
+
+            if (fechaInicio.includes('-') && fechaFin.includes('-')) {
+                $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio +
+                    ' - ' + fechaFin);
+            } else if (fechaInicio.includes('/') && fechaFin.includes('/')) {
+                $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio +
+                    ' - ' + fechaFin);
+            } else {
+                $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: Hoy');
+            }
+
 
         }
+
+
     });
 
-   function cargarTabla(fechaInicio = "", fechaFin = "") {
-      window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}`;
-       
-  }
-</script>
+    function cargarTabla(fechaInicio = "", fechaFin = "") {
+        window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}`;
 
-  
+    }
+</script>

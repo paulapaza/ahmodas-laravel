@@ -48,7 +48,7 @@ Route::middleware([
     // put for cancelhttp://svp.test/ventas/posorder/cancel/15 405 (Method Not Allowed)
     Route::put('/ventas/posorder/cancel/{id}', [PosOrderController::class, 'cancel'])->name('ventas.posorder.cancel');
     Route::get('/ventas/visor/posorder/{fecha_inicio?}/{fecha_fin?}', [PosOrderController::class, 'postOrderPanel'])->name('ventas.visor.posorderpanel');
-    Route::get('/ventas/visor/posorderline', [PosOrderController::class, 'postOrderLinePanel'])->name('ventas.visor.posorderlinepanel');
+    Route::get('/ventas/visor/posorderline/{fecha_inicio?}/{fecha_fin?}', [PosOrderController::class, 'postOrderLinePanel'])->name('ventas.visor.posorderlinepanel');
 
     //clientes
     Route::view('/ventas/clientes', 'modules.clientes.index')->name('ventas.cliente.index');

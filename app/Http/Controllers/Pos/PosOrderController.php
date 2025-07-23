@@ -39,7 +39,7 @@ class PosOrderController extends Controller
     {
         $PosOrder = PosOrder::with(['tienda', 'user', 'orderLines.producto', 'payments'])
             ->findOrFail($id);
-        return view('modules.ventas.posorder.show', compact('posorder'));
+        return view('modules.ventas.posorder.show', compact('PosOrder'));
     }
 
     public function store(PosOrderStore $request)
@@ -207,7 +207,7 @@ class PosOrderController extends Controller
                 }])
 
                 // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
-                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount')
+                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount','estado')
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
@@ -218,9 +218,42 @@ class PosOrderController extends Controller
         return view('modules.ventas.posorder.posorderpanel', compact('alltiendas'));
     }
 
-    public function postOrderLinePanel()
+    public function postOrderLinePanel($fecha_inicio = null, $fecha_fin = null)
     {
-        $alltiendas = Tienda::all();
+        $fecha_inicio = $fecha_inicio
+            ? Carbon::parse($fecha_inicio)->startOfDay()  // Si existe, la parsea
+            : now()->startOfDay();                        // Si no existe, usa hoy
+
+        $fecha_fin = $fecha_fin
+            ? Carbon::parse($fecha_fin)->endOfDay()       // Si existe, la parsea hasta el final del día
+            : now()->endOfDay();
+
+        // Validar que fecha_inicio no sea mayor que fecha_fin
+        if ($fecha_inicio->gt($fecha_fin)) {
+            throw new \Exception('La fecha de inicio no puede ser mayor que la fecha de fin');
+        }
+
+        /* $alltiendas = Tienda::all(); */
+        //2. CONSULTA OPTIMIZADA CON SELECT ESPECÍFICO
+        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
+            // 2.1 FILTRAR POR RANGO DE FECHAS
+            $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
+                // 2.2 SUBCONSULTA OPTIMIZADA PARA orderLines
+                ->with(['orderLines' => function ($lineQuery) {
+                    // 2.2.1 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS
+                    $lineQuery->select('id', 'pos_order_id', 'producto_id', 'quantity', 'price', 'subtotal')
+                        ->with(['producto' => function ($productoQuery) {
+                            // 2.2.2 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE PRODUCTO
+                            $productoQuery->select('id', 'nombre', 'costo_unitario', 'precio_unitario');
+                        }]);
+                    // Esto reduce la cantidad de datos transferidos desde la BD
+                }]);
+            // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
+            $query->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado')
+                // Esto evita traer campos innecesarios como created_at, updated_at, etc.
+                // 2.4 ORDENAR POR FECHA DESCENDENTE
+                ->orderBy('order_date', 'Asc');
+        }])->get();
 
         return view('modules.ventas.posorder.posorderlinepanel', compact('alltiendas'));
     }

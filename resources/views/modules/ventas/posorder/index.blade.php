@@ -105,6 +105,10 @@
     });
 
     function cargarTabla(fechaInicio = "", fechaFin = "") {
+        //destruir la tabla si ya existe
+        if ($.fn.DataTable.isDataTable('#table')) {
+            table.destroy();
+        }
         table = new Larajax({
             data: tableParqueosParams = {
                 modelName: 'Parqueo', //nombre del modelo
@@ -173,8 +177,8 @@
 
             },
             customTopButton: [{
-                text: 'Filtro: Hoy',
-                icon: 'fas fa-calendar-alt ',
+                text: 'Filtro: Hoy  ',
+                icon: 'fas fa-calendar-alt',
                 class: 'btn-select-fecha bg-xsuccess',
                 myfunction: () => Selecionarfecha(),
             }],

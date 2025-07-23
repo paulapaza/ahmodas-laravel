@@ -5,10 +5,11 @@
                 <div class="row">
                     <div class="col-md-12 mb-1">
                         <div class="row form-group mb-2 ">
-                            <div class="col-6 search-list">
+                            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                            <div class="col-5 search-list">
                                 @csrf
                                 <!-- INPUT INGRESO-->
-                                <input type="text" class="form-control" id="search-box" placeholder="codigo de barras"
+                                <input type="text" class="form-control" id="search-box" placeholder="codigo de barras (F2)"
                                     autocomplete="off">
                                 <ul id="datos">
 
@@ -17,7 +18,7 @@
                             <div class="col-5">
                                 <!-- BOTONES BUSCAR Producto -->
                                 <button class="btn btn-xsecondary wrap w-100" id="search-button">
-                                    <i class="fa-solid fa-barcode "></i> Buscar Por codigo de barras (F2)
+                                    <i class="fa-solid fa-barcode "></i> Buscar Codigo de barras
                                 </button>
 
                             </div>
@@ -56,17 +57,17 @@
             <div class="col-md-5 bg-xsecondary-soft mr-0 pt-2" style="height: 100vh; overflow-y: auto;">
                 <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
-                        <div id="carrito" style="height: 39vh; overflow-y: auto; overflow-x: hidden;">
-                            <table id="table-carrito">
+                        <div id="carrito" style="height: 32vh; overflow-y: auto; overflow-x: hidden;">
+                            <table id="table-carrito" class="table table-striped  w-100">
                                 <thead>
                                     <tr>
-                                        <th>Can</th>
+                                        <th>Cant</th>
                                         <th>Nombre</th>
                                         <th>Precio</th>
                                         <th>Precio minimo</th>
                                         <th>Total</th>
                                         <th>id</th>
-                                        <th></th>
+                                        <th>Mod/cant</th>
                                     </tr>
                                     </tr>
                                 </thead>
@@ -247,6 +248,7 @@
             ordering: false,
             info: false,
             lengthChange: false,
+            responsive: true,
             language: {
                 emptyTable: ' '
             },
@@ -318,14 +320,7 @@
 
             $("#search-box").focus();
 
-            if (isNaN(stringSearch) == true) {
-                Swal.fire({
-                    icon: 'error',
-                    html: 'El codigo debe ser solo numeros',
-                    footer: 'Intenta nuevamente!'
-                })
-                return
-            }
+            
 
             $.ajax({
                 url: "/invetario/producto/buscar",
