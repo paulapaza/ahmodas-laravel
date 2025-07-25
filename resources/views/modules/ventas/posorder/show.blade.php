@@ -22,7 +22,7 @@
                     @if ($PosOrder->cpe && $PosOrder->cpe->cpeBajas && $PosOrder->cpe->cpeBajas->count() >= 1)
                         <div class="alert alert-danger w-100" role="alert">
                             <h5 class="text-center">Baja Comunicada para este decoumento</h5>
-                            <p class="text-center">Estado: {{ $PosOrder->cpe->cpeBajas->last()->aceptada_por_sunat == 1 ? 'Aceptada' : 'Rechazada' }}</p>
+                            <p class="text-center">Estado: {{ $PosOrder->cpe->cpeBajas->last()->aceptada_por_sunat == 1 ? 'Aceptada' : 'Pendiente' }}</p>
                         </div>
                     @endif   
                     <div class="col-12 text-center">

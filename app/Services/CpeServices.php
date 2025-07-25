@@ -70,29 +70,45 @@ class CpeServices
             $igv = $line->producto->tipo_de_igv == 1 ? round($precio_total_linea - $subtotal, 2) : 0  ; // IGV solo si es gravado
             $valor_unitario = round($subtotal / $line['quantity'], 2);
 
+            if ($tipo_venta == "exportacion" ) {
+                // Para exportación o cliente con BUSINESS-ID, no se aplica IGV
+                $tipo_de_igv = 16; // Tipo de IGV para exportación
+            } elseif ($cliente->numero_documento_identidad == 'BUSINESS-ID'){
+                $tipo_de_igv = "16"; // Tipo de IGV para BUSINESS-ID
+            }
+            else {
+                $tipo_de_igv = $line->producto->tipo_de_igv;
+            }
+
             $pos_order_lines[] = [
                 'unidad_de_medida' => 'NIU',
                 'codigo' => '',
                 'descripcion' => $line->producto->nombre,
                 'cantidad' => $line['quantity'],
-                'valor_unitario' => $tipo_venta == "exportacion" ? $line['price'] : $valor_unitario,
+                'valor_unitario' => $tipo_venta == "exportacion" || $cliente->numero_documento_identidad == 'BUSINESS-ID' ? $line['price'] : $valor_unitario,
                 'precio_unitario' => $line['price'],
                 'descuento' => "",
-                'subtotal' => $tipo_venta == "exportacion" ? $precio_total_linea : $subtotal,
-                'igv' => $tipo_venta == "exportacion" ? 0 : $igv,
+                'subtotal' => $tipo_venta == "exportacion" || $cliente->numero_documento_identidad == 'BUSINESS-ID'  ? $precio_total_linea : $subtotal,
+                'igv' => $tipo_venta == "exportacion" || $cliente->numero_documento_identidad == 'BUSINESS-ID'  ? 0 : $igv,
                 'total' => $precio_total_linea,
-                'tipo_de_igv' => $tipo_venta == "exportacion" ? 16 : $line->producto->tipo_de_igv, // Asignar tipo de IGV
+                'tipo_de_igv' => $tipo_de_igv,
                 'anticipo_regularizacion' => false,
                 'anticipo_documento_serie' => '',
                 'anticipo_documento_numero' => ''
             ];
+
+           //dd($cliente->numero_documento_identidad);
             if ($tipo_venta == "exportacion") {
                 $total_inafecta += $precio_total_linea; // Tipo de IGV 16 (exportacion)
                 $sunat_transaction = 2; // Cambiar a exportación
                 $cliente->tipo_documento_identidad = 0; // RUC para exportación
                 $line->producto->tipo_de_igv = 16; // Asignar tipo de IGV para exportación
 
-            } elseif ($line->producto->tipo_de_igv == 1) {
+            } elseif( $cliente->numero_documento_identidad == 'BUSINESS-ID'){
+                $sunat_transaction = 2; // Cambiar a exportación
+                $total_inafecta += $precio_total_linea; // Tipo de IGV 16 (exportacion)
+            }
+            elseif ($line->producto->tipo_de_igv == 1) {
                 $total_gravada += $subtotal;
                 $total_igv += $igv;
             } elseif ($line->producto->tipo_de_igv == 8) {
@@ -104,6 +120,7 @@ class CpeServices
             }
             
         }
+        //dd($pos_order_lines);
         //dd($total_gravada, $total_exonerada, $total_inafecta);
         // Validar 
         // Validar (usando el array procesado)
