@@ -384,7 +384,15 @@ class PosOrderController extends Controller
                 'message' => 'No se pudo comunicar la baja del CPE.',
             ], 404);
         }
-
+        DB::beginTransaction();
+    
+        if (isset($respuesta['errors'])) {
+            return response()->json([
+                'success' => false,
+                'message' => $respuesta['errors'].'Por favor, verifica si el documento esta registrado en la SUNAT. si no lo estas,
+                  espera al menos 24 horas para volver a intentar la baja.',
+            ], 400);
+        }
         $cpeBaja = CpeBaja::create([
             'cpe_id' => $cpe_id,
             'motivo' => $motivo,
@@ -403,7 +411,24 @@ class PosOrderController extends Controller
             'enlace_del_xml' => $respuesta['enlace_del_xml'] ?? null,
             'enlace_del_cdr' => $respuesta['enlace_del_cdr'],
         ])->save();
-
+        
+        //anular la orden
+        $posOrder = PosOrder::findOrFail($cpe_id);
+        if ($posOrder->estado !== 'anulado') {
+            $posOrder->estado = 'anulado';
+            $posOrder->save();
+            // actualizar el stock de los productos vendidos
+            $posServices = new PosServices();
+            foreach ($posOrder->orderLines as $line) {
+                $posServices->updateStockProductoTienda(
+                    $line->producto_id,
+                    $posOrder->tienda_id,
+                    'anulacion',
+                    $line->quantity
+                );
+            }
+        }
+        DB::commit();
         return response()->json([
             'success' => true,
             'data' => $cpeBaja,

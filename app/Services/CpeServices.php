@@ -300,7 +300,7 @@ class CpeServices
         
         if (isset($respuesta['errors'])) {
             throw new Exception("Error al enviar el CPE: " . $respuesta['errors']
-                        . " - Mensaje: " . $data_json);
+                        . " - Mensaje: ");
         }
         $this->storeCpeResponseData($respuesta, $pos_order->id, $nota);
         return $respuesta;
