@@ -44,7 +44,7 @@ class PosOrderController extends Controller
 
     public function store(PosOrderStore $request)
     {
-       
+
         $posServices = new PosServices();
         DB::beginTransaction();
         // Aquí puedes implementar la lógica para guardar la venta
@@ -65,9 +65,9 @@ class PosOrderController extends Controller
             $tienda_id,
             $codigo_tipo_comprobante[$request->input('codigo_tipo_comprobante')],
         );
-       
-        $cliente = $posServices->procesarCliente($request->input('cliente'),$request->input('tipo_venta'), $request->input('codigo_tipo_comprobante'));
-   
+
+        $cliente = $posServices->procesarCliente($request->input('cliente'), $request->input('tipo_venta'), $request->input('codigo_tipo_comprobante'));
+
         $pos_order = PosOrder::create([
             'serie' => $cpeSerie->serie, // Serie del comprobante
             'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
@@ -115,11 +115,11 @@ class PosOrderController extends Controller
         }
         $cpeServices = new CpeServices();
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
-       
+
         if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
-            $tipo_venta = $request->input('tipo_venta','local'); // Obtener el tipo de venta, por defecto 'local'
-            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null ,null,$tipo_venta);
-        } 
+            $tipo_venta = $request->input('tipo_venta', 'local'); // Obtener el tipo de venta, por defecto 'local'
+            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+        }
 
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
@@ -207,7 +207,7 @@ class PosOrderController extends Controller
                 }])
 
                 // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
-                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount','estado')
+                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado')
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
@@ -259,10 +259,10 @@ class PosOrderController extends Controller
     }
     public function emitirNota($id, Request $request)
     {
-       
-        
+
+
         $posServices = new PosServices();
-        
+
         $tienda_id = Auth::user()->tienda_id; // Obtener el ID de la tienda del usuario autenticado
         // Validar que el usuario tenga una tienda asociada
         if (!$tienda_id) {
@@ -273,14 +273,14 @@ class PosOrderController extends Controller
         }
         $pos_order = PosOrder::findOrFail($id);
 
-       
-        
+
+
         $cpeSerie = $posServices->get_CpeSerie(
             $tienda_id,
             $request->input('codigo_tipo_comprobante'),
             $pos_order->cpe->tipo_comprobante // tipo de comprobante a modificar
         );
-        
+        // dd($cpeSerie);
         // Validar que la serie y correlativo existan
         if (!$cpeSerie) {
             return response()->json([
@@ -288,23 +288,23 @@ class PosOrderController extends Controller
                 'message' => 'Serie y correlativo no encontrados.',
             ], 404);
         }
-         // buscamos la orden 
-       
+        // buscamos la orden 
+
         $cliente = $pos_order->cliente;
         DB::beginTransaction();
         $nota = PosOrder::create([
-                'serie' => $cpeSerie->serie, // Serie del comprobante
-                'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
-                'order_date' => now(), // Fecha y hora actual
-                'tipo_comprobante' => $request->input('codigo_tipo_comprobante'), // Tipo de comprobante, por ejemplo 'boleta', 'factura', etc.
-                'total_amount' => $pos_order->total_amount,
-                'moneda' => $pos_order->moneda, // Moneda, 1 para PEN, 2 para USD
-                'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
-                'user_id' => Auth::user()->id, // ID del usuario autenticado
-                'cliente_id' => $cliente->id, // ID del cliente, si se proporciona
-                'estado' => 'emitido', // Estado de la orden, puedes ajustarlo según tu lógica
-            ]);
-         // Procesar los productos vendidos
+            'serie' => $cpeSerie->serie, // Serie del comprobante
+            'order_number' => $cpeSerie->correlativo, // Correlativo del comprobante 
+            'order_date' => now(), // Fecha y hora actual
+            'tipo_comprobante' => $request->input('codigo_tipo_comprobante') == 3 ? '07' : '08',
+            'total_amount' => $pos_order->total_amount,
+            'moneda' => $pos_order->moneda, // Moneda, 1 para PEN, 2 para USD
+            'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
+            'user_id' => Auth::user()->id, // ID del usuario autenticado
+            'cliente_id' => $cliente->id, // ID del cliente, si se proporciona
+            'estado' => 'emitido', // Estado de la orden, puedes ajustarlo según tu lógica
+        ]);
+        // Procesar los productos vendidos
         $pos_order_lines = $pos_order->orderLines->map(function ($line) {
             return [
                 'id' => $line->producto_id,
@@ -330,17 +330,16 @@ class PosOrderController extends Controller
         }
         // enviamos la orden al servicio de CPE
         $cpeServices = new CpeServices();
-        $cpeResponse = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, $request->input('tipo_de_nota'),$nota);
+        $cpeResponse = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, $request->input('tipo_de_nota'), $nota);
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
         DB::commit();
-        return response()->json([
+        // mostramos la nota de credito 
+        return redirect("/ventas/posorder/{$nota->id}")->with([
             'success' => true,
-            'message' => 'Nota emitida correctamente',
-            'nota' => $nota,
+            'message' => 'Nota de crédito emitida correctamente.',
             'cpe_response' => $cpeResponse,
         ]);
-        
     }
     // Consultar el estado del CPE
     public function consultarEstadoCpe($cpe_id)
@@ -385,7 +384,7 @@ class PosOrderController extends Controller
                 'message' => 'No se pudo comunicar la baja del CPE.',
             ], 404);
         }
-           
+
         $cpeBaja = CpeBaja::create([
             'cpe_id' => $cpe_id,
             'motivo' => $motivo,
@@ -404,13 +403,12 @@ class PosOrderController extends Controller
             'enlace_del_xml' => $respuesta['enlace_del_xml'] ?? null,
             'enlace_del_cdr' => $respuesta['enlace_del_cdr'],
         ])->save();
-        
+
         return response()->json([
             'success' => true,
             'data' => $cpeBaja,
             'respuesta' => $respuesta,
         ]);
-
     }
 
     // consultar estado de la baja
@@ -434,7 +432,7 @@ class PosOrderController extends Controller
                 'sunat_ticket_numero' => $respuesta['sunat_ticket_numero'] ?? null,
                 'aceptada_por_sunat' => $respuesta['aceptada_por_sunat'] ?? false,
                 'sunat_description' => $respuesta['sunat_description'] ?? null,
-                'sunat_note' => $respuesta['sunat_note'] ?? null    ,
+                'sunat_note' => $respuesta['sunat_note'] ?? null,
                 'sunat_responsecode' => $respuesta['sunat_responsecode'] ?? '0',
                 'sunat_soap_error' => $respuesta['sunat_soap_error'] ?? null,
                 'xml_zip_base64' => $respuesta['xml_zip_base64'] ?? null,

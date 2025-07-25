@@ -3,6 +3,13 @@
         <x-menuVentas />
     </x-slot>
     <x-slot name="pagetitle">Venta nro {{ $PosOrder->id }}</x-slot>
+    
+    @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('message') }}
+        </div>
+    @endif
+
     <div class="bg-trama detalle-recibo">
         <div class="paper col-12 col-md-6 col-lg-5 col-xl-4 mx-auto bg-white">
             <div class="cabecera">
@@ -19,7 +26,11 @@
                         </div>
                     @endif   
                     <div class="col-12 text-center">
-                        <h4>{{ $PosOrder->tipo_comprobante == '01' ? 'Factura' : ($PosOrder->tipo_comprobante == '03' ? 'Boleta' : 'Ticket') }}
+                        <h4> 
+                            {{ $PosOrder->tipo_comprobante == '01' ? 'Factura' :
+                            ($PosOrder->tipo_comprobante == '03' ? 'Boleta' :
+                            ($PosOrder->tipo_comprobante == '07' ? 'Nota de Crédito' :
+                            ($PosOrder->tipo_comprobante == '08' ? 'Nota de Débito' : 'Ticket'))) }}
                             :
                             {{ $PosOrder->serie }}-{{ $PosOrder->order_number }}</h4>
                     </div>
@@ -137,6 +148,10 @@
                             </button>
                        
                     </div>
+                 
+            
+                    @if ($PosOrder->tipo_comprobante == '01' || $PosOrder->tipo_comprobante == '03' && $PosOrder->notasCredito->isEmpty())
+                   
                     <div class="col-4 text-center">
                         <form action="{{ route('ventas.posorder.notadecredito', $PosOrder->id) }}" method="POST">
                             @csrf
@@ -152,6 +167,7 @@
                                 Débito</button>
                         </form>
                     </div>
+                    @endif
                 </div>
                 @endif
             @endif
@@ -219,6 +235,15 @@
                             name: 'codigo_tipo_comprobante',
                             value: codigo_tipo_comprobante
                         }).appendTo(form);
+                        // validar que el motivo no este sin valor
+                        if (!result.value) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Debe seleccionar un motivo para la nota.',
+                            });
+                            return;
+                        }
                         // Enviar el formulario
                         form.submit();
                     }
@@ -262,7 +287,15 @@
                             name: 'codigo_tipo_comprobante',
                             value: codigo_tipo_comprobante
                         }).appendTo(form);
-
+                        // validar que el motivo no este sin valor
+                        if (!result.value) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Debe seleccionar un motivo para la nota.',
+                            });
+                            return;
+                        }
                         // Enviar el formulario
                         form.submit();
                     }

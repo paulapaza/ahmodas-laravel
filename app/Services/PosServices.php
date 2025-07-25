@@ -12,54 +12,40 @@ use Illuminate\Http\JsonResponse;
 class PosServices
 
 {
-    // obtener numero de serie
-    public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
+    // obtener numero de serie sin refactorizar (esta funcion no se usa en ningun lado)
+    public function get_CpeSerie0($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
     {
-        // si el codigo tipo comprobante es 07, buscar  si es para boleta o factura
-        //dd ($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar);
-        //      1               3                           2
+
         if ($codigo_tipo_comprobante == '3') {
 
-            if ($codigo_tipo_comprobante == 3) {
-                $tipo_de_comprobante = "07"; // Nota de crédito
-            } elseif ($codigo_tipo_comprobante == 4) {
-                $tipo_de_comprobante = "08"; // Nota de débito
-            } else {
-                throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
-            }
             if ($tipo_documento_a_modificar == '1') {
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '07')
                     ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', '%FC%') // buscar serie de boleta
+                    ->where('serie', 'like', 'F%') // buscar serie de fa
                     ->where('estado', 'activo')
                     ->first();
-            } else if ($tipo_documento_a_modificar = '2') {
-                // si no se especifica tipo de documento, buscar el primero activo
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+            } else if ($tipo_documento_a_modificar == '2') {
+
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '07')
                     ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', '%BC%') // buscar serie de factura
+                    ->where('serie', 'like', 'B%') // buscar serie de b
                     ->where('estado', 'activo')
                     ->first();
             }
         } else if ($codigo_tipo_comprobante == '4') {
-            if ($codigo_tipo_comprobante == 3) {
-                $tipo_de_comprobante = "07"; // Nota de crédito
-            } elseif ($codigo_tipo_comprobante == 4) {
-                $tipo_de_comprobante = "08"; // Nota de débito
-            } else {
-                throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
-            }
+
+
             if ($tipo_documento_a_modificar == '1') {
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '08')
                     ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', '%FD%') // buscar serie de boleta
+                    ->where('serie', 'like', 'F%') // buscar serie de factura
                     ->where('estado', 'activo')
                     ->first();
-            } else if ($tipo_documento_a_modificar = '2') {
+            } else if ($tipo_documento_a_modificar == '2') {
                 // si no se especifica tipo de documento, buscar el primero activo
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', $tipo_de_comprobante)
+                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '08')
                     ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', '%BD%') // buscar serie de factura
+                    ->where('serie', 'like', 'B%') // buscar serie de 
                     ->where('estado', 'activo')
                     ->first();
             }
@@ -77,7 +63,7 @@ class PosServices
                 ->first();
         } elseif ($codigo_tipo_comprobante == '12') {
             // buscar el CPE correspondiente al tipo de comprobante
-            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "12") // Nota de crédito
+            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "12") // Cotizacion
                 ->where('tienda_id', $tienda_id)
                 ->where('estado', 'activo')
                 ->first();
@@ -86,6 +72,39 @@ class PosServices
         }
 
         return $cpeSerie;
+    }
+    // obtener numero de serie refactorizado
+    public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
+    {
+        $mapaTipos = [
+            '3'  => '07', // Nota de crédito
+            '4'  => '08', // Nota de débito
+            '1'  => '01', // Factura
+            '2'  => '03', // Boleta
+            '12' => '12', // Cotización
+        ];
+
+        if (!array_key_exists($codigo_tipo_comprobante, $mapaTipos)) {
+            throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
+        }
+
+        $codigoInterno = $mapaTipos[$codigo_tipo_comprobante];
+        $query = CpeSerie::where('codigo_tipo_comprobante', $codigoInterno)
+            ->where('tienda_id', $tienda_id)
+            ->where('estado', 'activo');
+
+        // Para tipos 3 y 4 se requiere análisis de tipo_documento_a_modificar
+        if (in_array($codigo_tipo_comprobante, ['3', '4'])) {
+            if ($tipo_documento_a_modificar === '1') {
+                $query->where('serie', 'like', 'F%');
+            } elseif ($tipo_documento_a_modificar === '2') {
+                $query->where('serie', 'like', 'B%');
+            } else {
+                throw new Exception("Tipo de documento no válido: " . $tipo_documento_a_modificar);
+            }
+        }
+
+        return $query->first();
     }
     // aumentar correlativo
     public function increase_CpeSerie($cpe_serie): CpeSerie
@@ -149,12 +168,12 @@ class PosServices
             if ($codigo_tipo_comprobante == '1' && empty($cliente['razonSocial']) && empty($cliente['direccion'])) {
                 throw new \Exception('Para una venta de exportación se requiere nombre y dirección del cliente.');
             }
-            if ($codigo_tipo_comprobante == '2'){
+            if ($codigo_tipo_comprobante == '2') {
                 $nombreCliente = trim(strtolower($cliente['nombre']));
             }
             if ($codigo_tipo_comprobante == '1') {
                 $nombreCliente = trim(strtolower($cliente['razonSocial']));
-            } 
+            }
 
             // Normalizar nombre para evitar duplicados por espacios o mayúsculas
 

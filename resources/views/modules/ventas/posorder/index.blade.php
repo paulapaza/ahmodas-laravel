@@ -136,6 +136,10 @@
                                 return '<span class="badge badge-xsuccess">Boleta</span>';
                             case '12':
                                 return '<span class="badge badge-xdanger">Ticket</span>';
+                            case '07':
+                                return '<span class="badge badge-xwarning">Nota de Crédito</span>';
+                            case '08':
+                                return '<span class="badge badge-xwarning">Nota de Débito</span>';
                             default:
                                 return data;
                         }

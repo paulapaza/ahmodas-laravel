@@ -43,7 +43,7 @@ Route::middleware([
     Route::view('/ventas', 'modules.ventas.main')->name('ventas.main');
     // ventas
     Route::view('/ventas/ventas', 'modules.ventas.posorder.index')->name('ventas.posorder.index');
-    Route::resource('/ventas/posorder', PosOrderController::class)->only(['index','show']);
+    Route::resource('ventas/posorder', PosOrderController::class)->only(['index','show']);
     Route::get('ventas/posorder/{fecha_inicio?}/{fecha_fin?}', [posOrderController::class, 'indexByDate'])->name('playa.parqueo.indexByDate  ');
     // put for cancelhttp://svp.test/ventas/posorder/cancel/15 405 (Method Not Allowed)
     Route::put('/ventas/posorder/cancel/{id}', [PosOrderController::class, 'cancel'])->name('ventas.posorder.cancel');
