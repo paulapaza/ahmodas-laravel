@@ -1,6 +1,6 @@
 <x-admin-layout>
     <x-slot name="menu">
-        <x-menuInventario></x-menuInventario>
+        <x-menuVentas/>
     </x-slot>
     <x-slot name="pagetitle">Clientes</x-slot>
 

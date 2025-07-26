@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('username')->unique()->nullable();
             // tienda_id
             $table->tinyInteger('tienda_id')->nullable();
+            //print_type
+            $table->string('print_type'); // 'ticket' or 'A4'
             $table->tinyInteger('estado')->default(1);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

@@ -6,13 +6,15 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\UserRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-        
+       
+          $users = User::with('roles')->get();
+        //dd($users);  
         return response()->json($users, 200);
     }
     public function show($id)
@@ -24,14 +26,18 @@ class UserController extends Controller
     public function store(UserRequest $request) 
     {
    
-        try {
+         try {
             $user = new User();
             $user->name = $request->name;
-            $user->username = $request->username;
             $user->email = $request->email;
             $user->estado = $request->estado;
-            $user->password = bcrypt('12345678');
+            $user->password = bcrypt("12345678");
             $user->save();
+
+            // asignamos el rol
+            
+            $user->assignRole($request->role);
+
         } catch (\Exception $e) {
             return ([
                 'success' => false,
@@ -47,37 +53,36 @@ class UserController extends Controller
 
     public function update(UserRequest $request, $id)
     {
-
         try {
             $user = User::find($id);
             $user->name = $request->name;
-            $user->username = $request->username;
             $user->email = $request->email;
             $user->estado = $request->estado;
+            $user->print_type = $request->print_type;
             $user->save();
-        } catch (\Exception $e) {
-            throw ValidationException::withMessages([
-                'name' => "Error al actualizar el usuario <b>{$id} {$request->name}</b>
-                              <br> {$e->getMessage()}"
-            ]);
+            
+            DB::table('model_has_roles')->where('model_id',$id)->delete();
+            $user->assignRole($request->role);
+                      
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => "El Usuario <b>{$id} {$request->name}</b> se actualizo correctamente"
+                ],
+                200
+            );
 
+        } catch (\Exception $e) {
+        
             return response()->json(
                 [
                     'success' => false,
                     'message' => "Error al actualizar el usuario <b>{$id} {$request->name}</b>
-                              <br> {$e->getMessage()}"
+                              <br>Mensaje de error: <br> {$e->getMessage()}"
                 ],
                 422
             );
         }
-
-        return response()->json(
-            [
-                'success' => true,
-                'message' => "El Usuario <b>{$id} {$request->name}</b> se actualizo correctamente"
-            ],
-            200
-        );
     }
 
     public function destroy($id)

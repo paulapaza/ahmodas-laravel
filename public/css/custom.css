@@ -272,3 +272,8 @@ verde: #54C392
   border-color: #0078D7; /* color destacado */
   outline: none;
 }
+.lista-permisos{
+    width: 400px;
+    white-space: wrap!important;
+    
+}

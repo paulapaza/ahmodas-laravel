@@ -32,22 +32,16 @@ class UserRequest extends FormRequest
     {
         return [
             
-            'name' => 'required|regex:/^[a-zA-ZñÑáéíóúü ]+$/|max:255',
-           
-            'username' =>  [
-                'required',
-                'alpha_dash',
-                'max:255',
-                'regex:/^[a-zA-Z0-9ñÑáéíóúü_]+$/',
-                Rule::unique('users')->ignore($this->id),
-            ],
+            
+            'name' => 'required|regex:/^[a-zA-ZñÑáéíóúü ]+$/|min:3',
+            'role' => 'required|alpha|max:255',
+            
             'email' =>  [
                 'required',
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($this->id),
             ],
-            'estado' => 'required|integer|between:0,1',
             
         ];
     }
@@ -57,9 +51,8 @@ class UserRequest extends FormRequest
     {
         return [
             'name' => 'nombre',
-            'username' => 'nombre de usuario',
+            'role' => 'rol',
             'email' => 'correo electrónico',
-            'estado' => 'estado',
         ];
     }
 

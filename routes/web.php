@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Configuracion\EmpresaController;
+use App\Http\Controllers\Configuracion\PermissionController;
+use App\Http\Controllers\Configuracion\RoleController;
 use App\Http\Controllers\Configuracion\UserController;
 use App\Http\Controllers\Facturacion\CpeSerieController;
 use App\Http\Controllers\Facturacion\ImpuestoController;
@@ -26,6 +28,7 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -132,7 +135,42 @@ Route::middleware([
     Route::put('/configuracion/empresa/datosConsultaDocumentos', [EmpresaController::class, 'update_ConsultaDocumentos'])->name('supdateConsultaDocumentos');
     Route::put('/configuracion/empresa/datosGuiaRemision', [EmpresaController::class, 'update_GuiaRemision'])->name('store_GuiaRemision');
     
+    /*************************
+     MODULO DE Usuarios roles y permisos
+     ************************/ 
+      
+    Route::get('/usuarios', function () {
+        return view('modules.configuracion.users.users');
+    })->name('users');
+    route::get('/user', [UserController::class, 'index'])->name('user.index');
+    // aqui debe ir create
+    route::post('/user', [UserController::class, 'store'])->name('user.store');
+    route::get('/user/{id}', [UserController::class, 'show'])->name('user.show');
+    // aqui debe ir edit
+    route::patch('/user/{id}', [UserController::class, 'update'])->name('user.update');
+    route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
+    //resetPassword
+    route::get('/user/resetpassword/{id}', [UserController::class, 'resetPassword'])->name('user.resetpassword');
 
+    //rutas para roles
+    Route::get('/roles', function () {return view('modules.configuracion.users.roles');})->name('roles');
+    
+
+    Route::get('/role', [RoleController::class, 'index'])->name('role.index');
+    Route::post('/role', [RoleController::class, 'store'])->name('role.store');
+    Route::get('/role/{id}', [RoleController::class, 'show'])->name('role.show');
+    Route::put('/role/{id}', [RoleController::class, 'update'])->name('role.update');
+    Route::delete('/role/{id}', [RoleController::class, 'destroy'])->name('role.destroy');
+
+    //rutas para permisos
+    Route::get('/permisos', function () {
+        return view('modules.configuracion.users.permisos');
+    })->name('permisos');
+    Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+    Route::post('/permission', [PermissionController::class, 'store'])->name('permission.store');
+    Route::get('/permission/{id}', [PermissionController::class, 'show'])->name('permission.show');
+    Route::patch('/permission/{id}', [PermissionController::class, 'update'])->name('permission.update');
+    Route::delete('/permission/{id}', [PermissionController::class, 'destroy'])->name('permission.destroy');  
 
 
 

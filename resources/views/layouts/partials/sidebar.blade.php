@@ -18,7 +18,7 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
          
-          <li class="nav-item">
+       {{--    <li class="nav-item">
             <a href="#" class="nav-link text-light">
             
               <i class="nav-icon fa-regular fa-rectangle-list"></i>
@@ -26,7 +26,8 @@
                 Dashboard
               </p>
             </a>
-          </li>
+          </li> --}}
+          @can('ver-POS')
           <li class="nav-item">
             
             <a href="{{ route('puntodeventa.pos') }}" class="nav-link text-light">
@@ -39,6 +40,8 @@
               </p>
             </a>
           </li>
+          @endcan
+          @can('ver-Ventas')
           <li class="nav-item">
             
             <a href="{{ route('ventas.main')  }}" class="nav-link text-light">
@@ -50,6 +53,8 @@
               </p>
             </a>
           </li>
+          @endcan
+          @can('ver-inventario')
           <li class="nav-item">
             
             <a href="{{ route('inventario.main') }}" class="nav-link text-light">
@@ -61,6 +66,8 @@
               </p>
             </a>
           </li>
+          @endcan
+          @can('ver-facturacion')
           <li class="nav-item">
             
             <a href="{{ route('facturacion.main') }}" class="nav-link text-light">
@@ -71,8 +78,8 @@
               </p>
             </a>
           </li>
-          
-        
+          @endcan
+          @can('ver-configuracion')
           <li class="nav-item">
             
             <a href="{{ route('configuracion.main') }}" class="nav-link text-light">
@@ -84,6 +91,7 @@
               </p>
             </a>
           </li>
+          @endcan
         </ul>
       </nav>
       <!-- /.sidebar-menu -->

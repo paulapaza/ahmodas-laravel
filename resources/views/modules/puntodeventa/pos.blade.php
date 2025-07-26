@@ -76,7 +76,7 @@
                             </table>
                         </div>
                         <div class="row">
-                            
+                            @can('ver-moneda')
                             <div class="col-md-4 text-left pl-4 my-2">
                                 <label for="moneda" class="font-weight-bold">Moneda:</label>
                                 <select class="form-control d-inline-block w-auto" id="moneda"
@@ -85,6 +85,8 @@
                                     <option value="2">USD</option>
                                 </select>
                             </div>
+                            @endcan
+                            @can('ver-tipo-de-venta')
                             <div class="col-md-4 text-right pr-4 my-2">
                                 <label for="tipo_venta" class="font-weight-bold">Venta:</label>
                                 <select class="form-control d-inline-block w-auto" id="tipo_venta"
@@ -93,6 +95,7 @@
                                     <option value="exportacion">Exportación</option>
                                 </select>
                             </div>
+                            @endcan
                             <div class="col-md-4 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
                                
                                 Total
@@ -869,8 +872,16 @@
                             let footer = '';
                             if (respuesta.pos_order.tipo_comprobante != 12) {
                                 // impirmir el mensje y añadir dos botones para abri una url
+                                if (respuesta.pos_order.tipo_comprobante == 01){
+                                    nombreComprobante = 'Factura';
+                                }else if (respuesta.pos_order.tipo_comprobante == 03){
+                                    nombreComprobante = 'Boleta';
+                                }else{
+                                    nombreComprobante = 'Ticket';
+                                }
+
                                 mensaje = `<div class="text-center">
-                                    <h5>Comprobante: ${respuesta.pos_order.tipo_comprobante}</h5>
+                                    <h5>Comprobante: ${nombreComprobante}</h5>
                                     <a href="${respuesta.cpe_response.enlace_del_pdf}" target="_blank" class="btn btn-primary">Imprimir Comprobante</a>
                                     
                                 </div>`;
