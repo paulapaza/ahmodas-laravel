@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiConsultaController;
 use App\Http\Controllers\Configuracion\EmpresaController;
 use App\Http\Controllers\Configuracion\PermissionController;
 use App\Http\Controllers\Configuracion\RoleController;
@@ -37,7 +38,7 @@ Route::middleware([
     /*************************
      Punto de Venta
      ************************/
-    Route::view('/punto-de-venta', 'modules.puntodeventa.pos')->name('puntodeventa.pos');
+    Route::view('/punto-de-venta', 'modules.puntodeventa.pos1')->name('puntodeventa.pos');
     //venta
     Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
      /*************************
@@ -147,7 +148,9 @@ Route::middleware([
     Route::patch('/permission/{id}', [PermissionController::class, 'update'])->name('permission.update');
     Route::delete('/permission/{id}', [PermissionController::class, 'destroy'])->name('permission.destroy');  
 
-
+    // api de consulta ruc y dni
+    Route::get('/consultar-ruc/{ruc}', [ApiConsultaController::class, 'consultarRuc'])->name('consultar.ruc');
+    Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');  
 
 });
 

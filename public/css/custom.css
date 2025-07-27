@@ -277,3 +277,26 @@ verde: #54C392
     white-space: wrap!important;
     
 }
+
+.dni-contenedor {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacio entre el input y el ícono */
+}
+
+.dni-contenedor i {
+  cursor: pointer;
+  color: #333;
+  font-size: 18px;
+}
+.ruc-contenedor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruc-contenedor i {
+  cursor: pointer;
+  color: #333;
+  font-size: 18px;
+}

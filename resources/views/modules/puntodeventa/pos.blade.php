@@ -5,12 +5,13 @@
                 <div class="row">
                     <div class="col-md-12 mb-1">
                         <div class="row form-group mb-2 ">
-                            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i
+                                    class="fas fa-bars"></i></a>
                             <div class="col-5 search-list">
                                 @csrf
                                 <!-- INPUT INGRESO-->
-                                <input type="text" class="form-control" id="search-box" placeholder="codigo de barras (F2)"
-                                    autocomplete="off">
+                                <input type="text" class="form-control" id="search-box"
+                                    placeholder="codigo de barras (F2)" autocomplete="off">
                                 <ul id="datos">
 
                                 </ul>
@@ -77,29 +78,29 @@
                         </div>
                         <div class="row">
                             @can('ver-moneda')
-                            <div class="col-md-4 text-left pl-4 my-2">
-                                <label for="moneda" class="font-weight-bold">Moneda:</label>
-                                <select class="form-control d-inline-block w-auto" id="moneda"
-                                    name="moneda" required>
-                                    <option value="1" selected>PEN</option>
-                                    <option value="2">USD</option>
-                                </select>
-                            </div>
+                                <div class="col-md-4 text-left pl-4 my-2">
+                                    <label for="moneda" class="font-weight-bold">Moneda:</label>
+                                    <select class="form-control d-inline-block w-auto" id="moneda" name="moneda"
+                                        required>
+                                        <option value="1" selected>PEN</option>
+                                        <option value="2">USD</option>
+                                    </select>
+                                </div>
                             @endcan
                             @can('ver-tipo-de-venta')
-                            <div class="col-md-4 text-right pr-4 my-2">
-                                <label for="tipo_venta" class="font-weight-bold">Venta:</label>
-                                <select class="form-control d-inline-block w-auto" id="tipo_venta"
-                                    name="tipo_venta" required>
-                                    <option value="local" selected>Local</option>
-                                    <option value="exportacion">Exportación</option>
-                                </select>
-                            </div>
+                                <div class="col-md-4 text-right pr-4 my-2">
+                                    <label for="tipo_venta" class="font-weight-bold">Venta:</label>
+                                    <select class="form-control d-inline-block w-auto" id="tipo_venta" name="tipo_venta"
+                                        required>
+                                        <option value="local" selected>Local</option>
+                                        <option value="exportacion">Exportación</option>
+                                    </select>
+                                </div>
                             @endcan
                             <div class="col-md-4 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
-                               
+
                                 Total
-                                
+
                                 <span id="simbolo_moneda">S/.</span>
                                 <span id="TotalRecibo">0.00</span>
                             </div>
@@ -149,7 +150,8 @@
                                     </div>
                                     <div class="col-4 px-0">
                                         <input type="text" class="form-control text-right tipo-pago"
-                                            id="pago_transferencia" name="pago_transferencia" value="0" disabled>
+                                            id="pago_transferencia" name="pago_transferencia" value="0"
+                                            disabled>
                                     </div>
                                 </div>
                             </div>
@@ -323,7 +325,7 @@
 
             $("#search-box").focus();
 
-            
+
 
             $.ajax({
                 url: "/invetario/producto/buscar",
@@ -674,7 +676,7 @@
             if (total <= 0) {
                 Swal.fire({
                     icon: 'error',
-                    html: 'No hya producto agregados al la venta',
+                    html: 'No hay productos agregados al carrito',
                     footer: 'Agrega productos al carrito!'
                 });
                 $('.procesar_venta').prop('disabled', false);
@@ -691,7 +693,11 @@
                     Swal.fire({
                         title: 'Datos cliente para la boleta',
                         html: `<div class="form-contenedor">
-                                <input type="text" id="dni_cliente" class="form-input" placeholder="DNI">
+                                <div class="dni-contenedor">
+                                    <input type="text" id="dni_cliente" class="form-input" placeholder="DNI">
+                                    <i class="fa-solid fa-magnifying-glass" data-toggle="tooltip" data-placement="top" title="buscar datos" id="buscar_dni"></i>
+                                </div>
+                                <span id="resultado_busqueda"></span>
                                 <input type="text" id="nombre_cliente" class="form-input" placeholder="Nombre">
                                 <input type="text" id="direccion_cliente" class="form-input" placeholder="Dirección">
                                 </div>`,
@@ -745,7 +751,12 @@
                 if (codigo_tipo_comprobante == "01") {
                     Swal.fire({
                         title: 'Datos cliente para la factura',
-                        html: `<div class="form-contenedor"><input type="text" id="ruc_cliente" class="form-input" placeholder="RUC">
+                        html: `<div class="form-contenedor">
+                                <div class="ruc-contenedor">
+                                    <input type="text" id="ruc_cliente" class="form-input" placeholder="RUC">
+                                    <i class="fa-solid fa-magnifying-glass" data-toggle="tooltip" data-placement="top" title="buscar RUC"></i>
+                                </div>
+                                <span id="resultado_busqueda"></span>
                                 <input type="text" id="razon_social_cliente" class="form-input" placeholder="Razón Social">
                                 <input type="text"  id="direccion_cliente" class="form-input"  placeholder="Dirección">
                                 </div>`,
@@ -872,11 +883,11 @@
                             let footer = '';
                             if (respuesta.pos_order.tipo_comprobante != 12) {
                                 // impirmir el mensje y añadir dos botones para abri una url
-                                if (respuesta.pos_order.tipo_comprobante == 01){
+                                if (respuesta.pos_order.tipo_comprobante == 01) {
                                     nombreComprobante = 'Factura';
-                                }else if (respuesta.pos_order.tipo_comprobante == 03){
+                                } else if (respuesta.pos_order.tipo_comprobante == 03) {
                                     nombreComprobante = 'Boleta';
-                                }else{
+                                } else {
                                     nombreComprobante = 'Ticket';
                                 }
 
@@ -927,6 +938,9 @@
                                 .message,
                             footer: 'Intenta nuevamente! presione f5 para recargar la pagina    '
                         });
+                        // Volver a activar los botones de pago
+                        $('.procesar_venta').prop('disabled', false);
+
                     }
                 });
             }
@@ -945,7 +959,117 @@
             }
         });
 
+        // Evento para buscar datos del DNI
+        $(document).on('click', '#buscar_dni', function() {
+            let dni = $('#dni_cliente').val();
+            console.log(dni);
+            
+            if (dni.length !== 8 || isNaN(dni)) {
+                $('#resultado_busqueda').html(
+                    `<span class="text-danger">El DNI debe tener exactamente 8 dígitos numéricos</span>`);
+                return;
+            }
+            // Realizar la consulta al servidor
+            // ruta    Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');  
+            $.ajax({
+                url: "/consultar-dni/" + dni,
+                type: "GET",
+                timeout: 7000, // tiempo máximo de espera en milisegundos (10 segundos)
+                dataType: 'json',
+                // poner un loading
+                beforeSend: function() {
+                    $('#resultado_busqueda').html(
+                        `<span class="text-info">Buscando DNI...</span><icon class="fa fa-spinner fa-spin"></icon>`);
+                },
+                success: function(response) {
+                    
+                    if (response.success) {
+                        $('#nombre_cliente').val(response.data.full_name || '');
+                        $('#direccion_cliente').val('Sin direccion'); // Puedes ajustar esto según la respuesta');
+                        //resultado_busqueda
+                        $('#resultado_busqueda').html(
+                            `<span class="text-success">DNI encontrado.</span>`
 
+                        );
+                    } else {
+                        $('#resultado_busqueda').html(
+                            `<span class="text-danger">DNI no encontrado ${response.message}</span>`);
+                        $('#nombre_cliente').val('');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Manejar el error tiempo de espera
+                    if (xhr.statusText === 'timeout') {
+                        $('#resultado_busqueda').html(
+                            `<span class="text-danger">Tiempo de espera agotado. Intente nuevamente.</span>`);
+                        return;
+                    } else if (xhr.status === 404) {
+                        $('#resultado_busqueda').html(
+                            `<span class="text-danger">DNI no encontrado.</span>`);
+                        $('#nombre_cliente').val('');
+                        return;
+                    }
 
+                }
+            });
+        });
+        // Evento para buscar datos del RUC
+        $(document).on('click', '.fa-magnifying-glass', function() {
+            let ruc = $('#ruc_cliente').val();
+            if (ruc.length !== 11 || isNaN(ruc)) {
+                $('#resultado_busqueda').html(
+                    `<span class="text-danger">El RUC debe tener exactamente 11 dígitos numéricos</span>`);
+                return;
+            }
+            // Realizar la consulta al servidor
+            $.ajax({
+                url: "/consultar-ruc/" + ruc,
+                type: "GET",
+                timeout: 7000, // tiempo máximo de espera en milisegundos (10 segundos)
+                dataType: 'json',
+                // poner un loading
+                beforeSend: function() {
+                    $('#resultado_busqueda').html(
+                        `<span class="text-info">Buscando RUC...</span><icon class="fa fa-spinner fa-spin"></icon>`);
+                },
+                success: function(response) {
+                    if (response.success) {
+                 
+                        $('#razon_social_cliente').val(response.data.razon_social || '');
+                       $('#direccion_cliente').val(
+                        response.data.direccion + ' - ' +
+                        response.data.distrito + ' - ' +
+                        response.data.provincia + ' - ' +
+                        response.data.departamento
+                        );
+                // según la respuesta
+                        $('#resultado_busqueda').html(
+                            `<span class="text-success">RUC encontrado.</span>`
+                        );
+                    } else {
+                        $('#resultado_busqueda').html(      
+                            `<span class="text-danger">RUC no encontrado ${response.message}</span>`);
+                        $('#razon_social_cliente').val('');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Manejar el error tiempo de espera
+                    if (xhr.statusText === 'timeout') {
+                        $('#resultado_busqueda').html(
+                            `<span class="text-danger">Tiempo de espera agotado. Intente nuevamente.</span>`);
+                        return;
+                    }else if (xhr.status === 404) {
+                        $('#resultado_busqueda').html(
+                            `<span class="text-danger">RUC no encontrado.</span>`);
+                        $('#razon_social_cliente').val('');
+                        return;
+                    }
+               
+                }
+            });
+        });
     });
+
+   
+
 </script>
