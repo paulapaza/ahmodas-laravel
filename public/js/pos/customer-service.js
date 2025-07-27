@@ -14,7 +14,7 @@ class CustomerService {
         });
 
         // Búsqueda de RUC
-        $(document).on('click', '.fa-magnifying-glass', (e) => {
+        $(document).on('click', '#buscar_ruc', (e) => {
             // Solo si está en el contexto de RUC
             if ($('#ruc_cliente').length) {
                 this.searchRUC();
@@ -134,7 +134,7 @@ class CustomerService {
                 <div class="form-contenedor">
                     <div class="ruc-contenedor">
                         <input type="text" id="ruc_cliente" class="form-input" placeholder="RUC">
-                        <i class="fa-solid fa-magnifying-glass" data-toggle="tooltip" data-placement="top" title="buscar RUC"></i>
+                        <i class="fa-solid fa-magnifying-glass" data-toggle="tooltip" data-placement="top" title="buscar RUC" id="buscar_ruc"></i>
                     </div>
                     <span id="resultado_busqueda"></span>
                     <input type="text" id="razon_social_cliente" class="form-input" placeholder="Razón Social">
