@@ -83,31 +83,14 @@ Route::middleware([
     Route::view('/inventario/marcas','modules.inventario.marca.index')->name('inventario.marcas.index');
     Route::resource('/inventario/marca', MarcaController::class)->except(['show, create, edit']);
 
-    // unidad de medida
-    Route::resource('/inventario/tienda', TiendaController::class);
+    
     // stock
     Route::get('/inventario/stock', [StockController::class, 'tiendasConStock']);
     /*************************
      MODULO DE FACTURACION
      ************************/
     Route::view('/facturacion','modules.facturacion.main')->name('facturacion.main');
-    // tipo de afectación del IGV
-    Route::view('/facturacion/tipos-afectacion-igv','modules.facturacion.sunat.tipo_afectacion.index')->name('facturacion.sunat.tipoafectacionigv.index');
-    Route::resource('/facturacion/tipo-afectacion-igv', TipoAfectacionController::class)->only(['index']);
-    // tipo de documento de identidad
-    Route::view('/facturacion/tipos-documento-identidad','modules.facturacion.sunat.tipo_documento_identidad.index')->name('facturacion.sunat.tipodocumentoidentidad.index');
-    Route::resource('/facturacion/tipo-documento-identidad', TipoDocumentoIdentidadController::class)->only(['index']);
-    // tipo de comprobante
-    Route::view('/facturacion/tipos-comprobante','modules.facturacion.sunat.tipo_comprobante.index')->name('facturacion.sunat.tipocomprobante.index');
-    Route::resource('/facturacion/tipo-comprobante', TipoComprobanteController::class)->only(['index']);
-    // tipoprecio
-    Route::view('/facturacion/tipos-precio','modules.facturacion.sunat.tipo_precio.index')->name('facturacion.sunat.tipoprecio.index');
-    Route::resource('/facturacion/tipo-precio', TipoPrecioController::class)->only(['index']);
     
-    Route::view('/facturacion/configuracion/','modules.facturacion.configuracion.edit')->name('facturacion.configuracion.edit');
-    
-    Route::view('/facturacion/configuracion/impuestos','modules.facturacion.impuestos.index')->name('facturacion.impuestos.index');
-    Route::resource('/facturacion/impuesto', ImpuestoController::class)->only(['index']);
 
     //cep_serie
     Route::get('/facturacion/serie', [CpeSerieController::class,'index'])->name('cpe.serie.index');
@@ -126,15 +109,7 @@ Route::middleware([
     // configuracion de usuarios
     Route::view('/configuracion/usuarios', 'modules.configuracion.users.index')->name('configuracion.usuarios.index');
     Route::resource('/configuracion/user', UserController::class);
-    // Configuracion de empresa
-    Route::get('/configuracion/empresa', [EmpresaController::class, 'edit'])->name('empresa.edit');
-    Route::put('/configuracion/empresa/datosComerciales', [EmpresaController::class, 'update_datosComerciales'])->name('empresa.update_datosComerciales');
-    Route::put('/configuracion/empresa/datosTributarios', [EmpresaController::class, 'update_datosTributarios'])->name('update_datosTributarios');
-    Route::put('/configuracion/empresa/datosFacturacionElectronica', [EmpresaController::class, 'update_facturacionElectronica'])->name('update_facturacionElectronica');
-    Route::post('/configuracion/empresa/certificadodigital', [EmpresaController::class, 'update_certificadoDigital'])->name('update_certificadoDigital');
-    Route::put('/configuracion/empresa/datosConsultaDocumentos', [EmpresaController::class, 'update_ConsultaDocumentos'])->name('supdateConsultaDocumentos');
-    Route::put('/configuracion/empresa/datosGuiaRemision', [EmpresaController::class, 'update_GuiaRemision'])->name('store_GuiaRemision');
-    
+ 
     /*************************
      MODULO DE Usuarios roles y permisos
      ************************/ 

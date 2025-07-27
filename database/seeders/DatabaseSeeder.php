@@ -7,13 +7,9 @@ use App\Models\Inventario\Categoria;
 use App\Models\Inventario\Marca;
 use App\Models\Inventario\Producto;
 use App\Models\User;
-use Database\Seeders\catalogos\tipo_de_afectacion;
-use Database\Seeders\catalogos\tipo_de_comprobante;
-use Database\Seeders\catalogos\tipo_documento_identidad;
-use Database\Seeders\catalogos\tipo_precio;
+
 use Database\Seeders\facturacion\documento_serie_correlativo;
-use Database\Seeders\facturacion\impuestos;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -23,14 +19,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-        $this->call(empresa::class);
-        $this->call(tipo_documento_identidad::class);
+        
+        /* $this->call(tipo_documento_identidad::class);
         $this->call(tipo_precio::class);
         $this->call(tipo_de_comprobante::class);
         $this->call(tipo_de_afectacion::class);
-        $this->call(impuestos::class);
+        $this->call(impuestos::class); */
         $this->call(documento_serie_correlativo::class);
+        $this->call(RolesSeeder::class);
 
         User::factory()->create([
             'name' => 'Administrador',
@@ -65,7 +61,7 @@ class DatabaseSeeder extends Seeder
             'nombre' => 'Sin Categoria',
             'estado' => 1,
         ]);
-        Producto::factory()->count(20)->create();
+        //Producto::factory()->count(20)->create();
         // cliente
         Cliente::create([
             'nombre' => 'Cliente Varios',
@@ -248,6 +244,9 @@ class DatabaseSeeder extends Seeder
             'estado' => 1,
             'tipo_de_igv' => 9, // Inafecto
         ]);  
+
+        // ejecutar comando para crear permisos
+        $this->call(\App\Console\Commands\CrearPermisos::class);
 
     }
 }
