@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Console\Commands\CrearPermisos;
 use App\Models\Cliente;
 use App\Models\Inventario\Categoria;
 use App\Models\Inventario\Marca;
@@ -26,7 +27,7 @@ class DatabaseSeeder extends Seeder
         $this->call(tipo_de_afectacion::class);
         $this->call(impuestos::class); */
         $this->call(documento_serie_correlativo::class);
-        $this->call(RolesSeeder::class);
+       
 
         User::factory()->create([
             'name' => 'Administrador',
@@ -244,9 +245,11 @@ class DatabaseSeeder extends Seeder
             'estado' => 1,
             'tipo_de_igv' => 9, // Inafecto
         ]);  
-
-        // ejecutar comando para crear permisos
-        $this->call(\App\Console\Commands\CrearPermisos::class);
+        
+        // crear roles
+        $this->call(RolesSeeder::class);
+        // ejecutar comando para crear permisos  php artisan app:crear-permisos
+        $this->call(CrearPermisos::class);
 
     }
 }

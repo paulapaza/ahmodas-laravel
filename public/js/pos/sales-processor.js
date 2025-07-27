@@ -70,6 +70,8 @@ class SalesProcessor {
         const result = await Swal.fire({
             ...modalConfig,
             focusConfirm: false,
+            showCancelButton: true, 
+            cancelButtonText: 'Cancelar', 
             customClass: { popup: 'form-modal' },
             willClose: () => {
                 $('.procesar_venta').prop('disabled', false);

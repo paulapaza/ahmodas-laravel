@@ -13,7 +13,7 @@ class CrearPermisos extends Command
     /**
      * The name and signature of the console command.
      * php artisan app:crear-permisos
-     * php artisan db:seed --class=Database\\Seeders\\RolesSeeder
+     * 
      * @var string
      */
     protected $signature = 'app:crear-permisos';
