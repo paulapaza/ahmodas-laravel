@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Events\VentaRealizada;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PosOrderStore;
 use App\Models\Facturacion\Cpe;
@@ -126,7 +127,10 @@ class PosOrderController extends Controller
 
         DB::Commit();
         // Retornar una respuesta JSON
-
+       // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
+       // cargar el nombre de la tienda en el pos order
+        $pos_order->load('tienda'); // Cargar la relación tienda
+        VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',

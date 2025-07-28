@@ -6,7 +6,7 @@ use App\Models\Inventario\Tienda;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 
-class setTiendaInProfile extends Component
+class SetTiendaInProfile extends Component
 {
     public $state = [];
 

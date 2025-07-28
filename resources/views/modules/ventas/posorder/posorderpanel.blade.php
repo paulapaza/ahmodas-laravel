@@ -1,4 +1,6 @@
 <x-admin-layout>
+    <div id="echoStatus" class="d-none"></div>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <x-slot name="menu">
         <x-menuVentas /> </x-slot>
 
@@ -125,7 +127,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-right text-bold text-xaccent">
-                            
+
                             @php
                                 $totalCompletado = $tienda->posOrders
                                     ->where('estado', 'completado')
@@ -165,7 +167,74 @@
     @endif
 
 </x-admin-layout>
+
+
+{{-- Script para manejar el modal de selección de fechas --}}
+
+{{-- Script para manejar el filtro de fechas --}}
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si Echo está disponible
+        if (typeof window.Echo === 'undefined') {
+            console.error('Echo no está disponible');
+            return;
+        }
+
+     
+
+        try {
+            // Escuchar el canal "ventas" y el evento VentaRealizada
+            window.Echo.channel('ventas')
+                .listen('.venta.realizada', (event) => {
+                    console.log('✅ Evento "venta.realizada" recibido:', event);
+                    console.log('Datos de la venta:', event.venta);
+                    // SOLO QUIERO QUE SE RECARGE LA PAGINA CUANDO SE RECIBE UN EVENTO DE VENTA REALIZADA
+                    if (event && event.venta) {
+                        console.log('Recargando la página debido a una nueva venta realizada');
+                        // mostrar un toaast de éxito
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 5000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                            }
+                        });
+                        let tienda_nombre = event.venta.tienda.nombre;
+                        let total_cobrado = parseFloat(event.venta.total_amount).toFixed(2);
+                        
+                        Toast.fire({
+                            icon: "success",
+                            title: "Nueva venta registrada",
+                            html: 'En la tienda: <b>' +  tienda_nombre +
+                                ' </b>Con el monto total de: <b>' + total_cobrado + ' Soles </b>',
+                        });
+                        // Recargar la página para reflejar los cambios
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 5000); 
+
+                    } else {
+                        console.warn('Evento "venta.realizada" recibido sin datos de venta');
+                    }
+                });
+            // Log opcional del estado de conexión
+            const connection = window.Echo.connector?.pusher?.connection;
+            if (connection) {
+                connection.bind('connected', () => console.log('🔌 Conectado a Reverb'));
+                connection.bind('disconnected', () => console.warn('🔌 Desconectado de Reverb'));
+                connection.bind('connecting', () => console.log('⏳ Conectando a Reverb...'));
+                connection.bind('failed', () => console.error('❌ Falló conexión a Reverb'));
+            }
+
+        } catch (error) {
+            console.error('Error configurando Echo:', error);
+        }
+    });
+
     $(document).ready(function() {
         const urlParts = window.location.pathname.split('/');
         const fechaInicio = urlParts[urlParts.length - 2];

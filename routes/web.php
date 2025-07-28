@@ -1,16 +1,10 @@
 <?php
 
 use App\Http\Controllers\ApiConsultaController;
-use App\Http\Controllers\Configuracion\EmpresaController;
 use App\Http\Controllers\Configuracion\PermissionController;
 use App\Http\Controllers\Configuracion\RoleController;
 use App\Http\Controllers\Configuracion\UserController;
 use App\Http\Controllers\Facturacion\CpeSerieController;
-use App\Http\Controllers\Facturacion\ImpuestoController;
-use App\Http\Controllers\Facturacion\Sunat\TipoAfectacionController;
-use App\Http\Controllers\Facturacion\Sunat\TipoComprobanteController;
-use App\Http\Controllers\Facturacion\Sunat\TipoDocumentoIdentidadController;
-use App\Http\Controllers\Facturacion\Sunat\TipoPrecioController;
 use App\Http\Controllers\Inventario\CategoriaController;
 use App\Http\Controllers\Inventario\MarcaController;
 use App\Http\Controllers\Inventario\ProductoController;
@@ -18,6 +12,7 @@ use App\Http\Controllers\Inventario\StockController;
 use App\Http\Controllers\Inventario\TiendaController;
 
 use App\Http\Controllers\Pos\PosOrderController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -152,6 +147,7 @@ Route::middleware([
     Route::get('/consultar-ruc/{ruc}', [ApiConsultaController::class, 'consultarRuc'])->name('consultar.ruc');
     Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');  
 
+   // Broadcast::route();
 });
 
     
