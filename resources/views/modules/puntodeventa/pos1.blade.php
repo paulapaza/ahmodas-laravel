@@ -68,7 +68,7 @@
                                         <th>Precio Min</th>
                                         <th>Total</th>
                                         <th>ID</th>
-                                        <th>Acciones</th>
+                                        <th>Cantidad</th>
                                     </tr>
                                 </thead>
                                 <tbody>
