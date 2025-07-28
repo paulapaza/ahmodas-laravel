@@ -26,7 +26,7 @@ class SalesProcessor {
      */
     async handleSaleProcessing(button) {
         const total = this.cartManager.getTotal();
-        
+
         if (total <= 0) {
             POSUtils.showError('No hay productos agregados al carrito', 'Agrega productos al carrito!');
             return;
@@ -70,8 +70,8 @@ class SalesProcessor {
         const result = await Swal.fire({
             ...modalConfig,
             focusConfirm: false,
-            showCancelButton: true, 
-            cancelButtonText: 'Cancelar', 
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
             customClass: { popup: 'form-modal' },
             willClose: () => {
                 $('.procesar_venta').prop('disabled', false);
@@ -117,6 +117,10 @@ class SalesProcessor {
 
             if (response.success) {
                 this.handleSuccessfulSale(response);
+                    if (response.pos_order.tipo_comprobante === POSConfig.DOCUMENT_TYPES.TICKET) {
+                    window.open(`/pos/imprimir-recibo/${response.pos_order.id}`, '_blank');
+                }
+
             } else {
                 POSUtils.showError(response.message);
                 $('.procesar_venta').prop('disabled', false);
@@ -140,7 +144,7 @@ class SalesProcessor {
 
         if (response.pos_order.tipo_comprobante != POSConfig.DOCUMENT_TYPES.TICKET) {
             const nombreComprobante = this.getDocumentTypeName(response.pos_order.tipo_comprobante);
-            
+
             mensaje = `
                 <div class="text-center">
                     <h5>Comprobante: ${nombreComprobante}</h5>
@@ -149,7 +153,7 @@ class SalesProcessor {
                     </a>
                 </div>
             `;
-            
+
             footer = `
                 <div class="text-center">
                     <a href="${response.cpe_response.enlace}" target="_blank">
@@ -183,13 +187,13 @@ class SalesProcessor {
     resetPOS() {
         // Limpiar carrito
         this.cartManager.clear();
-        
+
         // Limpiar pagos
         this.paymentManager.clear();
-        
+
         // Reactivar botones
         $('.procesar_venta').prop('disabled', false);
-        
+
         // Enfocar búsqueda
         $('#search-box').focus();
     }
@@ -199,10 +203,10 @@ class SalesProcessor {
      */
     handleCurrencyChange(select) {
         const monedaSeleccionada = $(select).val();
-        const simbolo = monedaSeleccionada === POSConfig.CURRENCY.PEN.value 
-            ? POSConfig.CURRENCY.PEN.symbol 
+        const simbolo = monedaSeleccionada === POSConfig.CURRENCY.PEN.value
+            ? POSConfig.CURRENCY.PEN.symbol
             : POSConfig.CURRENCY.USD.symbol;
-        
+
         $('#simbolo_moneda').text(simbolo);
     }
 }

@@ -125,12 +125,12 @@ class PosOrderController extends Controller
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
 
-        DB::Commit();
-        // Retornar una respuesta JSON
-       // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
-       // cargar el nombre de la tienda en el pos order
+         DB::Commit();
+     
         $pos_order->load('tienda'); // Cargar la relación tienda
         VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
+        // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
+
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',
@@ -389,11 +389,11 @@ class PosOrderController extends Controller
             ], 404);
         }
         DB::beginTransaction();
-    
+
         if (isset($respuesta['errors'])) {
             return response()->json([
                 'success' => false,
-                'message' => $respuesta['errors'].'Por favor, verifica si el documento esta registrado en la SUNAT. si no lo estas,
+                'message' => $respuesta['errors'] . 'Por favor, verifica si el documento esta registrado en la SUNAT. si no lo estas,
                   espera al menos 24 horas para volver a intentar la baja.',
             ], 400);
         }
@@ -415,7 +415,7 @@ class PosOrderController extends Controller
             'enlace_del_xml' => $respuesta['enlace_del_xml'] ?? null,
             'enlace_del_cdr' => $respuesta['enlace_del_cdr'],
         ])->save();
-        
+
         //anular la orden
         $posOrder = PosOrder::findOrFail($cpe_id);
         if ($posOrder->estado !== 'anulado') {
@@ -477,5 +477,30 @@ class PosOrderController extends Controller
             'estado' => $respuesta,
             'cpe_baja' => $cpeBaja,
         ]);
+    }
+
+    public function mostrarRecibo($id)
+    {
+        $pos_order = PosOrder::with('tienda')->findOrFail($id);
+
+        if ($pos_order->tipo_comprobante != 12) {
+            abort(404); // O simplemente return;
+        }
+
+        $plantilla = view('modules.print.recibo_print', compact('pos_order'))->render();
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => [70, 300],
+            'margin_left' => 2,
+            'margin_right' => 3,
+            'margin_top' => 0,
+            'margin_bottom' => 0,
+            'margin_header' => 0,
+            'margin_footer' => 0,
+        ]);
+
+        $mpdf->WriteHTML($plantilla);
+        return response($mpdf->Output('', 'S'), 200)->header('Content-Type', 'application/pdf');
     }
 }

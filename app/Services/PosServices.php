@@ -240,4 +240,7 @@ class PosServices
         // Si no se cumple ninguna de las anteriores, usar cliente por defecto
         return Cliente::find(1);
     }
-}       // obtener productos por tiend
+
+  
+
+}

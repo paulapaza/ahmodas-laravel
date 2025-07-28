@@ -9,6 +9,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Miapp | {{ $titulo ?? 'Dashboard'}}</title>
 
+  <link rel="icon" href="{{ asset('img/icon.png') }}" type="image/png">
+
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome Icons -->

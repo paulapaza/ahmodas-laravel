@@ -147,7 +147,9 @@ Route::middleware([
     Route::get('/consultar-ruc/{ruc}', [ApiConsultaController::class, 'consultarRuc'])->name('consultar.ruc');
     Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');  
 
-   // Broadcast::route();
+   // ruta de impresion de ticket
+   Route::get('/pos/imprimir-recibo/{id}', [PosOrderController::class, 'mostrarRecibo']);
+
 });
 
     
