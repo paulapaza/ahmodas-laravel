@@ -69,7 +69,6 @@
       
     </div>
     <div id="footer">
-        <div class="mensajeFooter1">¡ Gracias por su compra ! </div>
-        <div class="mensajeFooter1">Para el cambio o devolución de productos, conservar el recibo</div>
+        <div class="mensajeFooter1">{!! nl2br(e($pos_order->tienda->ticket_nota)) !!}</div>
     </div>
 @endsection

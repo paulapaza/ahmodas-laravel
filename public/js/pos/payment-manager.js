@@ -11,6 +11,16 @@ class PaymentManager {
      * Vincula los eventos de pago
      */
     bindEvents() {
+        $('body').on('focus', 'input', (e) => {
+            const newInput = e.currentTarget;
+            // Si no hay input activo O es un input diferente al anterior, resetear newValue
+            if (!this.activeInput || this.activeInput !== newInput) {
+                this.resetNewValue(); // USAR EL MÉTODO DEDICADO
+            }
+            
+            this.activeInput = newInput;
+           
+        });
         // Detectar input activo
         $('body').on('focus', 'input', (e) => {
             this.activeInput = e.currentTarget;
@@ -55,6 +65,8 @@ class PaymentManager {
             this.totalCarrito = total;
             this.distributeToEffective();
         });
+        // Detectar input activo
+         
     }
 
     /**
@@ -70,10 +82,16 @@ class PaymentManager {
         } else {
             this.newValue += key;
         }
-        
+
         this.activeInput.value = this.newValue;
     }
-
+       /**
+     * Método adicional: resetear manualmente si es necesario
+     */
+    resetNewValue() {
+        this.newValue = '';
+        console.log('newValue reseteado manualmente');
+    }
     /**
      * Maneja el botón Enter del keypad
      */
@@ -92,7 +110,7 @@ class PaymentManager {
     /**
      * Maneja Enter del keypad para inputs del carrito
      */
-    handleCartKeypadEnter() {
+    /* handleCartKeypadEnter() {
         const table = window.cartManager.table;
         const row = table.row($(this.activeInput).closest('tr'));
         const data = row.data();
@@ -110,6 +128,47 @@ class PaymentManager {
             POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
             this.newValue = data.precio_unitario.toString();
             this.activeInput.value = this.newValue;
+        }
+    } */
+    handleCartKeypadEnter() {
+        const table = window.cartManager.table;
+        const row = table.row($(this.activeInput).closest('tr'));
+        const data = row.data();
+        const valorFinal = parseFloat(this.newValue);
+
+        // Obtener la restricción del usuario (ajusta según cómo accedas a esta variable)
+        const restriccion_precio_minimo = window.cartManager.restriccion_precio_minimo;
+        // O si la tienes en otro lugar: this.restriccion_precio_minimo
+
+        console.log('Valor ingresado:', valorFinal);
+        console.log('Precio mínimo:', data.precio_minimo);
+        console.log('Restricción usuario:', restriccion_precio_minimo);
+
+        if (isNaN(valorFinal)) return;
+
+        // Si el usuario tiene restricción de precio mínimo (restriccion_precio_minimo = 'si')
+        if (restriccion_precio_minimo === 'si') {
+            // Usuario restringido: debe respetar el precio mínimo
+            if (valorFinal >= data.precio_minimo) {
+                // Precio válido - actualizar
+                data.precio_unitario = POSUtils.formatCurrency(valorFinal);
+                data.subtotal = POSUtils.formatCurrency(data.cantidad * valorFinal);
+                row.data(data).draw();
+                this.activeInput.value = POSUtils.formatCurrency(valorFinal);
+                window.cartManager.calculateTotal();
+            } else {
+                // Precio menor al mínimo - mostrar error
+                POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
+                this.newValue = data.precio_unitario.toString();
+                this.activeInput.value = this.newValue;
+            }
+        } else {
+            // Usuario sin restricción (restriccion_precio_minimo = 'no'): puede poner cualquier precio
+            data.precio_unitario = POSUtils.formatCurrency(valorFinal);
+            data.subtotal = POSUtils.formatCurrency(data.cantidad * valorFinal);
+            row.data(data).draw();
+            this.activeInput.value = POSUtils.formatCurrency(valorFinal);
+            window.cartManager.calculateTotal();
         }
     }
 
@@ -201,7 +260,7 @@ class PaymentManager {
     handlePaymentModeClick(button) {
         $('.btn-modo-pago').removeClass('active');
         $(button).addClass('active');
-        
+
         const metodo = $(button).data('target');
 
         if (metodo === 'efectivo') {

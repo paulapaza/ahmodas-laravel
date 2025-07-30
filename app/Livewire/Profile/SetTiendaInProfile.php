@@ -15,6 +15,9 @@ class SetTiendaInProfile extends Component
         $user = Auth::user();
         $this->state = [
             'tienda_id' => $user->tienda_id,
+            'print_type' => $user->print_type,
+            'printer_ip' => $user->printer_ip,
+            'printer_name' => $user->printer_name,
         ];
     }
 
@@ -27,6 +30,9 @@ class SetTiendaInProfile extends Component
       
         Auth::user()->update([
             'tienda_id' => $tienda,
+            'print_type' => $this->state['print_type'],
+            'printer_ip' => $this->state['printer_ip'],
+            'printer_name' => $this->state['printer_name'],
         ]);
 
         $this->dispatch('saved');

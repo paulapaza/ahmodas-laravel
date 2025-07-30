@@ -179,6 +179,14 @@ Contraseña: admin
 ```
 
 ---
+## 🔐 Acceso Inicial
+
+para la configuracion  de imporesion con androi 
+- usa rawbt
+- para abrir cajon ESC;p;0;25;250
+- configurar corte a 3 lineas.
+- tamaño de papel segun impresora
+- la impresora tiene que estar en red o bluetoo 
 
 ## ✨ Próximas mejoras sugeridas
 

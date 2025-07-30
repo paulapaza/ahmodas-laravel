@@ -125,17 +125,23 @@ class PosOrderController extends Controller
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
 
-         DB::Commit();
+        DB::Commit();
      
         $pos_order->load('tienda'); // Cargar la relación tienda
         VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
         // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
-
+        // Imprimir el recibo
+        if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
+            $printService = new \App\Services\PrintService();
+            $printService->imprimirTicket($pos_order);
+        }
+        
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',
             'pos_order' => $pos_order,
             'cpe_response' => isset($api_response) ? $api_response : null,
+            'print_type' => Auth::user()->print_type,
         ]);
     }
 
@@ -149,7 +155,15 @@ class PosOrderController extends Controller
                 'message' => 'La orden ya está anulada.',
             ], 400);
         }
-
+       
+        //SOLO SE PUEDE ANULLA ORDERN CON $tipo_comprobante 12
+        if ($posOrder->tipo_comprobante != 12) {
+            return response()->json([
+                'success' => false,
+                'message' => 'las boletas y facturas se anulan con notas de crédito o débito.',
+            ], 400);
+        }
+        
         $posOrder->estado = 'anulado';
         $posOrder->save();
         //2. actualizar el stock de los productos vendidos
@@ -503,4 +517,5 @@ class PosOrderController extends Controller
         $mpdf->WriteHTML($plantilla);
         return response($mpdf->Output('', 'S'), 200)->header('Content-Type', 'application/pdf');
     }
+
 }

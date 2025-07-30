@@ -32,6 +32,8 @@ class UserController extends Controller
             $user->email = $request->email;
             $user->estado = $request->estado;
             $user->password = bcrypt("12345678");
+            $user->print_type = $request->print_type;
+            $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
             $user->save();
 
             // asignamos el rol
@@ -59,6 +61,7 @@ class UserController extends Controller
             $user->email = $request->email;
             $user->estado = $request->estado;
             $user->print_type = $request->print_type;
+            $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
             $user->save();
             
             DB::table('model_has_roles')->where('model_id',$id)->delete();

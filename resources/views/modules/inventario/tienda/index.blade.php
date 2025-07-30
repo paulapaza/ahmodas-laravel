@@ -9,7 +9,9 @@
         <th>Nombre</th>
         <th>Direccion</th>
         <th>Telefono</th>
+        
         <th>Estado</th>
+
     </x-table>
 
     <x-mymodal>
@@ -29,20 +31,27 @@
                     <input type="text" class="form-control" id="direccion" name="direccion" required>
                 </div>
             </div>
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="form-group">
                     <label for="telefono">Telefono</label>
                     <input type="text" class="form-control" id="telefono" name="telefono" required>
                 </div>
             </div>
             
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="form-group">
                     <label for="estado">Estado</label>
                     <select class="form-control" id="estado" name="estado" required>
                         <option value="1">Activo</option>
                         <option value="0">Inactivo</option>
                     </select>
+                </div>
+            </div>
+           
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="ticket_nota">Nota de la tienda</label>
+                    <textarea class="form-control" id="ticket_nota" name="ticket_nota" placeholder="Nota de la tienda" rows="3" required></textarea>
                 </div>
             </div>
        
@@ -88,6 +97,7 @@
                 {
                     data: 'direccion'
                 },
+              
                 {
                     data: 'telefono'
                 },
@@ -116,14 +126,10 @@
                 table.row($(this).parents().prev('tr')).data() :
                 table.row($(this).parents('tr')).data();
             
-            // ocultar el option de la categoria seleccionada (para que no se pueda seleccionar a si misma)
+          /*   // ocultar el option de la categoria seleccionada (para que no se pueda seleccionar a si misma)
             $('#categoria_padre_id option').show();
             $('#categoria_padre_id option[value=' + rowData.id + ']').hide();
-            // buscar la categoria padre en la columna de la tabla
-            
-          /*   table.rows().data().each(function(element) {
-                    $('#categoria_padre_id option[value=' + element.id + ']').hide();
-            }); */
+          */
            
             edit_record(rowData, table, $(this));
 

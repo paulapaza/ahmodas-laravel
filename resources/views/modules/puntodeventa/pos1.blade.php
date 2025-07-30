@@ -11,7 +11,7 @@
                                 @csrf
                                 <!-- INPUT INGRESO-->
                                 <input type="text" class="form-control" id="search-box"
-                                    placeholder="codigo de barras (F2)" autocomplete="off">
+                                    placeholder="codigo de barras (F2)" autocomplete="off" inputmode="none">
                                 <ul id="datos">
 
                                 </ul>
@@ -201,6 +201,7 @@
     </div>
 
 </x-pos-layout>
+
 
 {{-- Scripts del sistema POS en orden de dependencia --}}
 <script src="{{ asset('js/pos/pos-config.js') }}"></script>

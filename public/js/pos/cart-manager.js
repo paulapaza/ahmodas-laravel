@@ -5,6 +5,8 @@ class CartManager {
         this.totalCarrito = 0;
         this.initTable();
         this.bindEvents();
+        this.restriccion_precio_minimo = window.restriccion_precio_minimo; // Valor por defecto
+        console.log('restriccion_precio_minimo: ' + this.restriccion_precio_minimo);
     }
 
     /**
@@ -25,8 +27,8 @@ class CartManager {
                 lengthChange: false,
                 responsive: true,
                 autoWidth: false,
-                language: { 
-                    emptyTable: 'Carrito vacío' 
+                language: {
+                    emptyTable: 'Carrito vacío'
                 },
                 columnDefs: [
                     { targets: 3, visible: false }, // precio_minimo oculto
@@ -36,14 +38,14 @@ class CartManager {
                     { targets: 6, className: 'text-center', orderable: false }
                 ],
                 columns: [
-                    { 
-                        data: 'cantidad', 
+                    {
+                        data: 'cantidad',
                         width: '10%',
                         className: 'text-center'
                     },
-                    { 
-                        data: 'nombre', 
-                        width: '35%' 
+                    {
+                        data: 'nombre',
+                        width: '35%'
                     },
                     {
                         data: 'precio_unitario',
@@ -55,12 +57,12 @@ class CartManager {
                             return data;
                         }
                     },
-                    { 
+                    {
                         data: 'precio_minimo',
                         width: '0%'
                     },
-                    { 
-                        data: 'subtotal', 
+                    {
+                        data: 'subtotal',
                         width: '15%',
                         render: (data, type) => {
                             if (type === 'display') {
@@ -69,12 +71,12 @@ class CartManager {
                             return data;
                         }
                     },
-                    { 
+                    {
                         data: 'id',
                         width: '0%'
                     },
-                    { 
-                        data: 'boton', 
+                    {
+                        data: 'boton',
                         width: '25%'
                     }
                 ]
@@ -93,7 +95,7 @@ class CartManager {
     renderPriceInput(data) {
         return `<input type="text" min="1" class="iptPrecio-unitario" 
                     style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
-                    value="${data}" />`;
+                    value="${data}" inputmode="none" />`;
     }
 
     /**
@@ -114,6 +116,7 @@ class CartManager {
 
         // Cambio de precio unitario
         $(document).on('change', '.iptPrecio-unitario', (e) => {
+
             this.handlePriceChange(e.currentTarget);
         });
     }
@@ -124,8 +127,8 @@ class CartManager {
     addProduct(id, nombre, precio, precio_minimo) {
         // Verificar si el producto ya existe
         let productExists = false;
-        
-        this.table.rows().every(function() {
+
+        this.table.rows().every(function () {
             const data = this.data();
             if (data.id === id) {
                 data.cantidad++;
@@ -171,7 +174,7 @@ class CartManager {
     }
 
     /**
-     * Actualiza la cantidad de un producto
+     * Actualiza la cantidad de un producto (cuando se hace con teclado)
      */
     updateQuantity(id, change) {
         const row = this.table.row($(`.aumentar-cantidad[data-id="${id}"], .disminuir-cantidad[data-id="${id}"]`).closest('tr'));
@@ -197,20 +200,52 @@ class CartManager {
     /**
      * Maneja el cambio de precio unitario
      */
-    handlePriceChange(input) {
+    /* handlePriceChange(input) {
         const row = this.table.row($(input).closest('tr'));
         const data = row.data();
         const nuevoPrecio = parseFloat($(input).val());
-
+        const restriccion_precio_minimo = this.restriccion_precio_minimo;
+        
         if (!isNaN(nuevoPrecio) && nuevoPrecio >= data.precio_minimo) {
             data.precio_unitario = POSUtils.formatCurrency(nuevoPrecio);
             data.subtotal = POSUtils.formatCurrency(data.cantidad * nuevoPrecio);
             row.data(data).draw();
             this.calculateTotal();
         } else {
+
             POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
             $(input).val(data.precio_unitario);
         }
+    } */
+    handlePriceChange(input) {
+        const row = this.table.row($(input).closest('tr'));
+        const data = row.data();
+        const nuevoPrecio = parseFloat($(input).val());
+        const restriccion_precio_minimo = this.restriccion_precio_minimo;
+      
+        // Verificar si el precio es válido (no NaN)
+        if (isNaN(nuevoPrecio)) {
+            POSUtils.showError('Por favor ingrese un precio válido');
+            $(input).val(data.precio_unitario);
+            return;
+        }
+
+        // Si el usuario tiene restricción de precio mínimo (restriccion_precio_minimo = 'si')
+        if (restriccion_precio_minimo === 'si') {
+            // El usuario está restringido: no puede poner precio menor al mínimo
+            if (nuevoPrecio < data.precio_minimo) {
+                POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
+                $(input).val(data.precio_unitario);
+                return;
+            }
+        }
+        // Si restriccion_precio_minimo = 'no', el usuario puede poner cualquier precio
+
+        // Actualizar el precio y recalcular
+        data.precio_unitario = POSUtils.formatCurrency(nuevoPrecio);
+        data.subtotal = POSUtils.formatCurrency(data.cantidad * nuevoPrecio);
+        row.data(data).draw();
+        this.calculateTotal();
     }
 
     /**
@@ -218,14 +253,14 @@ class CartManager {
      */
     calculateTotal() {
         let total = 0;
-        this.table.rows().every(function() {
+        this.table.rows().every(function () {
             const data = this.data();
             total += parseFloat(data.subtotal);
         });
-        
+
         this.totalCarrito = total;
         $("#TotalRecibo").text(POSUtils.formatCurrency(total));
-        
+
         // Notificar cambio de total
         $(document).trigger('cart:totalChanged', [total]);
     }

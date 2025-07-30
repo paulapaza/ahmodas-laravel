@@ -6,6 +6,7 @@ class POSSystem {
         this.productSearch = null;
         this.salesProcessor = null;
         this.customerService = null;
+        
     }
 
     /**

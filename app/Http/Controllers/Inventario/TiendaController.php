@@ -25,6 +25,7 @@ class TiendaController extends Controller
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
+        $tienda->ticket_nota = $request->ticket_nota; // Assuming ticket_nota is a field in the Tienda model
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
         $tienda->save();
@@ -43,6 +44,7 @@ class TiendaController extends Controller
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
+        $tienda->ticket_nota = $request->ticket_nota; // Assuming ticket_nota is a field in the Tienda model
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
         $tienda->save();

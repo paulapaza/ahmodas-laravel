@@ -11,6 +11,7 @@
         <th>Correo</th>
         <th>Estado</th>
         <th>Tipo Impresion</th>
+        <th>Restriccion Precio Minimo</th>
         <th>Creado</th>
 
     </x-table>
@@ -47,12 +48,19 @@
         <div class="mb-3">
             <label for="status" class="form-label">Tipo de Impresion (TICKET)</label>
             <select class="form-control" id="print_type" name="print_type">
-                <option value="PDF">Muestra PDF</option>
-                <option value="DIRECT">Imprime Directo</option>
+                <option value="pdf">Muestra PDF</option>
+                <option value="red">Imprime en Red</option>
 
             </select>
         </div>
-
+      
+        <div class="mb-3">
+            <label for="restriccion_precio_minimo" class="form-label">Restriccion Precio Minimo</label>
+            <select class="form-control" id="restriccion_precio_minimo" name="restriccion_precio_minimo">
+                <option value="si">Si</option>
+                <option value="no">No</option>
+            </select>
+        </div>
     </x-mymodal>
 
 
@@ -110,6 +118,12 @@
                 },
                 {
                     "data": "print_type"
+                },
+                {
+                    "data": "restriccion_precio_minimo",
+                    "render": function(data, type, row) {
+                        return (data == 'si') ? '<span class="badge bg-success">Si</span>' : '<span class="badge bg-danger">No</span>';
+                    }
                 },
                 {
                     "data": "created_at"

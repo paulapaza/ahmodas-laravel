@@ -8,6 +8,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Miapp | {{ $titulo ?? 'Dashboard'}}</title>
+<meta http-equiv="Pragma" content="no-cache">
 
   <link rel="icon" href="{{ asset('img/icon.png') }}" type="image/png">
 

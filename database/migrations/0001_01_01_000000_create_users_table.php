@@ -20,6 +20,9 @@ return new class extends Migration
             $table->tinyInteger('tienda_id')->nullable();
             //print_type
             $table->string('print_type')->nullable();
+            $table->string('printer_ip')->nullable();
+            $table->string('printer_name')->nullable();
+            $table->string('restricion_precio_minimo')->default('si');
             $table->tinyInteger('estado')->default(1);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

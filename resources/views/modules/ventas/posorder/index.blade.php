@@ -18,8 +18,6 @@
 
     </x-table>
 
-
-
     <x-mymodal>
         @csrf
         <input type="hidden" id="id" name="id">

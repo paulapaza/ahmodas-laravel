@@ -1,0 +1,5 @@
+modifica el  bat, y pon la ruta correcta de tu php
+
+puede que en el pc haya diferentes version de php en el phat de windows
+
+no te olvides de darle delay para que , el windows tenga tiempo de abrir laragon e inicializarlo

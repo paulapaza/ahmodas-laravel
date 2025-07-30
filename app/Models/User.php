@@ -33,6 +33,10 @@ class User extends Authenticatable
         'email',
         'password',
         'tienda_id',
+        'print_type',
+        'printer_ip',
+        'printer_name',
+        'restricion_precio_minimo',
         'estado',
     ];
 

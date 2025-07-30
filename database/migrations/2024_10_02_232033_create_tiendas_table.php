@@ -20,6 +20,7 @@ class CreateTiendasTable extends Migration
             $table->string('telefono', 20)->nullable();
             $table->string('email', 100)->nullable();
             $table->boolean('estado')->default(1);
+            $table->string('ticket_nota', 250)->nullable();
             $table->string('ruta_api_facturacion', 255)->nullable();
             $table->string('token_facturacion', 255)->nullable();
             $table->timestamps();

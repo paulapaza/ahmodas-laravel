@@ -13,6 +13,8 @@ class Tienda extends Model
     protected $fillable = [
         'nombre',
         'direccion',
+        'tienda_nota',
+        'telefono',
         'estado',
     ];
 

@@ -249,7 +249,7 @@ class DatabaseSeeder extends Seeder
         // crear roles
         $this->call(RolesSeeder::class);
         // ejecutar comando para crear permisos  php artisan app:crear-permisos
-        $this->call(CrearPermisos::class);
+        //$this->call(CrearPermisos::class);
 
     }
 }
