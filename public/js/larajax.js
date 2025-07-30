@@ -50,7 +50,7 @@ class Larajax {
         const self = this;  // Guardar referencia de 'this' en una variable para accion footer
        
         this.table = $(this.idTable).DataTable({
-            responsive: true,
+            ///responsive: true,
             order: this.ordercolumn(),
             ajax: this.dataAjax(),
             columns: this.columnsTable(),
@@ -202,6 +202,8 @@ class Larajax {
         if (this.actionsButtons) {
             columnDefs.push(this.renderActionsButtons(this.actionsButtons));
         }
+        
+
         return columnDefs;
     }
     renderActionsButtons({

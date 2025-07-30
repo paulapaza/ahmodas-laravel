@@ -300,3 +300,21 @@ verde: #54C392
   color: #333;
   font-size: 18px;
 }
+
+.w-35 {
+    width: 35% !important;
+}
+.w-25 {
+    width: 25% !important;
+}
+.w-10
+{
+    width: 10% !important;
+}
+.col-nombre-producto {
+    width: 480px!important;
+   white-space: normal!important;
+}
+.wrap {
+    white-space: normal!important;
+}

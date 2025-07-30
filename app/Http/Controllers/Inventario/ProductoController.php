@@ -22,6 +22,7 @@ class ProductoController extends Controller
                 'precio_minimo',
                 'categoria_id',
                 'marca_id',
+                'precio_x_mayor',
                 'tipo_de_igv',
                 'moneda',
                 'estado'
@@ -47,6 +48,7 @@ class ProductoController extends Controller
         $producto->costo_unitario = $request->costo_unitario;
         $producto->precio_unitario = $request->precio_unitario;
         $producto->precio_minimo = $request->precio_minimo;
+        $producto->precio_x_mayor = $request->precio_x_mayor;
         $producto->marca_id = $request->marca_id;
         $producto->categoria_id = $request->categoria_id;
         $producto->tipo_de_igv = $request->tipo_de_igv;
@@ -79,6 +81,7 @@ class ProductoController extends Controller
         $producto->costo_unitario = $request->costo_unitario;
         $producto->precio_unitario = $request->precio_unitario;
         $producto->precio_minimo = $request->precio_minimo;
+        $producto->precio_x_mayor = $request->precio_x_mayor;
         $producto->marca_id = $request->marca_id;
         $producto->categoria_id = $request->categoria_id;
         $producto->tipo_de_igv = $request->tipo_de_igv;

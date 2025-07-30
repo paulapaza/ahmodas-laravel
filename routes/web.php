@@ -103,8 +103,8 @@ Route::middleware([
     // ajustes generales
     Route::view('/configuracion/general','modules.configuracion.ajustesgenerales.show')->name('configuracion.ajustesGenerales.show');
     // configuracion de usuarios
-    Route::view('/configuracion/usuarios', 'modules.configuracion.users.index')->name('configuracion.usuarios.index');
-    Route::resource('/configuracion/user', UserController::class);
+    //Route::view('/configuracion/usuarios', 'modules.configuracion.users.index')->name('configuracion.usuarios.index');
+    //Route::resource('/configuracion/user', UserController::class);
  
     /*************************
      MODULO DE Usuarios roles y permisos

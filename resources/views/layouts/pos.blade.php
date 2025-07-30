@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,6 +52,7 @@
 </div>
 <script>
     window.restriccion_precio_minimo = @json(Auth::user()->restriccion_precio_minimo);
+    window.currentUserPermissions = @json(Auth::user()->getAllPermissions()->pluck('name'));
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 

@@ -146,6 +146,13 @@ class CrearPermisos extends Command
                 'categoria' => 'modulo ventas',
                 'roles' => [$super, $admin]
             ],
+            //ver precio x mayor
+            [
+                'name' => 'ver-precio-x-mayor',
+                'descripcion' => 'ver precio x mayor en el pos',
+                'categoria' => 'modulo ventas',
+                'roles' => [$super, $admin, $role_cajero]
+            ],
           
             
            

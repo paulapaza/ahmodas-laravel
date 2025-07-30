@@ -17,18 +17,25 @@ class ProductSearch {
             model: "producto",
             csrf: POSUtils.getCSRFToken(),
         };
+         // Validamos si el usuario tiene el permiso para ver el precio x mayor
+        const canSeePrecioMayor = window.currentUserPermissions?.includes('ver-precio-x-mayor');
 
+        const columns = [
+            { data: 'id' },
+          /*   { data: 'codigo_barras' }, */
+            { data: 'nombre' },
+            { data: 'precio_unitario' },
+            { data: 'precio_minimo', visible: false }
+        ];
+        // Si el usuario tiene el permiso, agregamos la columna adicional
+        if (canSeePrecioMayor) {
+            columns.push({ data: 'precio_x_mayor', title: 'x Mayor' });
+        }
         this.tableProductos = new Larajax({
             data: dataCrud,
             idTable: "#table-Productos",
             topButton: false,
-            columns: [
-                { data: 'id' },
-                { data: 'codigo_barras' },
-                { data: 'nombre' },
-                { data: 'precio_unitario' },
-                { data: 'precio_minimo', visible: false }
-            ]
+            columns: columns,
         });
     }
 

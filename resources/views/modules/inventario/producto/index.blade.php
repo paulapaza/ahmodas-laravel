@@ -7,16 +7,18 @@
     <x-table>
         <th>id</th>
         <th>Barcode</th>
-        <th>Nombre</th>
+        <th class="col-nombre-producto">Nombre</th>
         <th>costo</th>
         <th>precio</th>
         <th>precio minimo</th>
+        <th>precio x mayor</th>
         <th>categoria</th>
         <th>estado</th>
         <th>acciones</th>
     </x-table>
 
-    <x-mymodal>
+    <x-mymodal size="modal-lg">
+       
         @csrf
         <input type="hidden" id="id" name="id">
         <div class="row ">
@@ -25,25 +27,27 @@
                 <input type="text" class="form-control" id="nombre" name="nombre" autocomplete="off"
                     required>
             </div>
-           
-             <div class="form-group col-4">
-                <label for="costo_unitario" class="form-label">Precio de Compra </label>
+             <div class="form-group col-3">
+                <label for="costo_unitario" class="form-label text-xaccent">Precio Compra </label>
                 <input type="number" class="form-control" id="costo_unitario" step="0.01"
                     name="costo_unitario" autocomplete="off" required>
             </div>
-             <div class="form-group col-4">
-               <label for="precio_unitario" class="form-label">Precio de Venta </label>
+             <div class="form-group col-3">
+               <label for="precio_unitario" class="form-label text-xaccent">Precio Venta </label>
                 <input type="number" class="form-control" id="precio_unitario" name="precio_unitario"
                     autocomplete="off" required step="0.01">
-
-               {{--  <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small> --}}
             </div>
            
-            <div class="form-group col-4">
-                <label for="precio_minimo" class="form-label">Precio de Venta min</label>
+            <div class="form-group col-3">
+                <label for="precio_minimo" class="form-label">Precio Venta min</label>
                 <input type="number" class="form-control" id="precio_minimo" name="precio_minimo"
                     autocomplete="off" required step="0.01">
-                {{-- <small class="text-muted text-right w-100 pr-5 mt-2" id="precio_segun_impuesto"></small> --}}
+            </div>
+            
+            <div class="form-group col-3">
+                <label for="precio_x_mayor" class="form-label text-success ">Precio Venta x Mayor</label> 
+                <input type="number" class="form-control" id="precio_x_mayor" name="precio_x_mayor"
+                    autocomplete="off" step="0.01">
             </div>
             <div class="form-group col-4">
                 <label for="codigo_barras" class="form-label">Código de barras</label>
@@ -98,8 +102,8 @@
                 </select>
             </div>
         </div>
-        <h5>Stock por tienda</h5>
-        <div id="stocks_por_tienda"></div>
+        <h5 class="text-danger">Stock por tienda</h5>
+        <div id="stocks_por_tienda" class="row"></div>
 
 
     </x-mymodal>
@@ -126,7 +130,9 @@
                     data: 'codigo_barras',
                 },
                 {
-                    data: 'nombre'
+                    data: 'nombre',
+                   className: 'col-nombre-producto' 
+
                 },
                 {
                     data: 'costo_unitario'
@@ -134,8 +140,13 @@
                 {
                     data: 'precio_unitario'
                 },
+                
                 {
                     data: 'precio_minimo'
+                },
+                {
+                    data: 'precio_x_mayor',
+                    visible: window.currentUserPermissions?.includes('ver-precio-x-mayor') //
                 },
                 {
                     data: 'categoria_id'
@@ -153,7 +164,7 @@
                 edit: true,
                 destroy: true
             },
-            alingCenter: [7]
+            //alingCenter: [7]
 
         })
         cargarStocks(); // sin parámetro
@@ -284,7 +295,7 @@
                         data.forEach(tienda => {
                            
                             html += `
-                        <div class="form-group mb-2">
+                        <div class="form-group mb-2 col-3">
                             <label for="stock_tienda_${tienda.id}">${tienda.nombre}</label>
                             <input type="number"
                                 name="stocks[${tienda.id}]"

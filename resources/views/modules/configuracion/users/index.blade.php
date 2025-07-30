@@ -7,7 +7,6 @@
         <th>id</th>
         <th>Nombre</th>
         <th>Username</th>
-       {{--  <th>Rol</th> --}}
         <th>Correo</th>
         <th>Estado</th>
         <th>Creado</th>

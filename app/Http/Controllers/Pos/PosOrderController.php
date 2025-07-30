@@ -75,7 +75,7 @@ class PosOrderController extends Controller
             'order_date' => now(), // Fecha y hora actual
             'tipo_comprobante' => $request->input('codigo_tipo_comprobante'), // Tipo de comprobante, por ejemplo 'boleta', 'factura', etc.
             'total_amount' => $request->input('total'),
-            'moneda' => (int)$request->input('moneda'), // Moneda, 1 para PEN, 2 para USD
+            'moneda' => (int)$request->input('moneda', 1), // Moneda, 1 para PEN, 2 para USD
             'tienda_id' => $tienda_id, // ID de la tienda del usuario autenticado
             'user_id' => Auth::user()->id, // ID del usuario autenticado
             'cliente_id' => $cliente->id, // ID del cliente, si se proporciona

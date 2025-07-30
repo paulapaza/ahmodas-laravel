@@ -11,8 +11,8 @@
         <th>Correo</th>
         <th>Estado</th>
         <th>Tipo Impresion</th>
-        <th>Restriccion Precio Minimo</th>
-        <th>Creado</th>
+        <th class="wrap w-10">Restriccion Precio Minimo</th>
+        
 
     </x-table>
 
@@ -125,9 +125,7 @@
                         return (data == 'si') ? '<span class="badge bg-success">Si</span>' : '<span class="badge bg-danger">No</span>';
                     }
                 },
-                {
-                    "data": "created_at"
-                },
+                
 
 
             ],

@@ -4,43 +4,47 @@
             <div class="col-md-7 pt-3">
                 <div class="row">
                     <div class="col-md-12 mb-1">
-                        <div class="row form-group mb-2 ">
-                            <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i
-                                    class="fas fa-bars"></i></a>
-                            <div class="col-5 search-list">
+                        <div class="row form-group mb-2 align-items-center">
+                            <!-- Menú hamburguesa -->
+                            <div class="col-2 col-sm-1 col-md-1">
+                                <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+                                    <i class="fas fa-bars"></i>
+                                </a>
+                            </div>
+
+                            <!-- Input buscador -->
+                            <div class="col-6 col-sm-4 col-md-5 search-list">
                                 @csrf
-                                <!-- INPUT INGRESO-->
                                 <input type="text" class="form-control" id="search-box"
-                                    placeholder="codigo de barras (F2)" autocomplete="off" inputmode="none">
-                                <ul id="datos">
-
-                                </ul>
+                                    placeholder="Código de barras (F2)" autocomplete="off" inputmode="none">
+                                <ul id="datos"></ul>
                             </div>
-                            <div class="col-5">
-                                <!-- BOTONES BUSCAR Producto -->
+
+                            <!-- Botón buscar -->
+                            <div class="col-2 col-sm-3 col-md-5">
                                 <button class="btn btn-xsecondary wrap w-100" id="search-button">
-                                    <i class="fa-solid fa-barcode "></i> Buscar Codigo de barras
+                                    <i class="fa-solid fa-barcode"></i>
+                                    <span class="d-none d-sm-inline"> Buscar Código de barras</span>
                                 </button>
-
                             </div>
-                            <div class="col-1">
-                                <!-- BOTON toggle mostrar y ocultar productos-container -->
+
+                            <!-- Botón toggle -->
+                            <div class="col-2 col-sm-3 col-md-1">
                                 <button class="btn btn-xsecondary wrap w-100" id="toggle-productos-container">
                                     <i class="fa-solid fa-plus-square"></i>
                                 </button>
-
                             </div>
-
                         </div>
+
                     </div>
-                    {{-- <div class="col-md-12" id="productos-container" style="display: none;">
-                     --}}<div class="col-md-12" id="productos-container">
+                    <div class="col-md-12" id="productos-container" style="display: none;">
+
                         <!-- TABLA PARA CARGAR productos left -->
                         <table id="table-Productos" class="table table-striped w-100 pt-0 mt-0">
                             <thead class="bg-primary">
                                 <tr>
                                     <th>id</th>
-                                    <th>Barcode</th>
+                                    {{-- <th>Barcode</th> --}}
                                     <th>Nombre Productos</th>
                                     <th>Precio</th>
                                     <th>Precio Minimo</th>
@@ -56,7 +60,7 @@
             </div>
             <!-- Carrito-->
             <div class="col-md-5  mr-0 pt-2">
-                <div class="card shadow bg-none" >
+                <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
                         <div id="carrito" style="height: 34vh; overflow-y: auto; overflow-x: hidden;">
                             <table id="table-carrito" class="table table-striped w-100">
@@ -96,11 +100,8 @@
                                     </select>
                                 </div>
                             @endcan
-                            <div class="col-md-4 text-right pr-3 my-2 text-lg font-weight-bold justify-content-end">
-
-                                Total
-
-                                <span id="simbolo_moneda">S/.</span>
+                            <div class="col-md-4 my-2 d-flex justify-content-end ml-auto pr-5 font-weight-bold text-lg">
+                                Total: <span id="simbolo_moneda" class="mx-2">S/.</span>
                                 <span id="TotalRecibo">0.00</span>
                             </div>
                         </div>
@@ -144,7 +145,8 @@
 
                                 <div class="form-group row pl-3">
                                     <div class="col-8">
-                                        <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="transferencia">Transferencia</button>
                                     </div>
                                     <div class="col-4 px-0">
