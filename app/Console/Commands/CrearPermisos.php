@@ -171,7 +171,7 @@ class CrearPermisos extends Command
                     'categoria' => $permission['categoria']
                 ])->assignRole($permission['roles']); 
     
-                $this->info("Permiso {$permission['name']} creado");
+                $this->info(" ------------ Permiso {$permission['name']} creado");
 
             } else {
                 $this->info("Permiso {$permission['name']} ya existe");

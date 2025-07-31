@@ -4,9 +4,15 @@
     <x-slot name="menu">
         <x-menuVentas /> </x-slot>
 
-    <x-slot name="pagetitle">Visor de ventas por tienda <button class="btn btn-select-fecha bg-xsuccess" type="button"
-            onclick="Selecionarfecha()"><span><i class="fas fa-calendar-alt " id="filter"></i> Filtro:
+    <x-slot name="pagetitle">Visor de ventas por tienda <button class="btn btn-select-fecha bg-xsuccess ml-4"
+            type="button" onclick="Selecionarfecha()"><span><i class="fas fa-calendar-alt " id="filter"></i> Filtro:
                 Hoy</span></button>
+        <div class="form-check mb-3 d-inline-block ml-4">
+            <input class="form-check-input" type="checkbox" id="playSound" unchecked>
+            <label class="form-check-label" for="playSound">
+                Sonido de notificación
+            </label>
+        </div>
     </x-slot>
     <x-modalFechas />
 
@@ -165,14 +171,36 @@
         </div>
 
     @endif
-
+    <audio id="audioNuevaVenta" preload="auto">
+        <source src="/audio/nueva-venta.wav" type="audio/wav">
+    </audio>
 </x-admin-layout>
 
 
-{{-- Script para manejar el modal de selección de fechas --}}
 
-{{-- Script para manejar el filtro de fechas --}}
 <script>
+    const audioVenta = document.getElementById('audioNuevaVenta');
+    const checkbox = document.getElementById('playSound');
+
+    // Cargar preferencia
+    checkbox.checked = localStorage.getItem(STORAGE_KEY) === 'true';
+
+    // Al marcar o desmarcar el checkbox
+    checkbox.addEventListener('change', () => {
+        const isChecked = checkbox.checked;
+        localStorage.setItem(STORAGE_KEY, isChecked);
+
+        if (isChecked) {
+            // Desbloquear audio con interacción
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+                console.log("Audio desbloqueado");
+            }).catch((e) => {
+                console.warn("No se pudo desbloquear el audio:", e);
+            });
+        }
+    });
     document.addEventListener('DOMContentLoaded', function() {
         // Verificar si Echo está disponible
         if (typeof window.Echo === 'undefined') {
@@ -180,7 +208,7 @@
             return;
         }
 
-     
+
 
         try {
             // Escuchar el canal "ventas" y el evento VentaRealizada
@@ -196,7 +224,7 @@
                             toast: true,
                             position: "top-end",
                             showConfirmButton: false,
-                            timer: 5000,
+                            timer: 3000,
                             timerProgressBar: true,
                             didOpen: (toast) => {
                                 toast.onmouseenter = Swal.stopTimer;
@@ -205,17 +233,28 @@
                         });
                         let tienda_nombre = event.venta.tienda.nombre;
                         let total_cobrado = parseFloat(event.venta.total_amount).toFixed(2);
-                        
+
                         Toast.fire({
                             icon: "success",
                             title: "Nueva venta registrada",
-                            html: 'En la tienda: <b>' +  tienda_nombre +
+                            html: 'En la tienda: <b>' + tienda_nombre +
                                 ' </b>Con el monto total de: <b>' + total_cobrado + ' Soles </b>',
                         });
+                        // Intentar reproducir el audio precargado
+                        if (document.getElementById('playSound').checked) {
+
+                            try {
+                                audioVenta.currentTime = 0;
+                                audioVenta.play().catch(e => console.log('No se pudo reproducir el sonido:',
+                                    e));
+                            } catch (e) {
+                                console.log('Audio no disponible');
+                            }
+                        }
                         // Recargar la página para reflejar los cambios
                         setTimeout(() => {
-                            window.location.reload();
-                        }, 5000); 
+                            //window.location.reload();
+                        }, 3000);
 
                     } else {
                         console.warn('Evento "venta.realizada" recibido sin datos de venta');

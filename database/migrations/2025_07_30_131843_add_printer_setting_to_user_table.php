@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
               $table->string('printer_ip')->nullable()->after('print_type');
               $table->string('printer_name')->nullable()->after('printer_ip');
+              $table->string('restriccion_precio_minimo')->nullable()->after('printer_name');
+
         });
     }
 

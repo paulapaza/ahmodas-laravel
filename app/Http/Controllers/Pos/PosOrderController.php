@@ -9,12 +9,15 @@ use App\Models\Facturacion\Cpe;
 use App\Models\Facturacion\CpeBaja;
 use App\Models\Inventario\Tienda;
 use App\Models\Pos\PosOrder;
+use App\Models\Pos\PosOrderLine;
 use App\Services\CpeServices;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+//log
+use Illuminate\Support\Facades\Log;
 
 class PosOrderController extends Controller
 {
@@ -23,7 +26,10 @@ class PosOrderController extends Controller
     public function index()
     {
         // traer orden con relacion con tienda
-        $orders = PosOrder::with('tienda', 'user')->get();
+        $orders = PosOrder::with('tienda', 'user')
+            ->whereDate('order_date', now()->format('Y-m-d'))
+            ->orderBy('order_date', 'desc')
+            ->get();
 
         return response()->json($orders);
     }
@@ -100,7 +106,7 @@ class PosOrderController extends Controller
         // Procesar los productos vendidos
         $pos_order_lines = $request->input('productos', []);
 
-        foreach ($pos_order_lines as $line) {
+        /* foreach ($pos_order_lines as $line) {
             $pos_order->orderlines()->create([
                 'producto_id' => $line['id'],
                 'quantity' => $line['cantidad'],
@@ -113,7 +119,27 @@ class PosOrderController extends Controller
                 'venta',
                 $line['cantidad']
             );
+        } */
+        $datosInsert = [];
+
+        foreach ($pos_order_lines as $line) {
+            $datosInsert[] = [
+                'pos_order_id' => $pos_order->id, // necesario al no usar la relación
+                'producto_id' => $line['id'],
+                'quantity' => $line['cantidad'],
+                'price' => $line['precio_unitario'],
+                'subtotal' => $line['subtotal'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+             $productos_cantidades[$line['id']] = $line['cantidad'];
         }
+
+        // Inserta todas las líneas de una sola vez
+        PosOrderLine::insert($datosInsert);
+        // Actualizar el stock de los productos vendidos
+        $posServices->actualizarStockProductos($tienda_id, $productos_cantidades, 'venta');
+
         $cpeServices = new CpeServices();
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
 
@@ -126,16 +152,22 @@ class PosOrderController extends Controller
         $posServices->increase_CpeSerie($cpeSerie);
 
         DB::Commit();
-     
+
         $pos_order->load('tienda'); // Cargar la relación tienda
-        VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
-        // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
+
+        try {
+            VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
+            // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
+        } catch (\Exception $e) {
+            // Puedes loguear el error, o simplemente ignorarlo si no es crítico
+            Log::warning('No se pudo emitir el evento VentaRealizada: ' . $e->getMessage());
+        }
         // Imprimir el recibo
         if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
             $printService = new \App\Services\PrintService();
             $printService->imprimirTicket($pos_order);
         }
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',
@@ -155,7 +187,7 @@ class PosOrderController extends Controller
                 'message' => 'La orden ya está anulada.',
             ], 400);
         }
-       
+
         //SOLO SE PUEDE ANULLA ORDERN CON $tipo_comprobante 12
         if ($posOrder->tipo_comprobante != 12) {
             return response()->json([
@@ -163,7 +195,7 @@ class PosOrderController extends Controller
                 'message' => 'las boletas y facturas se anulan con notas de crédito o débito.',
             ], 400);
         }
-        
+
         $posOrder->estado = 'anulado';
         $posOrder->save();
         //2. actualizar el stock de los productos vendidos
@@ -517,5 +549,4 @@ class PosOrderController extends Controller
         $mpdf->WriteHTML($plantilla);
         return response($mpdf->Output('', 'S'), 200)->header('Content-Type', 'application/pdf');
     }
-
 }

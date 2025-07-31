@@ -8,6 +8,7 @@ use App\Models\Facturacion\CpeSerie;
 use App\Models\Inventario\Producto;
 use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class PosServices
 
@@ -114,7 +115,8 @@ class PosServices
         $cpe_serie->save();
         return $cpe_serie;
     }
-    // actulizar stock de producto en tienda en venta y devolucion
+    // actulizar stock de producto en tienda en venta y devolucion para venta se utiliza otro este es solo para devoluciones 
+    //este medto es lento 1.60 segundos
     public function updateStockProductoTienda($producto_id, $tienda_id, $tipo_transaccion, $cantidad): void
     {
         // Actualizar el stock del producto en la tienda
@@ -242,5 +244,59 @@ class PosServices
     }
 
   
+    /**
+     * Actualiza el stock de productos en una tienda.
+     *
+     * @param int $tienda_id ID de la tienda.
+     * @param array $productos_cantidades Array asociativo con producto_id como clave y cantidad como valor.
+     * @
+     * param string $tipo_transaccion Tipo de transacción: 'venta', 'anulacion' o 'nota_credito'.
+     * @throws \Exception Si el tipo de transacción no es válido.
+     * @throws \Exception Si no se proporcionan productos o cantidades.
+     * @return void
+     */
+    // Este método actualiza el stock de productos en una tienda según el tipo de transacción
+    // 'venta', 'anulacion' o 'nota_credito'. Utiliza una consulta SQL para actualizar
+    // múltiples productos en una sola operación, lo que mejora el rendimiento en comparación
+    // con actualizaciones individuales.
+    // Se espera que el array $productos_cantidades tenga la forma ['producto_id' => cantidad, ...].
+    // El método lanza una excepción si el tipo de transacción no es válido o si no se proporcionan productos o cantidades.
+    // Este método es más eficiente que el anterior porque utiliza una sola consulta SQL para actualizar
+    // todos los productos en lugar de hacer múltiples consultas individuales.
+    public function actualizarStockProductos(int $tienda_id, array $productos_cantidades, string $tipo_transaccion = 'venta'): void
+    {
+        if (!in_array($tipo_transaccion, ['venta', 'anulacion', 'nota_credito'])) {
+            throw new \Exception("Tipo de transacción no soportado: $tipo_transaccion");
+        }
 
+        if (empty($productos_cantidades)) {
+            return;
+        }
+
+        $cases = '';
+        $ids = [];
+
+        foreach ($productos_cantidades as $producto_id => $cantidad) {
+            $id = (int) $producto_id;
+            $cantidad = (float) $cantidad;
+            $ids[] = $id;
+
+            if (in_array($tipo_transaccion, ['anulacion', 'nota_credito'])) {
+                $cases .= "WHEN producto_id = {$id} THEN stock + {$cantidad} ";
+            } else {
+                $cases .= "WHEN producto_id = {$id} THEN stock - {$cantidad} ";
+            }
+        }
+
+        $idsList = implode(',', $ids);
+
+        DB::update("
+            UPDATE producto_tienda
+            SET stock = CASE 
+                {$cases}
+                ELSE stock
+            END
+            WHERE tienda_id = ? AND producto_id IN ({$idsList})
+        ", [$tienda_id]);
+    }
 }
