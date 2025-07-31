@@ -153,14 +153,14 @@ class PosOrderController extends Controller
 
         DB::Commit();
 
-        $pos_order->load('tienda'); // Cargar la relación tienda
-
+        
         try {
             VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
+            //$pos_order->load('tienda'); // Cargar la relación tienda
             // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
         } catch (\Exception $e) {
             // Puedes loguear el error, o simplemente ignorarlo si no es crítico
-            Log::warning('No se pudo emitir el evento VentaRealizada: ' . $e->getMessage());
+            // Log::warning('No se pudo emitir el evento VentaRealizada: ' . $e->getMessage());
         }
         // Imprimir el recibo
         if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {

@@ -182,19 +182,20 @@
     const audioVenta = document.getElementById('audioNuevaVenta');
     const checkbox = document.getElementById('playSound');
 
-    // Cargar preferencia
-    checkbox.checked = localStorage.getItem(STORAGE_KEY) === 'true';
+   
+
+    
 
     // Al marcar o desmarcar el checkbox
     checkbox.addEventListener('change', () => {
         const isChecked = checkbox.checked;
-        localStorage.setItem(STORAGE_KEY, isChecked);
+    
 
         if (isChecked) {
             // Desbloquear audio con interacción
-            audio.play().then(() => {
-                audio.pause();
-                audio.currentTime = 0;
+            audioVenta.play().then(() => {
+                audioVenta.pause();
+                audioVenta.currentTime = 0;
                 console.log("Audio desbloqueado");
             }).catch((e) => {
                 console.warn("No se pudo desbloquear el audio:", e);
@@ -231,14 +232,13 @@
                                 toast.onmouseleave = Swal.resumeTimer;
                             }
                         });
-                        let tienda_nombre = event.venta.tienda.nombre;
+                       
                         let total_cobrado = parseFloat(event.venta.total_amount).toFixed(2);
 
                         Toast.fire({
                             icon: "success",
-                            title: "Nueva venta registrada",
-                            html: 'En la tienda: <b>' + tienda_nombre +
-                                ' </b>Con el monto total de: <b>' + total_cobrado + ' Soles </b>',
+                            title: "Nueva venta realizada",
+                            html: '</b>Cobrado: <b>' + total_cobrado + ' Soles </b>',
                         });
                         // Intentar reproducir el audio precargado
                         if (document.getElementById('playSound').checked) {
@@ -253,7 +253,7 @@
                         }
                         // Recargar la página para reflejar los cambios
                         setTimeout(() => {
-                            //window.location.reload();
+                            window.location.reload();
                         }, 3000);
 
                     } else {
