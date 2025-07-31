@@ -21,7 +21,9 @@ class ProductSearch {
         const canSeePrecioMayor = window.currentUserPermissions?.includes('ver-precio-x-mayor');
 
         const columns = [
-            { data: 'id' },
+            { data: 'id',
+                visible: false,
+             },
           /*   { data: 'codigo_barras' }, */
             { data: 'nombre' },
             { data: 'precio_unitario' },

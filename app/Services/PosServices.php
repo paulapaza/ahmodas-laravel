@@ -104,7 +104,10 @@ class PosServices
                 throw new Exception("Tipo de documento no válido: " . $tipo_documento_a_modificar);
             }
         }
-
+        // si la consulta no devuelve resultados, retornar lanzar error
+        if ($query->count() === 0) {
+            throw new Exception("No se encontró CPE serie para tienda, crea la serie en la configuración menu Facturación.");
+        }
         return $query->first();
     }
     // aumentar correlativo

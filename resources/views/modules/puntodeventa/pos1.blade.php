@@ -1,7 +1,7 @@
 <x-pos-layout>
     <div class="container-fluid mx-0 px-0">
         <div class="row mb-3 ">
-            <div class="col-md-7 pt-3">
+            <div class="col-12 col-lg-7 pt-3">
                 <div class="row">
                     <div class="col-md-12 mb-1">
                         <div class="row form-group mb-2 align-items-center">
@@ -45,7 +45,7 @@
                                 <tr>
                                     <th>id</th>
                                     {{-- <th>Barcode</th> --}}
-                                    <th>Nombre Productos</th>
+                                    <th>Productos</th>
                                     <th>Precio</th>
                                     <th>Precio Minimo</th>
 
@@ -59,7 +59,7 @@
                 </div>
             </div>
             <!-- Carrito-->
-            <div class="col-md-5  mr-0 pt-2">
+            <div class="col-12 col-lg-5  mr-0 pt-2">
                 <div class="card shadow bg-none">
                     <div class="card-body pt-0 px-1">
                         <div id="carrito" style="height: 34vh; overflow-y: auto; overflow-x: hidden;">
@@ -106,9 +106,9 @@
                             </div>
                         </div>
                         <div class="row align-items-center mb-0">
-                            <div class="col-6">
+                            <div class="col-12 col-md-6">
                                 <div class="form-group row pl-3">
-                                    <div class="col-8">
+                                    <div class="col-6 col-md-8">
                                         <button type="button"
                                             class="btn btn-outline-secondary btn-block btn-modo-pago active"
                                             data-target="efectivo">Efectivo</button>
@@ -120,7 +120,7 @@
                                 </div>
 
                                 <div class="form-group row pl-3">
-                                    <div class="col-8">
+                                    <div class="col-6 col-md-8">
                                         <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="tarjeta">Tarjeta</button>
                                     </div>
@@ -133,7 +133,7 @@
                                 </div>
 
                                 <div class="form-group row pl-3">
-                                    <div class="col-8">
+                                    <div class="col-6 col-md-8">
                                         <button type="button" class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="yape">Yape / Plin</button>
                                     </div>
@@ -144,7 +144,7 @@
                                 </div>
 
                                 <div class="form-group row pl-3">
-                                    <div class="col-8">
+                                    <div class="col-6 col-md-8">
                                         <button type="button"
                                             class="btn btn-outline-secondary btn-block btn-modo-pago"
                                             data-target="transferencia">Transferencia</button>
@@ -156,7 +156,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-12 col-md-6">
                                 <div class="card d-inline-block ">
 
 

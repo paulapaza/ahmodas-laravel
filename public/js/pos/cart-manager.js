@@ -6,7 +6,7 @@ class CartManager {
         this.initTable();
         this.bindEvents();
         this.restriccion_precio_minimo = window.restriccion_precio_minimo; // Valor por defecto
-        console.log('restriccion_precio_minimo: ' + this.restriccion_precio_minimo);
+       
     }
 
     /**
@@ -164,7 +164,7 @@ class CartManager {
      */
     generateActionButtons(id) {
         return `
-            <button class="btn btn-secondary btn-xs disminuir-cantidad" data-id="${id}">
+            <button class="btn btn-secondary btn-xs disminuir-cantidad mr-2" data-id="${id}">
                 <i class="fa-solid fa-minus"></i>
             </button>
             <button class="btn btn-secondary btn-xs aumentar-cantidad" data-id="${id}">

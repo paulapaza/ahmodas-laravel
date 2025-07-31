@@ -120,7 +120,9 @@
                 </div>
             </div>
             @php
-                $print_button = '<a href="#" class="btn btn-primary" onclick="window.print()">Imprimir</a>';
+                    $ruta = route('posorder.imprimirRecibo', ['id' => $PosOrder->id]);
+                    $print_button = '<a href="' . $ruta . '" class="btn btn-primary" target="_blank">Imprimir</a>';
+
             @endphp
             @if ($PosOrder->cpe)
                 @php
