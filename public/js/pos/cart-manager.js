@@ -41,7 +41,13 @@ class CartManager {
                     {
                         data: 'cantidad',
                         width: '10%',
-                        className: 'text-center'
+                        className: 'text-center',
+                        render: (data, type) => {
+                            if (type === 'display') {
+                                return this.renderQuantityInput(data);
+                            }
+                            return data;
+                        }
                     },
                     {
                         data: 'nombre',
@@ -97,6 +103,14 @@ class CartManager {
                     style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
                     value="${data}" inputmode="none" />`;
     }
+    /**
+     * Renderiza el input de la cantidad
+     */
+    renderQuantityInput(data) {
+        return `<input type="number" min="1" class="iptCantidad" 
+                    style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
+                    value="${data}" inputmode="none" />`;
+    }
 
     /**
      * Vincula los eventos del carrito
@@ -118,6 +132,10 @@ class CartManager {
         $(document).on('change', '.iptPrecio-unitario', (e) => {
 
             this.handlePriceChange(e.currentTarget);
+        });
+        // Cambio de cantidad
+        $(document).on('change', '.iptCantidad', (e) => {
+            this.handleQuantityChange(e.currentTarget);
         });
     }
 
@@ -174,7 +192,7 @@ class CartManager {
     }
 
     /**
-     * Actualiza la cantidad de un producto (cuando se hace con teclado)
+     * Actualiza la cantidad de un producto (cuando con los botones + / -)
      */
     updateQuantity(id, change) {
         const row = this.table.row($(`.aumentar-cantidad[data-id="${id}"], .disminuir-cantidad[data-id="${id}"]`).closest('tr'));
@@ -198,25 +216,8 @@ class CartManager {
     }
 
     /**
-     * Maneja el cambio de precio unitario
+     * Maneja el cambio de precio unitario desde el input
      */
-    /* handlePriceChange(input) {
-        const row = this.table.row($(input).closest('tr'));
-        const data = row.data();
-        const nuevoPrecio = parseFloat($(input).val());
-        const restriccion_precio_minimo = this.restriccion_precio_minimo;
-        
-        if (!isNaN(nuevoPrecio) && nuevoPrecio >= data.precio_minimo) {
-            data.precio_unitario = POSUtils.formatCurrency(nuevoPrecio);
-            data.subtotal = POSUtils.formatCurrency(data.cantidad * nuevoPrecio);
-            row.data(data).draw();
-            this.calculateTotal();
-        } else {
-
-            POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
-            $(input).val(data.precio_unitario);
-        }
-    } */
     handlePriceChange(input) {
         const row = this.table.row($(input).closest('tr'));
         const data = row.data();
@@ -247,7 +248,28 @@ class CartManager {
         row.data(data).draw();
         this.calculateTotal();
     }
+    /**
+     * Maneja el cambio de cantidad desde el input
+     */
 
+    handleQuantityChange(input) {
+        const row = this.table.row($(input).closest('tr'));
+        const data = row.data();
+        const nuevaCantidad = parseInt($(input).val(), 10); 
+        const restriccion_precio_minimo = this.restriccion_precio_minimo;
+        // Verificar si la cantidad es válida (no NaN y mayor que 0)
+        if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+            POSUtils.showError('Por favor ingrese una cantidad válida (mayor que 0)');
+            $(input).val(data.cantidad);
+            return;
+        }
+       
+        // Actualizar la cantidad y recalcular
+        data.cantidad = nuevaCantidad;
+        data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));
+        row.data(data).draw();
+        this.calculateTotal();
+    }
     /**
      * Calcula el total del carrito
      */

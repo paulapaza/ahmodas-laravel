@@ -51,7 +51,6 @@ class PosOrderController extends Controller
 
     public function store(PosOrderStore $request)
     {
-
         $posServices = new PosServices();
         DB::beginTransaction();
         // Aquí puedes implementar la lógica para guardar la venta
@@ -74,6 +73,7 @@ class PosOrderController extends Controller
         );
 
         $cliente = $posServices->procesarCliente($request->input('cliente'), $request->input('tipo_venta'), $request->input('codigo_tipo_comprobante'));
+
 
         $pos_order = PosOrder::create([
             'serie' => $cpeSerie->serie, // Serie del comprobante
@@ -132,7 +132,7 @@ class PosOrderController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
-             $productos_cantidades[$line['id']] = $line['cantidad'];
+            $productos_cantidades[$line['id']] = $line['cantidad'];
         }
 
         // Inserta todas las líneas de una sola vez
@@ -142,7 +142,6 @@ class PosOrderController extends Controller
 
         $cpeServices = new CpeServices();
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
-
         if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
             $tipo_venta = $request->input('tipo_venta', 'local'); // Obtener el tipo de venta, por defecto 'local'
             $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
@@ -153,14 +152,13 @@ class PosOrderController extends Controller
 
         DB::Commit();
 
-        
+
         try {
-            VentaRealizada::dispatch($pos_order); // Enviar el evento a través de Laravel Echo
-            //$pos_order->load('tienda'); // Cargar la relación tienda
-            // event(new VentaRealizada($pos_order)); // Disparar el evento de venta realizada
+            VentaRealizada::dispatch($pos_order); // no bloqueante
+            //event(new VentaRealizada($pos_order)); // bloqueante
         } catch (\Exception $e) {
-            // Puedes loguear el error, o simplemente ignorarlo si no es crítico
-            // Log::warning('No se pudo emitir el evento VentaRealizada: ' . $e->getMessage());
+            Log::error('Error al despachar el evento VentaRealizada: ' . $e->getMessage());
+           
         }
         // Imprimir el recibo
         if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {

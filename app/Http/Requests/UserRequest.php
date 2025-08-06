@@ -32,8 +32,8 @@ class UserRequest extends FormRequest
     {
         return [
             
-            
-            'name' => 'required|regex:/^[a-zA-ZñÑáéíóúü ]+$/|min:3',
+            // incluir ademas numero en el nombre
+            'name' => 'required|regex:/^[a-zA-Z0-9ñÑáéíóúü ]+$/|min:3',
             'role' => 'required|alpha|max:255',
             
             'email' =>  [

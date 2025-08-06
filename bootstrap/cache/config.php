@@ -98,6 +98,7 @@
       'Storage' => 'Illuminate\\Support\\Facades\\Storage',
       'Str' => 'Illuminate\\Support\\Str',
       'URL' => 'Illuminate\\Support\\Facades\\URL',
+      'Uri' => 'Illuminate\\Support\\Uri',
       'Validator' => 'Illuminate\\Support\\Facades\\Validator',
       'View' => 'Illuminate\\Support\\Facades\\View',
       'Vite' => 'Illuminate\\Support\\Facades\\Vite',
@@ -157,7 +158,7 @@
         'app_id' => '652799',
         'options' => 
         array (
-          'host' => '192.168.1.20',
+          'host' => 'localhost',
           'port' => '6001',
           'scheme' => 'http',
           'useTLS' => false,
@@ -810,7 +811,7 @@
         'host' => '0.0.0.0',
         'port' => '6001',
         'path' => '',
-        'hostname' => '192.168.1.20',
+        'hostname' => 'localhost',
         'options' => 
         array (
           'tls' => 
@@ -849,7 +850,7 @@
           'app_id' => '652799',
           'options' => 
           array (
-            'host' => '192.168.1.20',
+            'host' => 'localhost',
             'port' => '6001',
             'scheme' => 'http',
             'useTLS' => false,

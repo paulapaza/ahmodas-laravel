@@ -24,7 +24,7 @@
 
         <div class="mb-3">
             <label for="name" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="name" name="name" pattern="[a-zA-ZáéíóúüñÑ\s]{3,255}" title="El nombre solo debe contener letras" required>
+            <input type="text" class="form-control" id="name" name="name" title="El nombre solo debe contener letras" required>
         </div>
 
         <div class="mb-3">
@@ -148,9 +148,10 @@
             let rowData = ($(this).parents('tr').hasClass('child')) ?
                 table.row($(this).parents().prev('tr')).data() :
                 table.row($(this).parents('tr')).data();
-            
-            $("#role" ).val(rowData.roles[0].name);
-             
+           
+           if (rowData.roles.length > 0) {
+                $("#role" ).val(rowData.roles[0].name);
+            }
             edit_record(rowData, table, $(this));
 
         });

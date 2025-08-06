@@ -8,7 +8,7 @@
             type="button" onclick="Selecionarfecha()"><span><i class="fas fa-calendar-alt " id="filter"></i> Filtro:
                 Hoy</span></button>
         <div class="form-check mb-3 d-inline-block ml-4">
-            <input class="form-check-input" type="checkbox" id="playSound" unchecked>
+            <input class="form-check-input" type="checkbox" id="playSound">
             <label class="form-check-label" for="playSound">
                 Sonido de notificación
             </label>
@@ -181,15 +181,18 @@
 <script>
     const audioVenta = document.getElementById('audioNuevaVenta');
     const checkbox = document.getElementById('playSound');
+    // guardar el checkbox en el localStorage
+    checkbox.checked = localStorage.getItem('playSound') === 'true';
 
-   
 
     
 
     // Al marcar o desmarcar el checkbox
     checkbox.addEventListener('change', () => {
         const isChecked = checkbox.checked;
-    
+        // Guardar el estado en localStorage
+        localStorage.setItem('playSound', isChecked);
+        console.log("Checkbox playSound cambiado a:", isChecked);
 
         if (isChecked) {
             // Desbloquear audio con interacción

@@ -99,12 +99,32 @@ class PaymentManager {
         if (!this.activeInput) return;
 
         if ($(this.activeInput).closest('#table-carrito').length) {
-            this.handleCartKeypadEnter();
+            if (this.activeInput.classList.contains('iptCantidad')) {
+                this.handleQuantityChange(this.activeInput);
+            }else{
+                this.handleCartKeypadEnter();
+            }
+    
         } else if ($(this.activeInput).hasClass('tipo-pago')) {
             this.handlePaymentKeypadEnter();
         }
 
         this.resetKeypad();
+    }
+    /**
+     * Maneja el cambio de cantidad con el keypad
+     */
+    handleQuantityChange(input) {
+        const table = window.cartManager.table;
+        const row = table.row($(input).closest('tr'));
+        const data = row.data();
+        const nuevaCantidad = parseInt($(input).val(), 10); 
+
+        data.cantidad = nuevaCantidad;
+        data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));
+        row.data(data).draw();
+        window.cartManager.calculateTotal();
+
     }
 
     /**
@@ -140,7 +160,7 @@ class PaymentManager {
         const restriccion_precio_minimo = window.cartManager.restriccion_precio_minimo;
         // O si la tienes en otro lugar: this.restriccion_precio_minimo
 
-        console.log('Valor ingresado:', valorFinal);
+        console.log('Valor ingresado keypad:', valorFinal);
         console.log('Precio mínimo:', data.precio_minimo);
         console.log('Restricción usuario:', restriccion_precio_minimo);
 
