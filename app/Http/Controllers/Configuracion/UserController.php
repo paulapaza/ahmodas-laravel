@@ -12,9 +12,9 @@ class UserController extends Controller
 {
     public function index()
     {
-       
-          $users = User::with('roles')->get();
-        //dd($users);  
+
+          $users = User::with('roles', 'tienda')->get();
+        //dd($users);
         return response()->json($users, 200);
     }
     public function show($id)
@@ -34,6 +34,7 @@ class UserController extends Controller
             $user->password = bcrypt("12345678");
             $user->print_type = $request->print_type;
             $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
+            $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
             $user->save();
 
             // asignamos el rol
@@ -55,6 +56,7 @@ class UserController extends Controller
 
     public function update(UserRequest $request, $id)
     {
+        //dd($request->all());
         try {
             $user = User::find($id);
             $user->name = $request->name;
@@ -62,6 +64,7 @@ class UserController extends Controller
             $user->estado = $request->estado;
             $user->print_type = $request->print_type;
             $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
+            $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
             $user->save();
             
             DB::table('model_has_roles')->where('model_id',$id)->delete();

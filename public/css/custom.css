@@ -318,3 +318,8 @@ verde: #54C392
 .wrap {
     white-space: normal!important;
 }
+
+/** poss */
+.boton-cambiar-precio {
+    padding: 5px 0px!important;
+}

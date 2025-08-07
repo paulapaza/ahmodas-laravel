@@ -57,6 +57,10 @@ class ProductoController extends Controller
         $stocks = $request->input('stocks', []);
 
         foreach ($stocks as $tiendaId => $stock) {
+            //SI EL STOK ES NULL O VACIO, SE ASIGNA 0
+            if (is_null($stock) || $stock === '') {
+                $stock = 0;
+            }
             $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
         }
 

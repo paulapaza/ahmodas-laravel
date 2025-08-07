@@ -12,6 +12,7 @@
         <th>Estado</th>
         <th>Tipo Impresion</th>
         <th class="wrap w-10">Restriccion Precio Minimo</th>
+        <th class="wrap w-10">Tienda</th>
         
 
     </x-table>
@@ -19,21 +20,31 @@
     <x-mymodal>
 
         @csrf
-
+        <div class="row">
         <input type="hidden" id="id" name="id">
 
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="name" class="form-label">Nombre</label>
             <input type="text" class="form-control" id="name" name="name" title="El nombre solo debe contener letras" required>
         </div>
-
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
+            <label for="email" class="form-label">Correo</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        
+        <div class="mb-3 col-md-6">
+            <label for="tienda_id" class="form-label">Tienda</label>
+            <select class="form-control" id="tienda_id" name="tienda_id" required>
+                <option value="">Seleccione una tienda</option>
+            </select>
+        </div>
+        <div class="mb-3 col-md-6">
             <label for="role" class="form-label">Rol</label>
             <select class="form-control" id="role" name="role" required>
 
             </select>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="estado" class="form-label">Estado</label>
             <select class="form-control" id="estado" name="estado" required>
                 <option value="1">Activo</option>
@@ -41,11 +52,8 @@
 
             </select>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Correo</label>
-            <input type="email" class="form-control" id="email" name="email" required>
-        </div>
-        <div class="mb-3">
+        
+        <div class="mb-3 col-md-6">
             <label for="status" class="form-label">Tipo de Impresion (TICKET)</label>
             <select class="form-control" id="print_type" name="print_type">
                 <option value="pdf">Muestra PDF</option>
@@ -54,7 +62,7 @@
             </select>
         </div>
       
-        <div class="mb-3">
+        <div class="mb-3 col-md-6">
             <label for="restriccion_precio_minimo" class="form-label">Restriccion Precio Minimo</label>
             <select class="form-control" id="restriccion_precio_minimo" name="restriccion_precio_minimo">
                 <option value="si">Si</option>
@@ -76,7 +84,8 @@
 
         let csrf = $('input[name="_token"]').val();
         let method = '';
-        llenarSelectRoles()
+        llenarSelectRoles();
+        llenarSelectTiendas();
 
         dataAjax = {
             subject: 'Usuario',
@@ -125,6 +134,12 @@
                         return (data == 'si') ? '<span class="badge bg-success">Si</span>' : '<span class="badge bg-danger">No</span>';
                     }
                 },
+                {
+                    "data": "tienda",
+                    "render": function(data, type, row) {
+                        return data ? data.nombre : 'N/A'; // Aseguramos que tienda tenga un valor
+                    }
+                }
                 
 
 
@@ -212,6 +227,27 @@
                     $.each(roles, function(index, role) {
                         // select.append('<option value="' + role.id + '">' + role.name + '</option>');
                         select.append('<option value="' + role.name + '">' + role.name + '</option>');
+                    });
+                },
+                error: function(errors) {
+                    console.log(errors);
+                }
+            });
+        }
+        function llenarSelectTiendas() {
+            //  Route::resource('/inventario/tienda', TiendaController::class);
+            $.ajax({
+                type: 'GET',
+                url: '/inventario/tienda',
+                dataType: 'json',
+                success: function(data) {
+
+                    let tiendas = data;
+                    let select = $('#tienda_id');
+                    select.empty();
+                    select.append('<option value="">Seleccione una tienda</option>');
+                    $.each(tiendas, function(index, tienda) {
+                        select.append('<option value="' + tienda.id + '">' + tienda.nombre + '</option>');
                     });
                 },
                 error: function(errors) {

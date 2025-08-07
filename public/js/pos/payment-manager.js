@@ -119,7 +119,13 @@ class PaymentManager {
         const row = table.row($(input).closest('tr'));
         const data = row.data();
         const nuevaCantidad = parseInt($(input).val(), 10); 
-
+      
+        //si la  es menor a 1, eliminar producto
+        if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+            row.remove().draw();
+            window.cartManager.calculateTotal();
+            return;
+        }
         data.cantidad = nuevaCantidad;
         data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));
         row.data(data).draw();

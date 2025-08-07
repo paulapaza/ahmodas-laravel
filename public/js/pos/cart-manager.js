@@ -6,7 +6,10 @@ class CartManager {
         this.initTable();
         this.bindEvents();
         this.restriccion_precio_minimo = window.restriccion_precio_minimo; // Valor por defecto
-       
+        // disminucion y aumento de precio por defecto 1 sol
+        this.precio_aumento = 1;
+        this.precio_disminucion = -1;
+
     }
 
     /**
@@ -31,11 +34,12 @@ class CartManager {
                     emptyTable: 'Carrito vacío'
                 },
                 columnDefs: [
-                    { targets: 3, visible: false }, // precio_minimo oculto
-                    { targets: 5, visible: false }, // id oculto
+                    { targets: 5, visible: false }, // precio_minimo oculto
+                    { targets: 7, visible: false }, // id oculto
                     { targets: 2, className: 'text-right' },
-                    { targets: 4, className: 'text-right' },
-                    { targets: 6, className: 'text-center', orderable: false }
+                    { targets: [2,4], className: 'boton-cambiar-precio' },
+                    { targets: 3, className: 'text-center boton-cambiar-precio' },
+                    { targets: 6, className: 'text-right', orderable: false }
                 ],
                 columns: [
                     {
@@ -51,7 +55,11 @@ class CartManager {
                     },
                     {
                         data: 'nombre',
-                        width: '35%'
+                        width: '50%'
+                    },
+                    {
+                        data: 'botonmenos',
+                        width: '10%'
                     },
                     {
                         data: 'precio_unitario',
@@ -62,6 +70,10 @@ class CartManager {
                             }
                             return data;
                         }
+                    },
+                    {
+                        data: 'botonmas',
+                        width: '10%'
                     },
                     {
                         data: 'precio_minimo',
@@ -81,10 +93,7 @@ class CartManager {
                         data: 'id',
                         width: '0%'
                     },
-                    {
-                        data: 'boton',
-                        width: '25%'
-                    }
+
                 ]
             });
 
@@ -107,8 +116,8 @@ class CartManager {
      * Renderiza el input de la cantidad
      */
     renderQuantityInput(data) {
-        return `<input type="number" min="1" class="iptCantidad" 
-                    style="text-align: center; width:65px; border-radius: 5px; border: 1px solid #ced4da;"
+        return `<input type="number" min="0" class="iptCantidad" 
+                    style="text-align: center; width:35px; border-radius: 5px; border: 1px solid #ced4da;"
                     value="${data}" inputmode="none" />`;
     }
 
@@ -119,13 +128,13 @@ class CartManager {
         // Aumentar cantidad
         $(document).on('click', '.aumentar-cantidad', (e) => {
             const id = $(e.currentTarget).data('id');
-            this.updateQuantity(id, 1);
+            this.updatePrecioUnitario(id, this.precio_aumento);
         });
 
         // Disminuir cantidad
         $(document).on('click', '.disminuir-cantidad', (e) => {
             const id = $(e.currentTarget).data('id');
-            this.updateQuantity(id, -1);
+            this.updatePrecioUnitario(id, this.precio_disminucion);
         });
 
         // Cambio de precio unitario
@@ -166,11 +175,12 @@ class CartManager {
         const productData = {
             cantidad: 1,
             nombre: nombre,
+            botonmenos: this.generateActionButtonsmenos(id),
             precio_unitario: precio,
+            botonmas: this.generateActionButtonsmas(id),
             precio_minimo: precio_minimo,
             subtotal: precio,
             id: id,
-            boton: this.generateActionButtons(id)
         };
 
         this.table.row.add(productData).draw();
@@ -178,36 +188,53 @@ class CartManager {
     }
 
     /**
-     * Genera los botones de acción para cada producto
+     * Genera los botones de acción aumentar precio para cada producto
      */
-    generateActionButtons(id) {
+    generateActionButtonsmenos(id) {
         return `
-            <button class="btn btn-secondary btn-xs disminuir-cantidad mr-2" data-id="${id}">
-                <i class="fa-solid fa-minus"></i>
+            
+            <button class="btn bg-white btn-xs disminuir-cantidad" data-id="${id}">
+                <i class="fa-solid fa-circle-minus"></i>
             </button>
-            <button class="btn btn-secondary btn-xs aumentar-cantidad" data-id="${id}">
-                <i class="fa-solid fa-plus"></i>
+        `;
+    }
+    generateActionButtonsmas(id) {
+        return `
+            
+            <button class="btn bg-white btn-xs aumentar-cantidad" data-id="${id}">
+                <i class="fa-solid fa-circle-plus"></i>
             </button>
         `;
     }
 
+
     /**
-     * Actualiza la cantidad de un producto (cuando con los botones + / -)
+     * Actualiza el precio  de un producto (cuando con los botones + / - son presionados)
      */
-    updateQuantity(id, change) {
+    updatePrecioUnitario(id, change) {
         const row = this.table.row($(`.aumentar-cantidad[data-id="${id}"], .disminuir-cantidad[data-id="${id}"]`).closest('tr'));
         const data = row.data();
 
         if (change > 0) {
-            data.cantidad++;
+            //revisar  si tiene restricción de precio mínimo
+
+            data.precio_unitario++;
+            //formatear a 2 decimales
+            data.precio_unitario = POSUtils.formatCurrency(data.precio_unitario);
         } else {
-            if (data.cantidad > 1) {
-                data.cantidad--;
-            } else {
-                row.remove().draw();
-                this.calculateTotal();
+            //revisar  si el usuario tiene restricción de precio mínimo y comprobar que el precio no sea menor al este precio
+            if (this.restriccion_precio_minimo === 'si' && data.precio_unitario <= data.precio_minimo) {
+                POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
                 return;
             }
+            if (data.precio_unitario <= 1) {
+                POSUtils.showError('El precio no puede ser menor a 1');
+                return;
+            }
+            data.precio_unitario--;
+            //formatear a 2 decimales
+            data.precio_unitario = POSUtils.formatCurrency(data.precio_unitario);
+            if (data.precio_unitario < 1) data.precio_unitario = 1; // No permitir precio menor a 1
         }
 
         data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));
@@ -223,7 +250,7 @@ class CartManager {
         const data = row.data();
         const nuevoPrecio = parseFloat($(input).val());
         const restriccion_precio_minimo = this.restriccion_precio_minimo;
-      
+
         // Verificar si el precio es válido (no NaN)
         if (isNaN(nuevoPrecio)) {
             POSUtils.showError('Por favor ingrese un precio válido');
@@ -255,15 +282,21 @@ class CartManager {
     handleQuantityChange(input) {
         const row = this.table.row($(input).closest('tr'));
         const data = row.data();
-        const nuevaCantidad = parseInt($(input).val(), 10); 
+        const nuevaCantidad = parseInt($(input).val(), 10);
         const restriccion_precio_minimo = this.restriccion_precio_minimo;
         // Verificar si la cantidad es válida (no NaN y mayor que 0)
-        if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
-            POSUtils.showError('Por favor ingrese una cantidad válida (mayor que 0)');
+        if (isNaN(nuevaCantidad)) {
+            POSUtils.showError('Por favor ingrese una cantidad válida');
             $(input).val(data.cantidad);
             return;
         }
-       
+        if (nuevaCantidad < 1) {
+            //eliminar producto si la cantidad es menor a 1
+            this.table.row(row).remove().draw();
+            this.calculateTotal();
+            return;
+        }
+
         // Actualizar la cantidad y recalcular
         data.cantidad = nuevaCantidad;
         data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));

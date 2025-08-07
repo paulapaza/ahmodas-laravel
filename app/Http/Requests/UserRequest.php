@@ -42,6 +42,7 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users')->ignore($this->id),
             ],
+            'tienda' => 'regex:/^[0-9]+$/',
             
         ];
     }

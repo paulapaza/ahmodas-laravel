@@ -302,6 +302,10 @@ class CpeServices
             throw new Exception("Error al enviar el CPE: " . $respuesta['errors']
                         . " - Mensaje: ");
         }
+        //dd($respuesta);
+        if ($respuesta === null){
+            throw new Exception("Error en la conexion de internet.</BR> VERIFIQUE SU CONEXION A INTERNET. </BR>(las boletas y facturas necesitan internet para poder emitirse");
+        }
         $this->storeCpeResponseData($respuesta, $pos_order->id, $nota);
         return $respuesta;
     }

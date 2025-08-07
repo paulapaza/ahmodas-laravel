@@ -106,20 +106,7 @@ class PosOrderController extends Controller
         // Procesar los productos vendidos
         $pos_order_lines = $request->input('productos', []);
 
-        /* foreach ($pos_order_lines as $line) {
-            $pos_order->orderlines()->create([
-                'producto_id' => $line['id'],
-                'quantity' => $line['cantidad'],
-                'price' => $line['precio_unitario'],
-                'subtotal' => $line['subtotal'],
-            ]);
-            $posServices->updateStockProductoTienda(
-                $line['id'],
-                $tienda_id,
-                'venta',
-                $line['cantidad']
-            );
-        } */
+     
         $datosInsert = [];
 
         foreach ($pos_order_lines as $line) {

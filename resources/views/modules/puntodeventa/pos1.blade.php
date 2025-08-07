@@ -68,11 +68,12 @@
                                     <tr>
                                         <th>Cant</th>
                                         <th>Nombre</th>
+                                        <th>-</th>
                                         <th>Precio</th>
+                                        <th>+</th>
                                         <th>Precio Min</th>
-                                        <th>Total</th>
+                                        <th>SubTotal</th>
                                         <th>ID</th>
-                                        <th>Cantidad</th>
                                     </tr>
                                 </thead>
                                 <tbody>

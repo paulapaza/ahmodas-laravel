@@ -17,14 +17,15 @@ class ProductSearch {
             model: "producto",
             csrf: POSUtils.getCSRFToken(),
         };
-         // Validamos si el usuario tiene el permiso para ver el precio x mayor
+        // Validamos si el usuario tiene el permiso para ver el precio x mayor
         const canSeePrecioMayor = window.currentUserPermissions?.includes('ver-precio-x-mayor');
 
         const columns = [
-            { data: 'id',
+            {
+                data: 'id',
                 visible: false,
-             },
-          /*   { data: 'codigo_barras' }, */
+            },
+            /*   { data: 'codigo_barras' }, */
             { data: 'nombre' },
             { data: 'precio_unitario' },
             { data: 'precio_minimo', visible: false }
@@ -45,13 +46,15 @@ class ProductSearch {
      * Vincula los eventos de búsqueda
      */
     bindEvents() {
-        // Enter en search box
-        $("#search-box").on('keypress', (e) => {
-            if (e.which === 13) {
+       
+        $("#search-box").on('keydown', (e) => {
+            // AL PRESIONAR ENTER O TAB
+            if (e.which === 13 || e.which === 9) {
                 e.preventDefault();
                 this.searchProduct();
             }
         });
+
 
         // Click en botón de búsqueda
         $(document).on('click', '#search-button', (e) => {
@@ -84,7 +87,7 @@ class ProductSearch {
      */
     async searchProduct() {
         const stringSearch = $("#search-box").val().trim();
-        
+
         if (!stringSearch) {
             POSUtils.showError('Ingrese un código de barras');
             return;
@@ -121,9 +124,9 @@ class ProductSearch {
     toggleProductsContainer() {
         const container = $("#productos-container");
         const button = $("#toggle-productos-container");
-        
+
         container.toggle();
-        
+
         if (container.is(":visible")) {
             button.html('<i class="fa-solid fa-minus-square"></i>');
         } else {
@@ -136,7 +139,7 @@ class ProductSearch {
      */
     handleProductTableClick(row) {
         const data = this.tableProductos.row(row).data();
-        
+
         if (data) {
             this.cartManager.addProduct(
                 data.id,
