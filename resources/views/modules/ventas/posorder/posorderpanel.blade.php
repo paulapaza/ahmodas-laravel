@@ -1,6 +1,6 @@
 <x-admin-layout>
     <div id="echoStatus" class="d-none"></div>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/js/app.js'])
     <x-slot name="menu">
         <x-menuVentas /> </x-slot>
 
@@ -14,7 +14,9 @@
             </label>
         </div>
     </x-slot>
-    <x-modalFechas />
+    <div class="panel-svp">
+        <x-modalFechasPanel />
+    </div>
 
     @php $numeracion = 1; @endphp
 
@@ -300,11 +302,12 @@
 
         }
 
-
+        
     });
-
+    
     function cargarTabla(fechaInicio = "", fechaFin = "") {
         window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}`;
-
     }
+     
 </script>
+

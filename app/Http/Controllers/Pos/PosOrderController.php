@@ -219,7 +219,10 @@ class PosOrderController extends Controller
 
         // Validar que fecha_inicio no sea mayor que fecha_fin
         if ($fecha_inicio->gt($fecha_fin)) {
-            throw new \Exception('La fecha de inicio no puede ser mayor que la fecha de fin');
+            return response()->json([
+                'success' => false,
+                'message' => 'La fecha de inicio no puede ser mayor que la fecha de fin',
+            ], 400);
         }
 
         /* $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {

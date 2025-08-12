@@ -6,7 +6,7 @@
         <button class="btn btn-select-fecha bg-xsuccess" type="button" onclick="Selecionarfecha()"><span><i
                     class="fas fa-calendar-alt "></i> Filtro: Hoy</span>
     </x-slot>
-    <x-modalFechas />
+    <x-modalFechasPanel />
 
     @php $numeracion = 1; @endphp
 
@@ -183,7 +183,7 @@
         const urlParts = window.location.pathname.split('/');
         const fechaInicio = urlParts[urlParts.length - 2];
         const fechaFin = urlParts[urlParts.length - 1];
-
+        
         if (fechaInicio == fechaFin) {
             $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio);
 
@@ -195,18 +195,25 @@
             } else if (fechaInicio.includes('/') && fechaFin.includes('/')) {
                 $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio +
                     ' - ' + fechaFin);
-            } else {
+            } else if(fechaFin.includes('-') && !fechaInicio.includes('-')) {
+                $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: ' + fechaInicio);
+            }
+            else {
                 $(".btn-select-fecha span").html('<i class="fas fa-calendar-alt"></i> Filtro: Hoy');
             }
 
 
         }
-
+        $('#modal-filter-fechas').on('click', '.filtrar-fechas', function() {
+            fechaInicio = $('#fecha_inicio').val();
+            fechaFin = $('#fecha_fin').val();
+            cargarTabla(fechaInicio, fechaFin);
+        });
 
     });
 
     function cargarTabla(fechaInicio = "", fechaFin = "") {
-        window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}`;
+        window.location.href = `/ventas/visor/posorderline/${fechaInicio}/${fechaFin}`;
 
     }
 </script>
