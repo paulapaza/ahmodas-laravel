@@ -154,9 +154,20 @@ class CrearPermisos extends Command
                 'roles' => [$super, $admin, $role_cajero]
             ],
           
-            
-           
-
+            // ver detalle de ventas  @can('ver-visor-ventas')
+            [
+                'name' => 'ver-visor-ventas-detalle',
+                'descripcion' => 'ver visor ventas detalle',
+                'categoria' => 'modulo ventas',
+                'roles' => [$super, $admin]
+            ],
+            // ver-visor-ventas-detalle-ganacia
+            [
+                'name' => 'ver-visor-ventas-detalle-ganacia',
+                'descripcion' => 'ver visor ventas detalle ganancia',
+                'categoria' => 'modulo ventas',
+                'roles' => [$super, $admin]
+            ]
         ];
     
         foreach ($permissions as $permission) {

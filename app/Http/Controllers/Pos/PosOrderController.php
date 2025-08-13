@@ -141,7 +141,7 @@ class PosOrderController extends Controller
 
 
         try {
-            VentaRealizada::dispatch($pos_order); // no bloqueante
+           // VentaRealizada::dispatch($pos_order); // no bloqueante
             //event(new VentaRealizada($pos_order)); // bloqueante
         } catch (\Exception $e) {
             Log::error('Error al despachar el evento VentaRealizada: ' . $e->getMessage());

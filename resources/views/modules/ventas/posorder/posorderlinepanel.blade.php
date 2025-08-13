@@ -49,7 +49,9 @@
                                             <th>Producto</th>
                                             <th class="text-center">Can.</th>
                                             <th>Pre/U</th>
+                                             @can('ver-visor-ventas-detalle-ganacia')
                                             <th>Ganan.</th><!-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor -->
+                                             @endcan
                                             <th>subtotal</th>
 
                                         </tr>
@@ -81,12 +83,15 @@
                                                     <td>{{ $line->producto->nombre }}</td>
                                                     <td class="text-center">{{ $line->quantity }}</td>
                                                     <td class="text-right">{{ number_format($line->price, 2) }}</td>
+                                                    @can('ver-visor-ventas-detalle-ganacia')
                                                     <td class="text-right">
                                                         @if ($lineGanancia > 0)
                                                             {{ number_format($lineGanancia, 2) }}
                                                         @else
                                                             <span class="text-danger">0.00</span>
                                                         @endif
+                                                    </td>
+                                                    @endcan
                                                         {{-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor --}}
                                                     <td class="text-right">{{ number_format($line->subtotal, 2) }}</td>
                                                 </tr>
@@ -112,7 +117,9 @@
                             @endphp
                             Total: {{ number_format($totalCompletado, 2) }}
                             <br>
+                            @can('ver-visor-ventas-detalle-ganacia')
                             Ganancia Total: {{ number_format($gananciaTotal, 2) }}
+                            @endcan
                         </div>
                     </div>
                 </div>

@@ -17,8 +17,9 @@
     <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
         <li><a href="{{route('ventas.visor.posorderpanel')}}" class="dropdown-item">Por Ventas</a></li>
         <li class="dropdown-divider"></li>
+         @can('ver-visor-ventas-detalle')
         <li><a href="{{route('ventas.visor.posorderlinepanel')}}" class="dropdown-item">Por Detalle de venta</a></li>
-        
+         @endcan
         </ul>
 </li>
 <li class="nav-item d-none d-sm-inline-block">
