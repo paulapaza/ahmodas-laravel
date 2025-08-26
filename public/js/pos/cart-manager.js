@@ -223,8 +223,10 @@ class CartManager {
             data.precio_unitario = POSUtils.formatCurrency(data.precio_unitario);
         } else {
             //revisar  si el usuario tiene restricción de precio mínimo y comprobar que el precio no sea menor al este precio
-            if (this.restriccion_precio_minimo === 'si' && data.precio_unitario <= data.precio_minimo) {
-                POSUtils.showError(`El precio mínimo de este producto es: ${data.precio_minimo}`);
+            const precioUnitario = parseFloat(data.precio_unitario);
+            const precioMinimo = parseFloat(data.precio_minimo);
+            if (this.restriccion_precio_minimo === 'si' && precioUnitario <= precioMinimo) {
+                POSUtils.showError(`El precio mínimo de este producto es: ${precioMinimo}`);
                 return;
             }
             if (data.precio_unitario <= 1) {

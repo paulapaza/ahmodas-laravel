@@ -95,6 +95,7 @@ class SalesProcessor {
         const productos = this.cartManager.getProducts();
 
         const saleData = {
+            sale_token: this.generateSaleToken(),
             ...paymentAmounts,
             moneda: $('#moneda').val(),
             total: this.cartManager.getTotal(),
@@ -212,3 +213,12 @@ class SalesProcessor {
         $('#simbolo_moneda').text(simbolo);
     }
 }
+
+// Añadir método helper para token (fuera de la clase si ya finalizó la definición)
+SalesProcessor.prototype.generateSaleToken = function () {
+    if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+    // Fallback simple
+    return 'st_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 10);
+};

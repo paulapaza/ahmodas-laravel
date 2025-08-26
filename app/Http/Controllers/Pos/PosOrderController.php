@@ -52,6 +52,143 @@ class PosOrderController extends Controller
     public function store(PosOrderStore $request)
     {
         $posServices = new PosServices();
+        $saleToken = $request->input('sale_token');
+
+        if (!$saleToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Falta sale_token (idempotencia) en la solicitud.'
+            ], 422);
+        }
+
+        // Si ya existe una orden con este token devolverla (idempotencia)
+        $existing = PosOrder::where('sale_token', $saleToken)->first();
+        if ($existing) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta ya registrada (idempotente).',
+                'pos_order' => $existing,
+                'cpe_response' => null,
+                'print_type' => Auth::user()->print_type,
+            ]);
+        }
+
+        $tienda_id = Auth::user()->tienda_id;
+        if (!$tienda_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El usuario no tiene una tienda asociada.',
+            ], 400);
+        }
+
+        $codigo_tipo_comprobante = ['01' => '1', '03' => '2', '12' => '12'];
+
+        DB::beginTransaction();
+        try {
+            $cpeSerie = $posServices->get_CpeSerie(
+                $tienda_id,
+                $codigo_tipo_comprobante[$request->input('codigo_tipo_comprobante')],
+            );
+
+            $cliente = $posServices->procesarCliente(
+                $request->input('cliente'),
+                $request->input('tipo_venta'),
+                $request->input('codigo_tipo_comprobante')
+            );
+
+            $pos_order = PosOrder::create([
+                'sale_token' => $saleToken,
+                'serie' => $cpeSerie->serie,
+                'order_number' => $cpeSerie->correlativo,
+                'order_date' => now(),
+                'tipo_comprobante' => $request->input('codigo_tipo_comprobante'),
+                'total_amount' => $request->input('total'),
+                'moneda' => (int)$request->input('moneda', 1),
+                'tienda_id' => $tienda_id,
+                'user_id' => Auth::user()->id,
+                'cliente_id' => $cliente->id,
+                'estado' => 'completed',
+            ]);
+
+            $payment_methods = [
+                'efectivo' => $request->input('efectivo', 0),
+                'tarjeta' => $request->input('tarjeta', 0),
+                'yape' => $request->input('yape', 0),
+                'transferencia' => $request->input('transferencia', 0),
+            ];
+            foreach ($payment_methods as $method => $amount) {
+                if ($amount > 0) {
+                    $pos_order->payments()->create([
+                        'payment_method' => $method,
+                        'amount' => $amount,
+                    ]);
+                }
+            }
+
+            $pos_order_lines = $request->input('productos', []);
+            $datosInsert = [];
+            $productos_cantidades = [];
+            foreach ($pos_order_lines as $line) {
+                $datosInsert[] = [
+                    'pos_order_id' => $pos_order->id,
+                    'producto_id' => $line['id'],
+                    'quantity' => $line['cantidad'],
+                    'price' => $line['precio_unitario'],
+                    'subtotal' => $line['subtotal'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+                $productos_cantidades[$line['id']] = $line['cantidad'];
+            }
+            PosOrderLine::insert($datosInsert);
+            $posServices->actualizarStockProductos($tienda_id, $productos_cantidades, 'venta');
+
+            // Aumentar correlativo dentro de la transacción
+            $posServices->increase_CpeSerie($cpeSerie);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error creando venta: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar la venta.',
+            ], 500);
+        }
+
+        // Enviar CPE y otros efectos secundarios fuera de la transacción
+        $api_response = null;
+        try {
+            if (in_array($pos_order->tipo_comprobante, ['01', '03'])) {
+                $cpeServices = new CpeServices();
+                $tipo_venta = $request->input('tipo_venta', 'local');
+                $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Fallo envío CPE post-commit: ' . $e->getMessage());
+        }
+
+        try {
+            if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
+                $printService = new \App\Services\PrintService();
+                $printService->imprimirTicket($pos_order);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Fallo impresión ticket: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Venta registrada correctamente',
+            'pos_order' => $pos_order,
+            'cpe_response' => $api_response,
+            'print_type' => Auth::user()->print_type,
+        ]);
+    }
+
+    /* public function store(PosOrderStore $request)
+    {
+        $posServices = new PosServices();
         DB::beginTransaction();
         // Aquí puedes implementar la lógica para guardar la venta
         $tienda_id = Auth::user()->tienda_id; // Obtener el ID de la tienda del usuario autenticado
@@ -129,24 +266,25 @@ class PosOrderController extends Controller
 
         $cpeServices = new CpeServices();
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
-        if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
-            $tipo_venta = $request->input('tipo_venta', 'local'); // Obtener el tipo de venta, por defecto 'local'
-            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
-        }
-
+       
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
 
         DB::Commit();
 
+         if (in_array($request->input('codigo_tipo_comprobante'), ['01', '03'])) {
+            $tipo_venta = $request->input('tipo_venta', 'local'); // Obtener el tipo de venta, por defecto 'local'
+            $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+        }
 
-        try {
+
+         //try {
            // VentaRealizada::dispatch($pos_order); // no bloqueante
             //event(new VentaRealizada($pos_order)); // bloqueante
-        } catch (\Exception $e) {
-            Log::error('Error al despachar el evento VentaRealizada: ' . $e->getMessage());
+        //} catch (\Exception $e) {
+            //Log::error('Error al despachar el evento VentaRealizada: ' . $e->getMessage());
            
-        }
+        //} 
         // Imprimir el recibo
         if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
             $printService = new \App\Services\PrintService();
@@ -161,6 +299,7 @@ class PosOrderController extends Controller
             'print_type' => Auth::user()->print_type,
         ]);
     }
+ */
 
     public function cancel($id)
     {

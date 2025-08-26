@@ -24,7 +24,8 @@ class PosOrder extends Model
         'cliente_id',
         'total_amount',
         'moneda', // 1 for PEN, 2 for USD
-        'status',
+    'estado',
+    'sale_token',
     ];
 
     public function orderLines()
