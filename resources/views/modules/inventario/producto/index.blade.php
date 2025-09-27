@@ -8,6 +8,7 @@
         <th>id</th>
         <th>Barcode</th>
         <th class="col-nombre-producto">Nombre</th>
+        <th>alias</th>
         <th>costo</th>
         <th>precio</th>
         <th>precio minimo</th>
@@ -18,41 +19,45 @@
     </x-table>
 
     <x-mymodal size="modal-lg">
-       
+
         @csrf
         <input type="hidden" id="id" name="id">
         <div class="row ">
             <div class="form-group col-12">
                 <label for="nombre" class="form-label">Nombre del Producto</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" autocomplete="off"
-                    required>
+                <input type="text" class="form-control" id="nombre" name="nombre" autocomplete="off" required>
             </div>
-             <div class="form-group col-3">
+            <div class="form-group col-12">
+                <label for="alias" class="form-label">Alias</label>
+                <input type="text" class="form-control" id="alias" name="alias" autocomplete="off">
+            </div>
+
+            <div class="form-group col-3">
                 <label for="costo_unitario" class="form-label text-xaccent">Precio Compra </label>
-                <input type="number" class="form-control" id="costo_unitario" step="0.01"
-                    name="costo_unitario" autocomplete="off" required>
+                <input type="number" class="form-control" id="costo_unitario" step="0.01" name="costo_unitario"
+                    autocomplete="off" required>
             </div>
-             <div class="form-group col-3">
-               <label for="precio_unitario" class="form-label text-xaccent">Precio Venta </label>
+            <div class="form-group col-3">
+                <label for="precio_unitario" class="form-label text-xaccent">Precio Venta </label>
                 <input type="number" class="form-control" id="precio_unitario" name="precio_unitario"
                     autocomplete="off" required step="0.01">
             </div>
-           
+
             <div class="form-group col-3">
                 <label for="precio_minimo" class="form-label">Precio Venta min</label>
-                <input type="number" class="form-control" id="precio_minimo" name="precio_minimo"
-                    autocomplete="off" required step="0.01">
+                <input type="number" class="form-control" id="precio_minimo" name="precio_minimo" autocomplete="off"
+                    required step="0.01">
             </div>
-            
+
             <div class="form-group col-3">
-                <label for="precio_x_mayor" class="form-label text-success ">Precio Venta x Mayor</label> 
-                <input type="number" class="form-control" id="precio_x_mayor" name="precio_x_mayor"
-                    autocomplete="off" step="0.01">
+                <label for="precio_x_mayor" class="form-label text-success ">Precio Venta x Mayor</label>
+                <input type="number" class="form-control" id="precio_x_mayor" name="precio_x_mayor" autocomplete="off"
+                    step="0.01">
             </div>
             <div class="form-group col-4">
                 <label for="codigo_barras" class="form-label">Código de barras</label>
-                <input type="text" class="form-control" id="codigo_barras" name="codigo_barras"
-                    autocomplete="off" required>
+                <input type="text" class="form-control" id="codigo_barras" name="codigo_barras" autocomplete="off"
+                    required>
             </div>
 
             <div class="form-group col-4">
@@ -67,7 +72,7 @@
 
                 </select>
             </div>
-          
+
             <div class="form-group col-4">
                 <label for="moneda" class="form-label">Tipo de Moneda</label>
                 <select class="form-control" id="moneda" name="moneda" required>
@@ -75,11 +80,11 @@
                     <option value="2">USD</option>
                 </select>
             </div>
-         
+
             <div class="form-group col-8">
                 <label for="tipo_de_igv" class="form-label">Tipo de IGV</label>
                 <select class="form-control" id="tipo_de_igv" name="tipo_de_igv" required>
-                   
+
                     <option value="1" selected>Gravado - Operación Onerosa</option>
                     <option value="8">Exonerado - Operación Onerosa</option>
                     <option value="9">Inafecto - Operación Onerosa</option>
@@ -98,7 +103,7 @@
                     <option value="13">Inafecto - Retiro por Convenio Colectivo</option>
                     <option value="14">Inafecto - Retiro por premio</option>
                     <option value="15">Inafecto - Retiro por publicidad</option> --}}
-                   
+
                 </select>
             </div>
         </div>
@@ -131,8 +136,11 @@
                 },
                 {
                     data: 'nombre',
-                   className: 'col-nombre-producto' 
+                    className: 'col-nombre-producto'
 
+                },
+                {
+                    data: 'alias'
                 },
                 {
                     data: 'costo_unitario'
@@ -140,7 +148,7 @@
                 {
                     data: 'precio_unitario'
                 },
-                
+
                 {
                     data: 'precio_minimo'
                 },
@@ -170,24 +178,24 @@
         cargarStocks(); // sin parámetro
         // edit record
 
-       /*  $('#table').on('click', '.btn-edit', function() {
+        /*  $('#table').on('click', '.btn-edit', function() {
+             let rowData = ($(this).parents('tr').hasClass('child')) ?
+                 table.row($(this).parents().prev('tr')).data() :
+                 table.row($(this).parents('tr')).data();
+             await cargarStocks(rowData.id);
+
+             edit_record(rowData, table, $(this));
+         
+         }); */
+        $('#table').on('click', '.btn-edit', async function() {
             let rowData = ($(this).parents('tr').hasClass('child')) ?
                 table.row($(this).parents().prev('tr')).data() :
                 table.row($(this).parents('tr')).data();
-            await cargarStocks(rowData.id);
+
+            await cargarStocks(rowData.id); // ✅ ahora sí puedes usar await aquí
 
             edit_record(rowData, table, $(this));
-        
-        }); */
-        $('#table').on('click', '.btn-edit', async function () {
-    let rowData = ($(this).parents('tr').hasClass('child')) ?
-        table.row($(this).parents().prev('tr')).data() :
-        table.row($(this).parents('tr')).data();
-
-    await cargarStocks(rowData.id); // ✅ ahora sí puedes usar await aquí
-
-    edit_record(rowData, table, $(this));
-});
+        });
 
         // store record
         $(document).on('click', '.btn-store', function() {
@@ -293,7 +301,7 @@
                     success: function(data) {
                         let html = '';
                         data.forEach(tienda => {
-                           
+
                             html += `
                         <div class="form-group mb-2 col-3">
                             <label for="stock_tienda_${tienda.id}">${tienda.nombre}</label>

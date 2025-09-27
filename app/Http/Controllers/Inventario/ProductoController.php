@@ -17,6 +17,7 @@ class ProductoController extends Controller
                 'id',
                 'codigo_barras',
                 'nombre',
+                'alias',
                 'costo_unitario',
                 'precio_unitario',
                 'precio_minimo',
@@ -45,6 +46,7 @@ class ProductoController extends Controller
         $producto = new Producto();
         $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
+        $producto->alias = $request->alias;
         $producto->costo_unitario = $request->costo_unitario;
         $producto->precio_unitario = $request->precio_unitario;
         $producto->precio_minimo = $request->precio_minimo;
@@ -82,6 +84,7 @@ class ProductoController extends Controller
         }
         $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
+        $producto->alias = $request->alias;
         $producto->costo_unitario = $request->costo_unitario;
         $producto->precio_unitario = $request->precio_unitario;
         $producto->precio_minimo = $request->precio_minimo;
@@ -126,8 +129,6 @@ class ProductoController extends Controller
         if ($stringBuscado === '') {
             return response()->json(['error' => 'Búsqueda vacía'], 400);
         }
-
-
 
         //quitar espacio adelante y atraz
         $stringBuscado = trim($stringBuscado);

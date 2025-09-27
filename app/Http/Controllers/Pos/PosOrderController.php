@@ -421,7 +421,7 @@ class PosOrderController extends Controller
                     $lineQuery->select('id', 'pos_order_id', 'producto_id', 'quantity', 'price', 'subtotal')
                         ->with(['producto' => function ($productoQuery) {
                             // 2.2.2 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE PRODUCTO
-                            $productoQuery->select('id', 'nombre', 'costo_unitario', 'precio_unitario');
+                            $productoQuery->select('id', 'nombre','alias', 'costo_unitario', 'precio_unitario');
                         }]);
                     // Esto reduce la cantidad de datos transferidos desde la BD
                 }]);

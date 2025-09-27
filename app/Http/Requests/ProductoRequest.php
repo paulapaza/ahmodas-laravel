@@ -27,6 +27,7 @@ class ProductoRequest extends FormRequest
             // si es edicion, no validar que sea unico
             'codigo_barras' => $this->isMethod('post') ? 'nullable|string|max:13|unique:productos,codigo_barras' : 'nullable|string|max:13',
             'nombre' => 'required|string|max:100',
+            'alias' => 'nullable|string|max:200',
             'costo_unitario' => 'nullable|numeric|min:0',
             'precio_unitario' => 'required|numeric|min:0',
             'precio_minimo' => 'required|numeric|min:0',

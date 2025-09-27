@@ -47,6 +47,7 @@
                                             <th>Nro Doc</th>
                                             <th>Hora</th>
                                             <th>Producto</th>
+                                            <th>Alias</th>
                                             <th class="text-center">Can.</th>
                                             <th>Pre/U</th>
                                              @can('ver-visor-ventas-detalle-ganacia')
@@ -81,6 +82,7 @@
                                                     <td>{{ \Carbon\Carbon::parse($order->order_date)->format('H:i') }}
                                                     </td>
                                                     <td>{{ $line->producto->nombre }}</td>
+                                                    <td>{{ $line->producto->alias }}</td>
                                                     <td class="text-center">{{ $line->quantity }}</td>
                                                     <td class="text-right">{{ number_format($line->price, 2) }}</td>
                                                     @can('ver-visor-ventas-detalle-ganacia')
