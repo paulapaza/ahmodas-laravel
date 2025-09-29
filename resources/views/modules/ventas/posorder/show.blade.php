@@ -78,7 +78,7 @@
                         @foreach ($PosOrder->orderLines as $line)
                             <tr>
                                 <td>{{ $line->quantity }}</td>
-                                <td>{{ $line->producto->nombre }}</td>
+                                <td>{{ $line->producto->nombre }}<br> {{ $line->producto->alias ?? '' }}</td>
                                 <td class="text-right">{{ $line->precio_unitario }}</td>
                                 <td class="text-right">{{ $line->subtotal }}</td>
                             </tr>
