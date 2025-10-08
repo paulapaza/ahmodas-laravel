@@ -13,67 +13,7 @@ use Illuminate\Support\Facades\DB;
 class PosServices
 
 {
-    // obtener numero de serie sin refactorizar (esta funcion no se usa en ningun lado)
-    public function get_CpeSerie0($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
-    {
-
-        if ($codigo_tipo_comprobante == '3') {
-
-            if ($tipo_documento_a_modificar == '1') {
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '07')
-                    ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', 'F%') // buscar serie de fa
-                    ->where('estado', 'activo')
-                    ->first();
-            } else if ($tipo_documento_a_modificar == '2') {
-
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '07')
-                    ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', 'B%') // buscar serie de b
-                    ->where('estado', 'activo')
-                    ->first();
-            }
-        } else if ($codigo_tipo_comprobante == '4') {
-
-
-            if ($tipo_documento_a_modificar == '1') {
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '08')
-                    ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', 'F%') // buscar serie de factura
-                    ->where('estado', 'activo')
-                    ->first();
-            } else if ($tipo_documento_a_modificar == '2') {
-                // si no se especifica tipo de documento, buscar el primero activo
-                $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', '08')
-                    ->where('tienda_id', $tienda_id)
-                    ->where('serie', 'like', 'B%') // buscar serie de 
-                    ->where('estado', 'activo')
-                    ->first();
-            }
-        } else if ($codigo_tipo_comprobante == '1') {
-            // buscar el CPE correspondiente al tipo de comprobante
-            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "01") // Factura
-                ->where('tienda_id', $tienda_id)
-                ->where('estado', 'activo')
-                ->first();
-        } else if ($codigo_tipo_comprobante == '2') {
-            // buscar el CPE correspondiente al tipo de comprobante
-            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "03") // Boleta
-                ->where('tienda_id', $tienda_id)
-                ->where('estado', 'activo')
-                ->first();
-        } elseif ($codigo_tipo_comprobante == '12') {
-            // buscar el CPE correspondiente al tipo de comprobante
-            $cpeSerie = CpeSerie::where('codigo_tipo_comprobante', "12") // Cotizacion
-                ->where('tienda_id', $tienda_id)
-                ->where('estado', 'activo')
-                ->first();
-        } else {
-            throw new Exception("Tipo de comprobante no soportado: " . $codigo_tipo_comprobante);
-        }
-
-        return $cpeSerie;
-    }
+   
     // obtener numero de serie refactorizado
     public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
     {
@@ -111,7 +51,7 @@ class PosServices
         return $query->first();
     }
     // aumentar correlativo
-    public function increase_CpeSerie($cpe_serie): CpeSerie
+    public function increase_CpeSerie(CpeSerie $cpe_serie): CpeSerie
     {
         // Aumentar el correlativo del CPE
         $cpe_serie->correlativo++;

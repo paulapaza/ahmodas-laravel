@@ -42,6 +42,7 @@
                                     <th>id</th>
                                     <th>Barcode</th>
                                     <th>Nombre Productos</th>
+                                    <th>Alias</th>
                                     <th>Precio</th>
                                     <th>Precio Minimo</th>
 

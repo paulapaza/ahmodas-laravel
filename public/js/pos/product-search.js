@@ -27,6 +27,7 @@ class ProductSearch {
             },
             /*   { data: 'codigo_barras' }, */
             { data: 'nombre' },
+            { data: 'alias' },
             { data: 'precio_unitario' },
             { data: 'precio_minimo', visible: false }
         ];
@@ -105,7 +106,7 @@ class ProductSearch {
                 const product = response[0];
                 this.cartManager.addProduct(
                     product.id,
-                    product.nombre,
+                    product.alias,
                     product.precio_unitario,
                     product.precio_minimo
                 );
@@ -143,7 +144,7 @@ class ProductSearch {
         if (data) {
             this.cartManager.addProduct(
                 data.id,
-                data.nombre,
+                data.alias,
                 data.precio_unitario,
                 data.precio_minimo
             );

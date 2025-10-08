@@ -46,6 +46,7 @@
                                     <th>id</th>
                                     {{-- <th>Barcode</th> --}}
                                     <th>Productos</th>
+                                    <th>Alias</th>
                                     <th>Precio</th>
                                     <th>Precio Minimo</th>
 
@@ -67,7 +68,7 @@
                                 <thead>
                                     <tr>
                                         <th>Cant</th>
-                                        <th>Nombre</th>
+                                        <th>Alias</th>
                                         <th>-</th>
                                         <th>Precio</th>
                                         <th>+</th>
@@ -211,7 +212,8 @@
 <script src="{{ asset('js/pos/pos-utils.js') }}"></script>
 <script src="{{ asset('js/pos/cart-manager.js') }}"></script>
 <script src="{{ asset('js/pos/payment-manager.js') }}"></script>
-<script src="{{ asset('js/pos/product-search.js') }}"></script>
+{{-- <script src="{{ asset('js/pos/product-search.js') }}"></script> --}}
+<script src="{{ asset('js/pos/product-search.js') }}?v={{ filemtime(public_path('js/pos/product-search.js')) }}"></script>
 <script src="{{ asset('js/pos/customer-service.js') }}"></script>
 <script src="{{ asset('js/pos/sales-processor.js') }}"></script>
 <script src="{{ asset('js/pos/pos-main.js') }}"></script>
