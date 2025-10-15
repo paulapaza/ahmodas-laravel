@@ -9,6 +9,7 @@
         <th>Barcode</th>
         <th class="col-nombre-producto">Nombre</th>
         <th>alias</th>
+        <th>stock</th>
         <th>costo</th>
         <th>precio</th>
         <th>precio minimo</th>
@@ -143,6 +144,12 @@
                     data: 'alias'
                 },
                 {
+                    data: 'total_stock',
+                    render: function (data, type, row) {
+                        return data;
+                    }
+                },
+                {
                     data: 'costo_unitario'
                 },
                 {
@@ -157,7 +164,10 @@
                     visible: window.currentUserPermissions?.includes('ver-precio-x-mayor') //
                 },
                 {
-                    data: 'categoria_id'
+                    data: 'categoria_id',
+                    render: function (data, type, row) {
+                        return row.categoria_nombre;
+                    }
                 },
                 {
                     data: 'estado',
