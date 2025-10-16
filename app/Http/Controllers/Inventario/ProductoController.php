@@ -12,24 +12,47 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        $productos = DB::table('productos')
+        $productos = DB::table('productos as p')
+            ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
+            ->join('marcas as m', 'p.marca_id', '=', 'm.id')
+            ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
             ->select(
-                'id',
-                'codigo_barras',
-                'nombre',
-                'alias',
-                'costo_unitario',
-                'precio_unitario',
-                'precio_minimo',
-                'categoria_id',
-                'marca_id',
-                'precio_x_mayor',
-                'tipo_de_igv',
-                'moneda',
-                'estado'
+                'p.id',
+                'p.codigo_barras',
+                'p.nombre',
+                'p.alias',
+                'p.costo_unitario',
+                'p.precio_unitario',
+                'p.precio_minimo',
+                'p.categoria_id',
+                'p.marca_id',
+                'p.precio_x_mayor',
+                'p.tipo_de_igv',
+                'p.moneda',
+                'p.estado',
+                'c.nombre as categoria_nombre',
+                'm.nombre as marca_nombre',
+                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
             )
+            ->groupBy(
+                'p.id',
+                'p.codigo_barras',
+                'p.nombre',
+                'p.alias',
+                'p.costo_unitario',
+                'p.precio_unitario',
+                'p.precio_minimo',
+                'p.categoria_id',
+                'p.marca_id',
+                'p.precio_x_mayor',
+                'p.tipo_de_igv',
+                'p.moneda',
+                'p.estado',
+                'c.nombre',
+                'm.nombre'
+            )
+            ->orderBy('p.nombre')
             ->get();
-
 
         return response()->json($productos, 200);
     }
