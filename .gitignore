@@ -19,3 +19,5 @@ yarn-error.log
 /.idea
 /.vscode
 /.zed
+/public/cotizador/key.json
+/public/cotizador/key-gemini.json
