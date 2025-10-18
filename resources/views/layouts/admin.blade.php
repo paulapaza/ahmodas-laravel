@@ -132,5 +132,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
     
     @yield('scripts_fechas')
     @yield('page_scripts')
+
+    <!-- librerias para vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
 </body>
 </html>
