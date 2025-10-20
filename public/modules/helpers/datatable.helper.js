@@ -4,15 +4,16 @@
  * Inicializa una DataTable reutilizable con manejo automático de destrucción.
  * @param {string} selector - Selector CSS del elemento tabla (ej. '#products-table')
  * @param {object} options - Opciones de configuración de DataTable
+ * @param {Vue|null} vueInstance - (Opcional) Instancia Vue para usar dentro de callbacks
  * @returns {DataTable} - Instancia creada de DataTable
  */
-function initDataTable(selector, options = {}) {
+function initDataTable(selector, options = {}, vueInstance = null) {
     // Si ya existe una DataTable con ese selector, destruirla antes
     if ($.fn.DataTable.isDataTable(selector)) {
         $(selector).DataTable().clear().destroy();
     }
 
-    // Configuración por defecto (puedes personalizarla)
+    // Configuración por defecto
     const defaultOptions = {
         processing: true,
         serverSide: true,
@@ -46,5 +47,12 @@ function initDataTable(selector, options = {}) {
     const finalOptions = $.extend(true, {}, defaultOptions, options);
 
     // Inicializa y retorna la DataTable
-    return $(selector).DataTable(finalOptions);
+    const table = $(selector).DataTable(finalOptions);
+
+    // Si pasas una instancia Vue, la guardamos en la tabla para usar luego
+    if (vueInstance) {
+        table.vue = vueInstance;
+    }
+
+    return table;
 }

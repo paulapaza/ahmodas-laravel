@@ -21,3 +21,26 @@ yarn-error.log
 /.zed
 /public/cotizador/key.json
 /public/cotizador/key-gemini.json
+
+# === Laravel cache & logs ===
+/bootstrap/cache/*.php
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*.php
+/storage/logs/*.log
+
+# === Laravel specific ===
+/storage/app/public/*
+/storage/debugbar/*
+/storage/framework/testing/*
+/storage/framework/cache/data/*
+/storage/framework/views/*
+.env.local
+.env.testing
+.env.staging
+/.env.*
+
+# === Misc ===
+/public/mix-manifest.json
+/public/js/*.map
+/public/css/*.map

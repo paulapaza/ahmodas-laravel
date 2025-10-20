@@ -114,6 +114,70 @@
 
     </x-mymodal>
 
+    <div id="productos-index">
+        <div
+            class="modal fade"
+            id="modal-historial-salidas"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="tituloHistorial"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <!-- HEADER -->
+                <div class="modal-header bg-xprimary text-white">
+                    <h5 class="modal-title" id="tituloHistorial">
+                        Historial de reducciones de stock
+                    </h5>
+                    <button
+                        type="button"
+                        class="close text-white"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                    >
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+                <table class="table table-bordered table-striped table-sm">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Tienda</th>
+                            <th>Stock Anterior</th>
+                            <th>Cantidad reducida</th>
+                            <th>Stock Actual</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <div v-if="producto">
+                            <h5><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h5>
+                            <h5><strong>Nombre:</strong> @{{producto.nombre }}</h5>
+                        </div>
+                        <tr v-for="(item, index) in historial" :key="item.id">
+                            <td>@{{ item.tienda_nombre }}</td>
+                            <td>@{{ item.stock_antes }}</td>
+                            <td class="text-danger font-weight-bold">@{{ item.cantidad_reducida }}</td>
+                            <td class="text-success font-weight-bold">@{{ item.stock_despues }}</td>
+                            <td>@{{ formatFecha(item.created_at) }}</td>
+                        </tr>
+
+                        <tr v-if="historial.length === 0">
+                            <td colspan="6" class="text-center text-muted py-4">
+                            No hay registros de reducciones para este producto.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
 </x-admin-layout>
 <script>
     $(document).ready(function() {
@@ -146,8 +210,12 @@
                 {
                     data: 'total_stock',
                     render: function (data, type, row) {
-                        return data;
-                    }
+                        if (data === 0 || data === "0") {
+                            return data;
+                        } else {
+                            return `<span class="edit-btn text-primary" style="cursor: pointer">${data}</span>`;
+                        }
+                    },
                 },
                 {
                     data: 'costo_unitario'
@@ -185,6 +253,7 @@
             //alingCenter: [7]
 
         })
+
         cargarStocks(); // sin parámetro
         // edit record
 
@@ -332,7 +401,67 @@
             });
         }
 
+        // guardamos la intacia de larajax
+        window.productosIndexTable = table;
+    });
 
-
+    new Vue({
+        el: "#productos-index",
+        data() {
+            return {
+                productoIdHistorial: null,
+                producto: null,
+                historial: [],
+                camposHistorial: [
+                    { key: "index", label: "#" },
+                    { key: "tienda_nombre", label: "Tienda" },
+                    { key: "stock_antes", label: "Stock Anterior" },
+                    { key: "cantidad_reducida", label: "Se Redujo" },
+                    { key: "stock_despues", label: "Stock Actual" },
+                    { key: "created_at", label: "Fecha de Reducción" },
+                ],
+            }
+        },
+        mounted() {
+            const vm = this;
+            $('#table').on('click', '.edit-btn', function() {
+                const rowData = window.productosIndexTable.row($(this).closest('tr')).data();
+                vm.abrirHistorial(rowData);
+            });
+        },
+        methods: {
+            abrirHistorial(producto) {
+                this.productoIdHistorial = producto.id;
+                this.producto = producto;
+                this.cargarHistorial();
+                $("#modal-historial-salidas").modal("show");
+            },
+            async cargarHistorial() {
+                if (!this.productoIdHistorial) return;
+                try {
+                    const { data } = await window.api.get(`/inventario/salidas/historial/${this.productoIdHistorial}`);
+                    this.historial = data;
+                } catch (error) {
+                    console.error("❌ Error al cargar historial:", error);
+                    this.historial = [];
+                    this.$bvToast.toast("No se pudo cargar el historial.", {
+                        title: "Error",
+                        variant: "danger",
+                        solid: true,
+                    });
+                }
+            },
+            formatFecha(fecha) {
+                if (!fecha) return "-";
+                const f = new Date(fecha);
+                return f.toLocaleString("es-ES", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            },
+        },
     });
 </script>

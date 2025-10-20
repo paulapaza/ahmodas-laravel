@@ -19,6 +19,9 @@
 <li class="nav-item d-none d-sm-inline-block">
         <a href="{{route('inventario.tiendas.index')}}" class="nav-link">Tiendas</a>
 </li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{{route('inventario.salidas.index')}}" class="nav-link">Salidas</a>
+</li>
 
 {{-- <li class="nav-item dropdown">
     <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"

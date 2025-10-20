@@ -31,13 +31,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <link rel="stylesheet" href="{{ asset('css/datatables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/responsive.dataTables.min.css') }}">
 
-    <!-- estilos de perfil -->
-    {{ $estilos ?? '' }}
-    <!-- Scripts de perfil -->
-    <!--   <script src="{{ asset('xxxxxxxjs/app.js') }}" defer></script> -->
+    {{-- BootstrapVue CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.css">
 
     <!-- custom css -->
-    @yield('css')
+    @stack('styles')
+
+    <!-- estilos -->
+    {{ $estilos ?? '' }}
 </head>
 
 <body class="sidebar-mini sidebar-collapse ">
@@ -111,13 +112,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
  --}}
-    <script src="{{ asset('js/bootstrap.bundle.min.js') }}" defer></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- AdminLTE App -->
-    <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
-    <script src="{{ asset('js/larajax.js') }}" defer></script>
+    <script src="{{ asset('js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('js/larajax.js') }}"></script>
     <!-- DataTables -->
-    <script src="{{ asset('js/datatables.min.js') }}" defer></script>
+    <script src="{{ asset('js/datatables.min.js') }}"></script>
     {{-- <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.8/af-2.7.0/b-3.0.2/b-colvis-3.0.2/b-html5-3.0.2/b-print-3.0.2/r-3.0.2/datatables.min.js"></script>
  --}}
     <!-- SweetAlert2 -->
@@ -139,13 +140,28 @@ scratch. This page gets rid of all links and provides the needed markup only.
     @yield('scripts_fechas')
     @yield('page_scripts')
 
-    <!-- librerias para vue -->
+    <!-- librerias bases para vue -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
     <script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    {{-- config --}}
+    <script src="{{ asset('modules/config/axios.js') }}"></script>
+
+    {{-- bootstrap-vue --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.js"></script>
+
+    {{-- helpers --}}
+    <script src="{{ asset('modules/helpers/datatable.helper.js') }}"></script>
+
+    <!-- Cargar módulos del store primero (definen window.userModule / window.cartModule) -->
+    <script src="{{ asset('modules/store/user.js') }}"></script>
+    <script src="{{ asset('modules/store/cart.js') }}"></script>
+    <script src="{{ asset('modules/store/index.js') }}"></script>
 
     <!-- custom scripts -->
-    @yield('js')
+    @stack('scripts')
 </body>
 
 </html>

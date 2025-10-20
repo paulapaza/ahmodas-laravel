@@ -8,6 +8,7 @@ use App\Http\Controllers\Facturacion\CpeSerieController;
 use App\Http\Controllers\Inventario\CategoriaController;
 use App\Http\Controllers\Inventario\MarcaController;
 use App\Http\Controllers\Inventario\ProductoController;
+use App\Http\Controllers\Inventario\SalidaProductoController;
 use App\Http\Controllers\Inventario\StockController;
 use App\Http\Controllers\Inventario\TiendaController;
 
@@ -64,7 +65,20 @@ Route::middleware([
      MODULO DE INVENTARIO
      ************************/ 
     Route::view('/inventario','modules.inventario.main')->name('inventario.main');
-    // productos
+    
+    /*=================================
+    =            productos            =
+    =================================*/
+    // controlador
+    Route::get('/inventario/salidas/listado', [SalidaProductoController::class, 'index'])->name('inventario.salidas.listado');
+    Route::post('/inventario/salidas/reducir', [SalidaProductoController::class, 'store'])->name('inventario.salidas.reducir');
+    Route::get('/inventario/salidas/historial/{producto_id}', [SalidaProductoController::class, 'history'])->name('inventario.salidas.historial');
+
+    // vistas
+    Route::get('/inventario/salidas/{any?}', function () {
+        return view('modules.inventario.salidas.index');
+    })->where('any', '.*')->name('inventario.salidas.index');
+
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);
