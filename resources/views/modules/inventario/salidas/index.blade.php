@@ -12,6 +12,7 @@
                     <th>id</th>
                     <th>Código de barras</th>
                     <th>Nombre</th>
+                    <th>Alias</th>
                     <th>Stock por tienda</th>
                 </tr>
             </thead>
@@ -27,8 +28,8 @@
             dialog-class="modal-lg"
         >
             <div>
-                <h5><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h5>
-                <h5><strong>Nombre:</strong> @{{producto.nombre }}</h5>
+                <h5><strong v-text="producto.codigo_barras.label"></strong> <span v-text="producto.codigo_barras.value"></span></h5>
+                <h5><strong v-text="producto.nombre.label"></strong> <span v-text="producto.nombre.value"></span></h5>
             </div>
 
             <b-table
@@ -89,15 +90,16 @@
         data() {
             return {
                 producto: {
-                    id: 1,
-                    codigo_barras: "11111111",
-                    nombre: "YD GAMUSA CORREA",
-                    tiendas: [
-                    { id: 1, nombre: "AH MODAS 003 principal", stock: -3 },
-                    { id: 2, nombre: "AH MODAS 004 sucursal", stock: 4 },
-                    { id: 3, nombre: "AH MODAS 005", stock: 0 },
-                    { id: 4, nombre: "ALMACEN", stock: 0 },
-                    ],
+                    id: null,
+                    codigo_barras: {
+                        label: '',
+                        value: '',
+                    },
+                    nombre: {
+                        label: '',
+                        value: '',
+                    },
+                    tiendas: [],
                 },
                 table: null,
                 campos: [
@@ -124,6 +126,10 @@
                     {
                         data: 'nombre',
                         name: 'nombre'
+                    },
+                    {
+                        data: 'alias',
+                        name: 'alias'
                     },
                     {
                         data: 'tiendas',
@@ -161,7 +167,7 @@
 
             this.table = table;
 
-            $('#salidas-productos-table').on('click', '.edit-btn, .delete-btn', function(e) {
+            $('#salidas-productos-table').on('click', '.edit-btn', function(e) {
                 const rowData = table.row($(this).closest('tr')).data();
                 table.vue.editProduct(rowData);
                 console.log(table.vue.table);
@@ -169,7 +175,18 @@
         },
         methods: {
             editProduct(row) {
-                this.producto = row;
+                this.producto = {
+                    id: row.id, 
+                    codigo_barras: {
+                        label: 'Código de barras',
+                        value: row.codigo_barras,
+                    },
+                    nombre: {
+                        label: 'Nombre',
+                        value: row.nombre,
+                    },
+                    tiendas: row.tiendas,
+                };
                 this.producto.tiendas.forEach((t) => {
                     this.$set(t, "reducir", 0);
                     this.$set(t, "stock_resultante", t.stock);

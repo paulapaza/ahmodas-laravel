@@ -83,6 +83,7 @@ class SalidaProductoController extends Controller
       ->select(
         'p.id as producto_id',
         'p.codigo_barras',
+        'p.alias as producto_alias',
         'p.nombre as producto_nombre',
         't.id as tienda_id',
         't.nombre as tienda_nombre',
@@ -102,6 +103,7 @@ class SalidaProductoController extends Controller
           'id' => $id,
           'codigo_barras' => $row->codigo_barras,
           'nombre' => $row->producto_nombre,
+          'alias' => $row->producto_alias,
           'tiendas' => $tiendas->map(fn($t) => [
             'id' => $t->id,
             'nombre' => $t->nombre,
