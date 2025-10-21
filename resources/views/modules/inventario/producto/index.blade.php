@@ -123,12 +123,12 @@
             aria-labelledby="tituloHistorial"
             aria-hidden="true"
         >
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <!-- HEADER -->
                 <div class="modal-header bg-xprimary text-white">
-                    <h5 class="modal-title" id="tituloHistorial">
-                        Historial de reducciones de stock
+                    <h5 style="margin-bottom: 0; line-height: 1.5;" id="tituloHistorial">
+                        Historial de stock
                     </h5>
                     <button
                         type="button"
@@ -142,14 +142,16 @@
 
                 <!-- BODY -->
                 <div class="modal-body">
-                <table class="table table-bordered table-striped table-sm">
+                <table class="table table-bordered table-sm">
                     <thead class="thead-light">
                         <tr>
-                            <th>Tienda</th>
-                            <th>Stock Anterior</th>
-                            <th>Cantidad reducida</th>
-                            <th>Stock Actual</th>
-                            <th>Fecha</th>
+                            <th class="text-center align-middle">Tienda</th>
+                            <th class="text-center align-middle">Stock anterior</th>
+                            <th class="text-center align-middle">Cantidad reducida</th>
+                            <th class="text-center align-middle">Stock resultante</th>
+                            <th class="text-center align-middle">Tipo</th>
+                            <th class="text-center align-middle">Comentario</th>
+                            <th class="text-center align-middle">Fecha</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,11 +160,17 @@
                             <h5><strong>Nombre:</strong> @{{producto.nombre }}</h5>
                         </div>
                         <tr v-for="(item, index) in historial" :key="item.id">
-                            <td>@{{ item.tienda_nombre }}</td>
-                            <td>@{{ item.stock_antes }}</td>
-                            <td class="text-danger font-weight-bold">@{{ item.cantidad_reducida }}</td>
-                            <td class="text-success font-weight-bold">@{{ item.stock_despues }}</td>
-                            <td>@{{ formatFecha(item.created_at) }}</td>
+                            <td class="text-center align-middle">@{{ item.tienda_nombre }}</td>
+                            <td class="text-center align-middle">@{{ item.stock_antes }}</td>
+                            <td class="text-center align-middle text-danger font-weight-bold">@{{ item.cantidad_reducida }}</td>
+                            <td class="text-center align-middle text-success font-weight-bold">@{{ item.stock_despues }}</td>
+                            <td class="text-center align-middle">
+                                <span class="badge badge-danger" v-if="item.tipo === 1">Manual</span>
+                                <span class="badge badge-success" v-else-if="item.tipo === 2">Venta</span>
+                                <span v-else>-</span>
+                            </td>
+                            <td class="text-center align-middle">@{{ item.comentario }}</td>
+                            <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
                         </tr>
 
                         <tr v-if="historial.length === 0">

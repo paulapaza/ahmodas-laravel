@@ -165,6 +165,7 @@ class SalidaProductoController extends Controller
           'stock_antes' => $validated['stock_antes'],
           'stock_despues' => $validated['stock_despues'],
           'cantidad_reducida' => $validated['cantidad_reducida'],
+          'tipo' => 1, // salida manual
           'producto_datos' => json_encode($producto),
           'comentario' => $validated['comentario'] ?? null,
           'created_at' => now(),
@@ -206,6 +207,8 @@ class SalidaProductoController extends Controller
         'sp.cantidad_reducida',
         'sp.stock_antes',
         'sp.stock_despues',
+        'sp.tipo',
+        'sp.pos_order_id as venta_id',
         'sp.comentario',
         'sp.created_at'
       )

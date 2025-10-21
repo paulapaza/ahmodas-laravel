@@ -2,7 +2,7 @@
     <x-slot name="menu">
         <x-menuInventario></x-menuInventario>
     </x-slot>
-    <x-slot name="pagetitle">Productos</x-slot>
+    <x-slot name="pagetitle">Salida de Productos</x-slot>
 
     <div id="salidas-index">
         <table id="salidas-productos-table"

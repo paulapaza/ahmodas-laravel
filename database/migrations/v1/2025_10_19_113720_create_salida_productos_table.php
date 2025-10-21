@@ -20,9 +20,10 @@ return new class extends Migration
             $table->integer('stock_antes');
             $table->integer('stock_despues');
             $table->integer('cantidad_reducida');
+            $table->tinyInteger('tipo')->nullable()->comment('1 = salida manual, 2 = salida por venta');
+            $table->unsignedBigInteger('pos_order_id')->nullable()->comment('ID de la venta asociada');
             $table->string('comentario')->nullable();
-
-            $table->json('producto_datos');
+            $table->json('producto_datos')->nullable();
 
             $table->timestamps();
         });
