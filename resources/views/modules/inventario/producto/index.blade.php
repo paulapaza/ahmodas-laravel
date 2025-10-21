@@ -218,7 +218,7 @@
                 {
                     data: 'total_stock',
                     render: function (data, type, row) {
-                        if (data === 0 || data === "0") {
+                        if (data === 0 || data === "0" || row.tiene_salida === 0) {
                             return data;
                         } else {
                             return `<span class="edit-btn text-primary" style="cursor: pointer">${data}</span>`;
@@ -258,7 +258,7 @@
                 edit: true,
                 destroy: true
             },
-            //alingCenter: [7]
+            alingCenter: [1, 4, 5, 6, 7, 8, 10],
 
         })
 

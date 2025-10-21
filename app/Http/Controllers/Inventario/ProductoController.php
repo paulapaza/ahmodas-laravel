@@ -16,6 +16,7 @@ class ProductoController extends Controller
             ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
             ->join('marcas as m', 'p.marca_id', '=', 'm.id')
             ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
+            ->leftJoin('salida_productos as sp', 'p.id', '=', 'sp.producto_id')
             ->select(
                 'p.id',
                 'p.codigo_barras',
@@ -32,7 +33,8 @@ class ProductoController extends Controller
                 'p.estado',
                 'c.nombre as categoria_nombre',
                 'm.nombre as marca_nombre',
-                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
+                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock'),
+                DB::raw("EXISTS (SELECT 1 FROM salida_productos sp WHERE sp.producto_id = p.id) as tiene_salida")
             )
             ->groupBy(
                 'p.id',
