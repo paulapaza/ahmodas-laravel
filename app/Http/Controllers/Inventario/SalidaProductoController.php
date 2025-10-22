@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SalidaProductos\BulkRequest;
+use App\Services\SalidaProductoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -68,6 +70,13 @@ class SalidaProductoController extends Controller
   //   return response()->json($result, 200);
   // }
 
+  protected $salidaProductoService;
+
+  public function __construct(SalidaProductoService $salidaProductoService)
+  {
+    $this->salidaProductoService = $salidaProductoService;
+  }
+
   public function index()
   {
     // Obtener todas las tiendas (una sola vez)
@@ -127,68 +136,37 @@ class SalidaProductoController extends Controller
       ->make(true);
   }
 
-  public function store(Request $request)
+  public function store(BulkRequest $request)
   {
-    $data = $request->all();
-
-    if (!is_array($data)) {
-      return response()->json(['error' => 'Formato inválido, se esperaba un array'], 422);
-    }
+    $data = $request->validated();
 
     try {
-      DB::beginTransaction(); // Iniciamos la transacción
+      DB::beginTransaction();
 
+      // Insertar todas las salidas
+      $this->salidaProductoService->bulk($data);
+
+      // Actualizar stock en producto_tienda
+      $now = now();
       foreach ($data as $item) {
-        // Validar cada ítem individualmente
-        $validated = validator($item, [
-          'producto_id' => 'required|integer|exists:productos,id',
-          'tienda_id' => 'required|integer|exists:tiendas,id',
-          'stock_antes' => 'required|integer|min:0',
-          'stock_despues' => 'required|integer|min:0',
-          'cantidad_reducida' => 'required|integer|min:0',
-          'comentario' => 'nullable|string|max:500',
-        ])->validate();
-
-        // Obtener snapshot del producto
-        $producto = DB::table('productos')
-          ->where('id', $validated['producto_id'])
-          ->first();
-
-        if (!$producto) {
-          throw new \Exception("Producto con ID {$validated['producto_id']} no encontrado.");
-        }
-
-        // Insertar registro en salida_productos
-        DB::table('salida_productos')->insert([
-          'producto_id' => $validated['producto_id'],
-          'tienda_id' => $validated['tienda_id'],
-          'stock_antes' => $validated['stock_antes'],
-          'stock_despues' => $validated['stock_despues'],
-          'cantidad_reducida' => $validated['cantidad_reducida'],
-          'tipo' => 1, // salida manual
-          'producto_datos' => json_encode($producto),
-          'comentario' => $validated['comentario'] ?? null,
-          'created_at' => now(),
-          'updated_at' => now(),
-        ]);
-
-        // Actualizar stock en la tabla pivote producto_tienda
         DB::table('producto_tienda')
-          ->where('producto_id', $validated['producto_id'])
-          ->where('tienda_id', $validated['tienda_id'])
+          ->where('producto_id', $item['producto_id'])
+          ->where('tienda_id', $item['tienda_id'])
           ->update([
-            'stock' => $validated['stock_despues'],
-            'updated_at' => now(),
+            'stock' => $item['stock_despues'],
+            'updated_at' => $now,
           ]);
       }
 
       DB::commit();
 
-      return response()->json(['message' => 'Salidas registradas y stock actualizado correctamente'], 201);
+      return response()->json([
+        'message' => 'Salidas registradas y stock actualizado correctamente',
+      ], 201);
     } catch (\Throwable $e) {
       DB::rollBack();
       return response()->json([
-        'error' => 'Error al registrar las salidas',
+        'error'  => 'Error al registrar las salidas',
         'detail' => $e->getMessage(),
       ], 500);
     }

@@ -692,15 +692,11 @@ class PosOrderController extends Controller
 
     public function generarExcel(Request $request)
     {
-        // Obtener parámetros de la URL o del form
-        $fechaInicio = $request->input('fechaInicio');
-        $fechaFin = $request->input('fechaFin');
+        // 1️⃣ Parámetros de fechas
+        $fechaInicio = $request->input('fechaInicio') ?? '2000-01-01';
+        $fechaFin = $request->input('fechaFin') ?? now()->format('Y-m-d');
 
-        // Puedes darle valores por defecto si no llegan
-        $fechaInicio = $fechaInicio ?? '2000-01-01';
-        $fechaFin = $fechaFin ?? now()->format('Y-m-d');
-
-        // Obtener las ventas y sus detalles
+        // 2️⃣ Obtener ventas con detalles
         $ventas = DB::table('pos_orders as po')
             ->select(
                 'po.id as venta_id',
@@ -713,7 +709,6 @@ class PosOrderController extends Controller
                 'u.name as user_name',
                 't.nombre as tienda_nombre',
                 'p.nombre as producto_nombre',
-                'pol.producto_id',
                 'pol.quantity',
                 'pol.price',
                 'pol.subtotal'
@@ -731,36 +726,13 @@ class PosOrderController extends Controller
             ->orderByDesc('po.id')
             ->get();
 
-        // 2️⃣ Agrupar por venta y armar la descripción de detalles
-        $ventasAgrupadas = $ventas->groupBy('venta_id')->map(function ($items) {
-            $primera = $items->first();
+        // 3️⃣ Agrupar por venta
+        $ventasAgrupadas = $ventas->groupBy('venta_id');
 
-            // Convertir detalle en texto legible
-            $detalleTexto = $items->map(function ($item) {
-                return $item->quantity . ' x '
-                    . $item->producto_nombre
-                    . ' - $' . number_format($item->price, 2) . ' c/u'
-                    . ' - Subtotal: $' . number_format($item->subtotal, 2);
-            })->implode("\n");
-
-            return [
-                'venta_id' => $primera->venta_id,
-                'serie' => $primera->serie,
-                'order_number' => $primera->order_number,
-                'order_date' => $primera->order_date,
-                'tipo_comprobante' => $primera->tipo_comprobante,
-                'total_amount' => $primera->total_amount,
-                'estado_venta' => $primera->estado_venta,
-                'user_name' => $primera->user_name,
-                'tienda_nombre' => $primera->tienda_nombre,
-                'detalles' => $detalleTexto,
-            ];
-        })->values();
-
-        // 3️⃣ Crear archivo Excel
+        // 4️⃣ Crear Excel
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Ventas del mes anterior');
+        $sheet->setTitle('Ventas');
 
         // Cabecera
         $cabecera = [
@@ -773,7 +745,7 @@ class PosOrderController extends Controller
             'Estado',
             'Usuario',
             'Tienda',
-            'Detalles'
+            'Producto / Detalle'
         ];
 
         $alfabeto = range('A', 'J');
@@ -781,23 +753,73 @@ class PosOrderController extends Controller
             $sheet->setCellValue($alfabeto[$i] . '1', $titulo);
         }
 
-        // 4️⃣ Rellenar datos
-        $row = 2;
-        foreach ($ventasAgrupadas as $venta) {
-            $sheet->setCellValue('A' . $row, $venta['venta_id']);
-            $sheet->setCellValue('B' . $row, $venta['serie']);
-            $sheet->setCellValue('C' . $row, $venta['order_number']);
-            $sheet->setCellValue('D' . $row, $venta['order_date']);
-            $sheet->setCellValue('E' . $row, $venta['tipo_comprobante']);
-            $sheet->setCellValue('F' . $row, $venta['total_amount']);
-            $sheet->setCellValue('G' . $row, $venta['estado_venta']);
-            $sheet->setCellValue('H' . $row, $venta['user_name']);
-            $sheet->setCellValue('I' . $row, $venta['tienda_nombre']);
-            $sheet->setCellValue('J' . $row, $venta['detalles']);
-            $row++;
+        // Auto ajuste de ancho de columnas
+        foreach (range('A', 'J') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // 5️⃣ Descargar Excel
+        // 5️⃣ Rellenar datos
+        $row = 2;
+        foreach ($ventasAgrupadas as $ventaId => $items) {
+            $primera = true;
+
+            foreach ($items as $item) {
+                if ($primera) {
+                    // Datos de la venta (solo en la primera fila)
+                    $sheet->setCellValue('A' . $row, $item->venta_id);
+                    $sheet->setCellValue('B' . $row, $item->serie);
+                    $sheet->setCellValue('C' . $row, $item->order_number);
+                    $sheet->setCellValue('D' . $row, $item->order_date);
+                    $sheet->setCellValue('E' . $row, $item->tipo_comprobante);
+                    $sheet->setCellValue('F' . $row, $item->total_amount);
+                    $sheet->setCellValue('G' . $row, $item->estado_venta);
+                    $sheet->setCellValue('H' . $row, $item->user_name);
+                    $sheet->setCellValue('I' . $row, $item->tienda_nombre);
+                }
+
+                // Detalle del producto (siempre se coloca)
+                $detalle = "{$item->quantity} x {$item->producto_nombre} - $"
+                    . number_format($item->price, 2)
+                    . " c/u - Subtotal: $" . number_format($item->subtotal, 2);
+                $sheet->setCellValue('J' . $row, $detalle);
+
+                // Ajustar texto del detalle
+                $sheet->getStyle('J' . $row)->getAlignment()->setWrapText(true);
+                $sheet->getStyle('J' . $row)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+
+                $row++;
+                $primera = false;
+            }
+        }
+        
+        // 🔹 Alinear todas las columnas a la izquierda y arriba
+        $sheet->getStyle('A1:I' . ($row - 1))
+        ->getAlignment()
+        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+
+        // 🔹 Dar formato a la cabecera
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:J1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:J1')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+         // 🔹 Dar formato a la cabecera (Navy + blanco)
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'], // blanco
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '001F5B'], // Navy
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+
+        // 6️⃣ Descargar Excel
         $filename = 'ventas_' . now()->format('Ymd_His') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment; filename=\"$filename\"");

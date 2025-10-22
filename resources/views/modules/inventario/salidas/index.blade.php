@@ -238,6 +238,7 @@
                         stock_antes: t.stock,
                         cantidad_reducida: t.reducir,
                         stock_despues: t.stock_resultante,
+                        tipo: 1,
                         comentario: t.comentario,
                     }));
 

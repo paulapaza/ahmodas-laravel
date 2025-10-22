@@ -20,6 +20,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/ventas/generar-excel', [PosOrderController::class, 'generarExcel'])->name('ventas.generarExcel');
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -79,6 +81,10 @@ Route::middleware([
         return view('modules.inventario.salidas.index');
     })->where('any', '.*')->name('inventario.salidas.index');
 
+    /*==============================
+    =            ventas            =
+    ==============================*/
+    
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);

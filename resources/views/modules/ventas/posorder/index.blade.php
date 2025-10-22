@@ -183,6 +183,20 @@
                 icon: 'fas fa-calendar-alt',
                 class: 'btn-select-fecha bg-xsuccess',
                 myfunction: () => Selecionarfecha(),
+            },{
+                text: 'Exportar Excel',
+                icon: 'fas fa-file-excel',
+                class: 'btn-select-fecha bg-success',
+                myfunction: () => {
+                    let query = '';
+                    if (!fechaInicio || !fechaFin) {
+                        const today = getTodayDate();
+                        query = `?fechaInicio=${today}&fechaFin=${today}`;
+                    } else {
+                        query = `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+                    }
+                    window.open(`/ventas/generar-excel${query}`, '_blank');
+                },
             }],
         });
     }

@@ -16,7 +16,6 @@ class ProductoController extends Controller
             ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
             ->join('marcas as m', 'p.marca_id', '=', 'm.id')
             ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
-            ->leftJoin('salida_productos as sp', 'p.id', '=', 'sp.producto_id')
             ->select(
                 'p.id',
                 'p.codigo_barras',

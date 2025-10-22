@@ -154,6 +154,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     {{-- helpers --}}
     <script src="{{ asset('modules/helpers/datatable.helper.js') }}"></script>
+    <script src="{{ asset('modules/helpers/date.helper.js') }}"></script>
 
     <!-- Cargar módulos del store primero (definen window.userModule / window.cartModule) -->
     <script src="{{ asset('modules/store/user.js') }}"></script>
