@@ -13,15 +13,24 @@ use App\Models\Pos\PosOrderLine;
 use App\Services\CpeServices;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
+use App\Services\SalidaProductoService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 //log
 use Illuminate\Support\Facades\Log;
 
 class PosOrderController extends Controller
 {
 
+    protected $salidaProductoService;
+
+    public function __construct(SalidaProductoService $salidaProductoService)
+    {
+        $this->salidaProductoService = $salidaProductoService;
+    }
     //index
     public function index()
     {
@@ -141,6 +150,10 @@ class PosOrderController extends Controller
                 $productos_cantidades[$line['id']] = $line['cantidad'];
             }
             PosOrderLine::insert($datosInsert);
+
+            // se guarda el historial de salida
+            $this->salidaProductoService->guardarHistorialSalida($tienda_id, $productos_cantidades, 'venta');
+
             $posServices->actualizarStockProductos($tienda_id, $productos_cantidades, 'venta');
 
             // Aumentar correlativo dentro de la transacción
@@ -421,7 +434,7 @@ class PosOrderController extends Controller
                     $lineQuery->select('id', 'pos_order_id', 'producto_id', 'quantity', 'price', 'subtotal')
                         ->with(['producto' => function ($productoQuery) {
                             // 2.2.2 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE PRODUCTO
-                            $productoQuery->select('id', 'nombre','alias', 'costo_unitario', 'precio_unitario');
+                            $productoQuery->select('id', 'nombre', 'alias', 'costo_unitario', 'precio_unitario');
                         }]);
                     // Esto reduce la cantidad de datos transferidos desde la BD
                 }]);
@@ -675,5 +688,123 @@ class PosOrderController extends Controller
 
         $mpdf->WriteHTML($plantilla);
         return response($mpdf->Output('', 'S'), 200)->header('Content-Type', 'application/pdf');
+    }
+
+    public function generarExcel(Request $request)
+    {
+        // Obtener parámetros de la URL o del form
+        $fechaInicio = $request->input('fechaInicio');
+        $fechaFin = $request->input('fechaFin');
+
+        // Puedes darle valores por defecto si no llegan
+        $fechaInicio = $fechaInicio ?? '2000-01-01';
+        $fechaFin = $fechaFin ?? now()->format('Y-m-d');
+
+        // Obtener las ventas y sus detalles
+        $ventas = DB::table('pos_orders as po')
+            ->select(
+                'po.id as venta_id',
+                'po.serie',
+                'po.order_number',
+                'po.order_date',
+                'po.tipo_comprobante',
+                'po.total_amount',
+                'po.estado as estado_venta',
+                'u.name as user_name',
+                't.nombre as tienda_nombre',
+                'p.nombre as producto_nombre',
+                'pol.producto_id',
+                'pol.quantity',
+                'pol.price',
+                'pol.subtotal'
+            )
+            ->join('pos_order_lines as pol', 'pol.pos_order_id', '=', 'po.id')
+            ->join('clientes as c', 'c.id', '=', 'po.cliente_id')
+            ->join('tiendas as t', 't.id', '=', 'po.tienda_id')
+            ->join('users as u', 'u.id', '=', 'po.user_id')
+            ->join('productos as p', 'p.id', '=', 'pol.producto_id')
+            ->whereBetween('po.order_date', [
+                Carbon::parse($fechaInicio)->startOfDay(),
+                Carbon::parse($fechaFin)->endOfDay()
+            ])
+            ->orderByDesc('po.order_date')
+            ->orderByDesc('po.id')
+            ->get();
+
+        // 2️⃣ Agrupar por venta y armar la descripción de detalles
+        $ventasAgrupadas = $ventas->groupBy('venta_id')->map(function ($items) {
+            $primera = $items->first();
+
+            // Convertir detalle en texto legible
+            $detalleTexto = $items->map(function ($item) {
+                return $item->quantity . ' x '
+                    . $item->producto_nombre
+                    . ' - $' . number_format($item->price, 2) . ' c/u'
+                    . ' - Subtotal: $' . number_format($item->subtotal, 2);
+            })->implode("\n");
+
+            return [
+                'venta_id' => $primera->venta_id,
+                'serie' => $primera->serie,
+                'order_number' => $primera->order_number,
+                'order_date' => $primera->order_date,
+                'tipo_comprobante' => $primera->tipo_comprobante,
+                'total_amount' => $primera->total_amount,
+                'estado_venta' => $primera->estado_venta,
+                'user_name' => $primera->user_name,
+                'tienda_nombre' => $primera->tienda_nombre,
+                'detalles' => $detalleTexto,
+            ];
+        })->values();
+
+        // 3️⃣ Crear archivo Excel
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Ventas del mes anterior');
+
+        // Cabecera
+        $cabecera = [
+            'ID Venta',
+            'Serie',
+            'N° Doc',
+            'Fecha',
+            'Tipo Comprobante',
+            'Total',
+            'Estado',
+            'Usuario',
+            'Tienda',
+            'Detalles'
+        ];
+
+        $alfabeto = range('A', 'J');
+        foreach ($cabecera as $i => $titulo) {
+            $sheet->setCellValue($alfabeto[$i] . '1', $titulo);
+        }
+
+        // 4️⃣ Rellenar datos
+        $row = 2;
+        foreach ($ventasAgrupadas as $venta) {
+            $sheet->setCellValue('A' . $row, $venta['venta_id']);
+            $sheet->setCellValue('B' . $row, $venta['serie']);
+            $sheet->setCellValue('C' . $row, $venta['order_number']);
+            $sheet->setCellValue('D' . $row, $venta['order_date']);
+            $sheet->setCellValue('E' . $row, $venta['tipo_comprobante']);
+            $sheet->setCellValue('F' . $row, $venta['total_amount']);
+            $sheet->setCellValue('G' . $row, $venta['estado_venta']);
+            $sheet->setCellValue('H' . $row, $venta['user_name']);
+            $sheet->setCellValue('I' . $row, $venta['tienda_nombre']);
+            $sheet->setCellValue('J' . $row, $venta['detalles']);
+            $row++;
+        }
+
+        // 5️⃣ Descargar Excel
+        $filename = 'ventas_' . now()->format('Ymd_His') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
     }
 }
