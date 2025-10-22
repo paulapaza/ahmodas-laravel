@@ -26,10 +26,12 @@ class PosOrderController extends Controller
 {
 
     protected $salidaProductoService;
+    protected $posService;
 
-    public function __construct(SalidaProductoService $salidaProductoService)
+    public function __construct(SalidaProductoService $salidaProductoService, PosServices $posService)
     {
         $this->salidaProductoService = $salidaProductoService;
+        $this->posService = $posService;
     }
     //index
     public function index()
@@ -708,7 +710,8 @@ class PosOrderController extends Controller
                 'po.estado as estado_venta',
                 'u.name as user_name',
                 't.nombre as tienda_nombre',
-                'p.nombre as producto_nombre',
+                'p.alias as producto_nombre',
+                'p.codigo_barras', // ✏️ NUEVO
                 'pol.quantity',
                 'pol.price',
                 'pol.subtotal'
@@ -734,7 +737,7 @@ class PosOrderController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Ventas');
 
-        // Cabecera
+        // ✏️ CABECERA ACTUALIZADA
         $cabecera = [
             'ID Venta',
             'Serie',
@@ -745,16 +748,20 @@ class PosOrderController extends Controller
             'Estado',
             'Usuario',
             'Tienda',
-            'Producto / Detalle'
+            'Código Barras',
+            'Cantidad',
+            'Producto',
+            'Precio Unitario',
+            'Subtotal'
         ];
 
-        $alfabeto = range('A', 'J');
+        $alfabeto = range('A', 'N');
         foreach ($cabecera as $i => $titulo) {
             $sheet->setCellValue($alfabeto[$i] . '1', $titulo);
         }
 
         // Auto ajuste de ancho de columnas
-        foreach (range('A', 'J') as $col) {
+        foreach ($alfabeto as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -770,48 +777,50 @@ class PosOrderController extends Controller
                     $sheet->setCellValue('B' . $row, $item->serie);
                     $sheet->setCellValue('C' . $row, $item->order_number);
                     $sheet->setCellValue('D' . $row, $item->order_date);
-                    $sheet->setCellValue('E' . $row, $item->tipo_comprobante);
+                    $sheet->setCellValue('E' . $row, $this->posService->getNombreComprobante($item->tipo_comprobante));
                     $sheet->setCellValue('F' . $row, $item->total_amount);
                     $sheet->setCellValue('G' . $row, $item->estado_venta);
                     $sheet->setCellValue('H' . $row, $item->user_name);
                     $sheet->setCellValue('I' . $row, $item->tienda_nombre);
                 }
 
-                // Detalle del producto (siempre se coloca)
-                $detalle = "{$item->quantity} x {$item->producto_nombre} - $"
-                    . number_format($item->price, 2)
-                    . " c/u - Subtotal: $" . number_format($item->subtotal, 2);
-                $sheet->setCellValue('J' . $row, $detalle);
+                // ✏️ DETALLE EN COLUMNAS SEPARADAS
+                $sheet->setCellValue('J' . $row, $item->codigo_barras);
+                $sheet->setCellValue('K' . $row, $item->quantity);
+                $sheet->setCellValue('L' . $row, $item->producto_nombre);
+                $sheet->setCellValue('M' . $row, number_format($item->price, 2));
+                $sheet->setCellValue('N' . $row, number_format($item->subtotal, 2));
 
-                // Ajustar texto del detalle
-                $sheet->getStyle('J' . $row)->getAlignment()->setWrapText(true);
-                $sheet->getStyle('J' . $row)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+                // Alinear verticalmente
+                $sheet->getStyle('J' . $row . ':N' . $row)
+                    ->getAlignment()
+                    ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+                
+                 // NUEVO: Centrar horizontalmente las columnas J–N
+                $sheet->getStyle('J' . $row . ':N' . $row)
+                ->getAlignment()
+                ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
                 $row++;
                 $primera = false;
             }
         }
-        
+
         // 🔹 Alinear todas las columnas a la izquierda y arriba
         $sheet->getStyle('A1:I' . ($row - 1))
-        ->getAlignment()
-        ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
-        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+            ->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
 
-        // 🔹 Dar formato a la cabecera
-        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:J1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A1:J1')->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-
-         // 🔹 Dar formato a la cabecera (Navy + blanco)
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        // 🔹 Dar formato a la cabecera (Navy + blanco)
+        $sheet->getStyle('A1:N1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'], // blanco
+                'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '001F5B'], // Navy
+                'startColor' => ['rgb' => '001F5B'],
             ],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,

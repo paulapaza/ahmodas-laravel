@@ -186,7 +186,7 @@
             },{
                 text: 'Exportar Excel',
                 icon: 'fas fa-file-excel',
-                class: 'btn-select-fecha bg-success',
+                class: 'bg-success',
                 myfunction: () => {
                     let query = '';
                     if (!fechaInicio || !fechaFin) {

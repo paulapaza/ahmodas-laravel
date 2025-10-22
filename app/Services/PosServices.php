@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class PosServices
 
 {
-   
+
     // obtener numero de serie refactorizado
     public function get_CpeSerie($tienda_id, $codigo_tipo_comprobante, $tipo_documento_a_modificar = null): ?CpeSerie
     {
@@ -186,7 +186,7 @@ class PosServices
         return Cliente::find(1);
     }
 
-  
+
     /**
      * Actualiza el stock de productos en una tienda.
      *
@@ -241,5 +241,23 @@ class PosServices
             END
             WHERE tienda_id = ? AND producto_id IN ({$idsList})
         ", [$tienda_id]);
+    }
+
+    public function getNombreComprobante($codigo)
+    {
+        switch ($codigo) {
+            case '01':
+                return 'Factura';
+            case '03':
+                return 'Boleta';
+            case '12':
+                return 'Ticket';
+            case '07':
+                return 'Nota de Crédito';
+            case '08':
+                return 'Nota de Débito';
+            default:
+                return $codigo; // Devuelve el código original si no coincide
+        }
     }
 }
