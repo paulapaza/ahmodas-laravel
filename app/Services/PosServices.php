@@ -46,7 +46,7 @@ class PosServices
         }
         // si la consulta no devuelve resultados, retornar lanzar error
         if ($query->count() === 0) {
-            throw new Exception("No se encontró CPE serie para tienda, crea la serie en la configuración menu Facturación.");
+            throw new Exception("No se encontró CPE serie para tienda. Crea la serie en el menú <a href='/facturacion/cpe-series' style=\"color:#007bff; text-decoration:underline;\">Facturación</a>.");
         }
         return $query->first();
     }

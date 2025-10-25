@@ -167,7 +167,7 @@ class PosOrderController extends Controller
             Log::error('Error creando venta: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Error al registrar la venta.',
+                'message' => $e->getMessage(),
             ], 500);
         }
 
