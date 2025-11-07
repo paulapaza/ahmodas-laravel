@@ -149,13 +149,19 @@ class SalidaProductoController extends Controller
       // Actualizar stock en producto_tienda
       $now = now();
       foreach ($data as $item) {
-        DB::table('producto_tienda')
-          ->where('producto_id', $item['producto_id'])
-          ->where('tienda_id', $item['tienda_id'])
-          ->update([
-            'stock' => $item['stock_despues'],
-            'updated_at' => $now,
-          ]);
+        DB::table('producto_tienda')->upsert(
+          [
+            [
+              'producto_id' => $item['producto_id'],
+              'tienda_id' => $item['tienda_id'],
+              'stock' => $item['stock_despues'],
+              'created_at' => $now,
+              'updated_at' => $now,
+            ],
+          ],
+          ['producto_id', 'tienda_id'],
+          ['stock', 'updated_at']
+        );
       }
 
       DB::commit();
