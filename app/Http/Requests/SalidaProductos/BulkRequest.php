@@ -17,7 +17,7 @@ class BulkRequest extends FormRequest
             '*'                   => ['required', 'array'],
             '*.producto_id'       => ['required', 'integer', 'exists:productos,id'],
             '*.tienda_id'         => ['required', 'integer', 'exists:tiendas,id'],
-            '*.stock_antes'       => ['required', 'integer', 'min:0'],
+            '*.stock_antes'       => ['required', 'integer'],
             '*.stock_despues'     => ['required', 'integer', 'min:0'],
             '*.cantidad_reducida' => ['required', 'integer', 'min:0'],
             '*.comentario'        => ['nullable', 'string', 'max:500'],
