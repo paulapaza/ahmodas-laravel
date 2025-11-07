@@ -20,7 +20,7 @@
         <a href="{{route('inventario.tiendas.index')}}" class="nav-link">Tiendas</a>
 </li>
 <li class="nav-item d-none d-sm-inline-block">
-    <a href="{{route('inventario.salidas.index')}}" class="nav-link">Salidas</a>
+    <a href="{{route('inventario.salidas.index')}}" class="nav-link">Stock</a>
 </li>
 
 {{-- <li class="nav-item dropdown">

@@ -2,7 +2,7 @@
     <x-slot name="menu">
         <x-menuInventario></x-menuInventario>
     </x-slot>
-    <x-slot name="pagetitle">Salida de Productos</x-slot>
+    <x-slot name="pagetitle">Stock de Productos</x-slot>
 
     <div id="salidas-index">
         <table id="salidas-productos-table"
@@ -20,7 +20,7 @@
 
          <b-modal
             id="modal-reducir-stock"
-            title="Reducir Stock de Producto"
+            :title="title"
             ok-title="Guardar"
             @ok.prevent="guardarCambios"
             size="lg"
@@ -50,15 +50,15 @@
                     @{{data.item.stock }}
                 </template>
 
-                <!-- Reducir stock -->
-                <template #cell(reducir)="data">
+                <!-- Variación -->
+                <template #cell(variacion)="data">
                     <b-form-input
                         type="text"
-                        v-model="data.item.reducir"
+                        v-model="data.item.variacion"
                         @input="soloNumerosPositivos(data.item)"
                         @focus="$event.target.select()"
                         size="sm"
-                        style="width:70px; text-align:right;"
+                        style="display: inline-block; width:70px; text-align:right;"
                         placeholder="0"
                     />
                 </template>
@@ -85,6 +85,8 @@
 
 <script>
     // Instancia principal de Vue
+    Vue.use(BootstrapVue);
+
     new Vue({
         el: '#salidas-index',
         data() {
@@ -102,14 +104,29 @@
                     tiendas: [],
                 },
                 table: null,
-                campos: [
-                    { key: "nombre", label: "Tienda" },
-                    { key: "stock_actual", label: "Stock Actual" },
-                    { key: "reducir", label: "Reducir Stock" },
-                    { key: "stock_resultante", label: "Stock Resultante" },
-                    { key: "comentario", label: "Comentario" },
-                ],
+                variacion: 'REDUCIR', // 'AUMENTAR' o 'REDUCIR'
             }
+        },
+        computed: {
+            title() {
+                return this.variacion === 'AUMENTAR'
+                    ? 'Aumentar Stock de Producto'
+                    : 'Reducir Stock de Producto';
+            },
+            campos() {
+                return [
+                    { key: "nombre", label: "Tienda", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    { key: "stock_actual", label: "Stock Actual", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    {
+                        key: 'variacion',
+                        label: this.variacion === 'AUMENTAR' ? 'Aumentar' : 'Reducir',
+                        thClass: `${this.variacion === 'AUMENTAR' ? 'bg-success' : 'bg-danger'} text-white text-center align-middle`,
+                        tdClass: 'text-center align-middle'
+                    },
+                    { key: "stock_resultante", label: "Stock Resultante", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    { key: "comentario", label: "Comentario", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                ]
+            },
         },
         mounted() {
             const table = initDataTable('#salidas-productos-table', {
@@ -148,7 +165,10 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            return `<button class="btn btn-sm bg-xaccent text-white edit-btn">Reducir</button>`;
+                            return `
+                                <button class="btn btn-sm bg-danger text-white edit-btn">Reducir</button>
+                                <button class="btn btn-sm bg-success text-white aumentar-btn">Aumentar</button>
+                            `;
                         },
                     }
                 ],
@@ -169,14 +189,20 @@
 
             $('#salidas-productos-table').on('click', '.edit-btn', function(e) {
                 const rowData = table.row($(this).closest('tr')).data();
+                table.vue.variacion = 'REDUCIR';
                 table.vue.editProduct(rowData);
-                console.log(table.vue.table);
+            });
+
+            $('#salidas-productos-table').on('click', '.aumentar-btn', function(e) {
+                const rowData = table.row($(this).closest('tr')).data();
+                table.vue.variacion = 'AUMENTAR';
+                table.vue.editProduct(rowData);
             });
         },
         methods: {
             editProduct(row) {
                 this.producto = {
-                    id: row.id, 
+                    id: row.id,
                     codigo_barras: {
                         label: 'Código de barras',
                         value: row.codigo_barras,
@@ -188,7 +214,7 @@
                     tiendas: row.tiendas,
                 };
                 this.producto.tiendas.forEach((t) => {
-                    this.$set(t, "reducir", 0);
+                    this.$set(t, "variacion", 0);
                     this.$set(t, "stock_resultante", t.stock);
                     this.$set(t, "comentario", "");
                 });
@@ -199,14 +225,14 @@
             },
             soloNumerosPositivos(tienda) {
                 // Aseguramos que el valor sea string
-                let valor = tienda.reducir != null ? tienda.reducir.toString() : "";
+                let valor = tienda.variacion != null ? tienda.variacion.toString() : "";
 
                 // Filtrar solo dígitos (0-9)
                 const soloNumeros = valor.replace(/[^0-9]/g, "");
 
                 // Si no hay números válidos, limpiar el campo y mantener stock igual
                 if (soloNumeros === "") {
-                    tienda.reducir = "";
+                    tienda.variacion = "";
                     tienda.stock_resultante = tienda.stock; // sin cambios
                     return;
                 }
@@ -220,13 +246,12 @@
                 }
 
                 // Calcular stock resultante (puede ser negativo si excede)
-                tienda.stock_resultante = tienda.stock - numero;
+                tienda.stock_resultante = this.variacion === 'AUMENTAR'
+                    ? tienda.stock + numero
+                    : tienda.stock - numero;
 
                 // Asignar valor limpio
-                tienda.reducir = numero;
-            },
-            actualizarStockResultante(tienda) {
-                tienda.stock_resultante = tienda.stock - tienda.reducir;
+                tienda.variacion = numero;
             },
 
             guardarCambios() {
@@ -236,12 +261,12 @@
                         producto_id: this.producto.id,
                         tienda_id: t.id,
                         stock_antes: t.stock,
-                        cantidad_reducida: t.reducir,
+                        cantidad_reducida: t.variacion,
                         stock_despues: t.stock_resultante,
-                        tipo: 1,
+                        tipo: this.variacion === 'REDUCIR' ? 1 : 3,
                         comentario: t.comentario,
                     }));
-
+                console.log('Datos a enviar:', datos);
                 if (datos.length === 0) return;
 
                 window.api.post('/inventario/salidas/reducir', datos)

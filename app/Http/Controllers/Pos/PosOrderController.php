@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PosOrderStore;
 use App\Models\Facturacion\Cpe;
 use App\Models\Facturacion\CpeBaja;
+use App\Models\Inventario\Producto;
 use App\Models\Inventario\Tienda;
 use App\Models\Pos\PosOrder;
 use App\Models\Pos\PosOrderLine;
@@ -318,46 +319,77 @@ class PosOrderController extends Controller
 
     public function cancel($id)
     {
-        //1. poner la orden en estado anulado
-        $posOrder = PosOrder::findOrFail($id);
-        if ($posOrder->estado === 'anulado') {
+        DB::beginTransaction();
+
+        try {
+            //1. poner la orden en estado anulado
+            $posOrder = PosOrder::findOrFail($id);
+            if ($posOrder->estado === 'anulado') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La orden ya está anulada.',
+                ], 400);
+            }
+
+            //SOLO SE PUEDE ANULLA ORDERN CON $tipo_comprobante 12
+            if ($posOrder->tipo_comprobante != 12) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'las boletas y facturas se anulan con notas de crédito o débito.',
+                ], 400);
+            }
+
+            $posOrder->estado = 'anulado';
+            $posOrder->save();
+            //2. actualizar el stock de los productos vendidos
+            $posServices = new PosServices();
+            foreach ($posOrder->orderLines as $line) {
+                // inicia actualizar la tabla de salida_productos
+                $producto = Producto::find($line->producto_id);
+                if ($producto) {
+                    $stock = $producto->stockEnTienda($posOrder->tienda_id);
+                    $this->salidaProductoService->create([
+                        'producto_id'       => $line->producto_id,
+                        'tienda_id'         => $posOrder->tienda_id,
+                        'stock_antes'       => $stock,
+                        'stock_despues'     => $stock + $line->quantity,
+                        'cantidad_reducida' => $line->quantity,
+                        'tipo'              => 4, // 4 = ingreso por anulacion
+                        'pos_order_id'      => $id,
+                        'comentario'        => "Anulación de <a href='/ventas/posorder/{$id}'>venta</a>",
+                        'updated_at'        => now(),
+                    ]);
+                } else {
+                    throw new \Exception('Producto no encontrado.');
+                }
+                // termina actualizar la tabla de salida_productos
+
+                $posServices->updateStockProductoTienda(
+                    $line->producto_id,
+                    $posOrder->tienda_id,
+                    'anulacion',
+                    $line->quantity
+                );
+            }
+            // 3. retornar los pagos
+            $posOrder->payments()->each(function ($payment) {
+                $payment->delete();
+            });
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Orden anulada correctamente.',
+                'data' => $posOrder,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error anulando venta: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'La orden ya está anulada.',
-            ], 400);
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        //SOLO SE PUEDE ANULLA ORDERN CON $tipo_comprobante 12
-        if ($posOrder->tipo_comprobante != 12) {
-            return response()->json([
-                'success' => false,
-                'message' => 'las boletas y facturas se anulan con notas de crédito o débito.',
-            ], 400);
-        }
-
-        $posOrder->estado = 'anulado';
-        $posOrder->save();
-        //2. actualizar el stock de los productos vendidos
-        $posServices = new PosServices();
-        foreach ($posOrder->orderLines as $line) {
-            $posServices->updateStockProductoTienda(
-                $line->producto_id,
-                $posOrder->tienda_id,
-                'anulacion',
-                $line->quantity
-            );
-        }
-        // 3. retornar los pagos
-        $posOrder->payments()->each(function ($payment) {
-            $payment->delete();
-        });
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Orden anulada correctamente.',
-            'data' => $posOrder,
-        ]);
     }
     // postOrderBystore
     public function postOrderPanel($fecha_inicio = null, $fecha_fin = null)

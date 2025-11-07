@@ -21,7 +21,7 @@ class BulkRequest extends FormRequest
             '*.stock_despues'     => ['required', 'integer', 'min:0'],
             '*.cantidad_reducida' => ['required', 'integer', 'min:0'],
             '*.comentario'        => ['nullable', 'string', 'max:500'],
-            '*.tipo'              => ['nullable', 'integer', 'in:1,2'],
+            '*.tipo'              => ['nullable', 'integer', 'in:1,2,3,4'],
         ];
     }
 }

@@ -142,44 +142,74 @@
 
                 <!-- BODY -->
                 <div class="modal-body">
-                <table class="table table-bordered table-sm">
-                    <thead class="thead-light">
-                        <tr>
-                            <th class="text-center align-middle">Tienda</th>
-                            <th class="text-center align-middle">Stock anterior</th>
-                            <th class="text-center align-middle">Cantidad reducida</th>
-                            <th class="text-center align-middle">Stock resultante</th>
-                            <th class="text-center align-middle">Tipo</th>
-                            <th class="text-center align-middle">Comentario</th>
-                            <th class="text-center align-middle">Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <div class="d-flex justify-content-between">
                         <div v-if="producto">
-                            <h5><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h5>
-                            <h5><strong>Nombre:</strong> @{{producto.nombre }}</h5>
+                            <h6><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h6>
+                            <h6><strong>Nombre:</strong> @{{producto.nombre }}</h6>
                         </div>
-                        <tr v-for="(item, index) in historial" :key="item.id">
-                            <td class="text-center align-middle">@{{ item.tienda_nombre }}</td>
-                            <td class="text-center align-middle">@{{ item.stock_antes }}</td>
-                            <td class="text-center align-middle text-danger font-weight-bold">@{{ item.cantidad_reducida }}</td>
-                            <td class="text-center align-middle text-success font-weight-bold">@{{ item.stock_despues }}</td>
-                            <td class="text-center align-middle">
-                                <span class="badge badge-danger" v-if="item.tipo === 1">Manual</span>
-                                <span class="badge badge-success" v-else-if="item.tipo === 2">Venta</span>
-                                <span v-else>-</span>
-                            </td>
-                            <td class="text-center align-middle">@{{ item.comentario }}</td>
-                            <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
-                        </tr>
+                        <b-form-group label-for="tienda-select">
+                            <b-form-select
+                                id="tienda-select"
+                                v-model="selectedTienda"
+                                :options="tiendas"
+                                value-field="id"
+                                text-field="nombre"
+                            ></b-form-select>
+                        </b-form-group>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center align-middle">Tienda</th>
+                                    <th class="text-center align-middle">Stock anterior</th>
+                                    <th class="text-center align-middle">Variación</th>
+                                    <th class="text-center align-middle">Stock resultante</th>
+                                    <th class="text-center align-middle">Tipo</th>
+                                    <th class="text-center align-middle">Comentario</th>
+                                    <th class="text-center align-middle">Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in filteredHistorial" :key="item.id">
+                                    <td class="text-center align-middle">@{{ item.tienda_nombre }}</td>
+                                    <td class="text-center align-middle">@{{ item.stock_antes }}</td>
+                                    <td class="text-center align-middle">
+                                        @{{ item.cantidad_reducida }}
+                                        <i class="fa-solid fa-arrow-down text-danger" v-if="[1, 2].includes(item.tipo)"></i>
+                                        <i class="fa-solid fa-arrow-up text-success" v-if="[3, 4].includes(item.tipo)"></i>
+                                    </td>
+                                    <td class="text-center align-middle">@{{ item.stock_despues }}</td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge badge-secondary" v-if="item.tipo === 1">Salida</span>
+                                        <span class="badge badge-warning" v-else-if="item.tipo === 2">Venta</span>
+                                        <span class="badge badge-primary" v-else-if="item.tipo === 3">Ingreso</span>
+                                        <span class="badge badge-info" v-else-if="item.tipo === 4">Anulacion</span>
+                                        <span v-else>-</span>
+                                    </td>
+                                    <td class="text-center align-middle" style="width: 300px">
+                                        <div style="
+                                                max-width: 300px;
+                                                white-space: nowrap;
+                                                overflow-x: auto;
+                                                display: block;
+                                                padding-bottom: 6px;
+                                            "
+                                            v-html="item.comentario"
+                                        >
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
+                                </tr>
 
-                        <tr v-if="historial.length === 0">
-                            <td colspan="6" class="text-center text-muted py-4">
-                            No hay registros de reducciones para este producto.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <tr v-if="historial.length === 0">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                    No hay registros de reducciones para este producto.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             </div>
@@ -413,6 +443,8 @@
         window.productosIndexTable = table;
     });
 
+    Vue.use(BootstrapVue);
+
     new Vue({
         el: "#productos-index",
         data() {
@@ -428,7 +460,17 @@
                     { key: "stock_despues", label: "Stock Actual" },
                     { key: "created_at", label: "Fecha de Reducción" },
                 ],
+                selectedTienda: null,
+                tiendas: [],
             }
+        },
+        computed: {
+            filteredHistorial() {
+                if (!this.selectedTienda) {
+                    return this.historial;
+                }
+                return this.historial.filter(item => item.tienda_id === this.selectedTienda);
+            },
         },
         mounted() {
             const vm = this;
@@ -442,6 +484,7 @@
                 this.productoIdHistorial = producto.id;
                 this.producto = producto;
                 this.cargarHistorial();
+                this.getTiendas();
                 $("#modal-historial-salidas").modal("show");
             },
             async cargarHistorial() {
@@ -469,6 +512,23 @@
                     hour: "2-digit",
                     minute: "2-digit",
                 });
+            },
+            getTiendas() {
+                // Obtener la lista de tiendas desde el servidor
+                window.api.get('/inventario/salidas/tiendas/listado')
+                    .then(res => {
+                        console.log('tiendas', res.data);
+                        this.tiendas = [
+                            {
+                                id: null,
+                                nombre: 'Todas las tiendas'
+                            },
+                            ...res.data
+                        ];
+                    })
+                    .catch(err => {
+                        console.error('Error al obtener tiendas:', err);
+                    });
             },
         },
     });

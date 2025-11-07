@@ -72,6 +72,7 @@ Route::middleware([
     =            productos            =
     =================================*/
     // controlador
+    Route::get('/inventario/salidas/tiendas/listado', [SalidaProductoController::class, 'getListadoTiendas'])->name('inventario.salidas.tiendas.listado');
     Route::get('/inventario/salidas/listado', [SalidaProductoController::class, 'index'])->name('inventario.salidas.listado');
     Route::post('/inventario/salidas/reducir', [SalidaProductoController::class, 'store'])->name('inventario.salidas.reducir');
     Route::get('/inventario/salidas/historial/{producto_id}', [SalidaProductoController::class, 'history'])->name('inventario.salidas.historial');

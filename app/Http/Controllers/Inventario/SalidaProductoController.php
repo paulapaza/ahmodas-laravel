@@ -181,6 +181,7 @@ class SalidaProductoController extends Controller
         'sp.id',
         'p.codigo_barras',
         'p.nombre as producto_nombre',
+        't.id as tienda_id',
         't.nombre as tienda_nombre',
         'sp.cantidad_reducida',
         'sp.stock_antes',
@@ -195,5 +196,14 @@ class SalidaProductoController extends Controller
       ->get();
 
     return response()->json(['data' => $salidas], 201);
+  }
+
+  public function getListadoTiendas() {
+    $tiendas = DB::table('tiendas')
+      ->select('id', 'nombre')
+      ->orderBy('nombre')
+      ->get();
+
+    return response()->json(['data' => $tiendas], 200);
   }
 }
