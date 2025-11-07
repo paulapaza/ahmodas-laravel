@@ -47,6 +47,7 @@
                                     {{-- <th>Barcode</th> --}}
                                     <th>Productos</th>
                                     <th>Alias</th>
+                                    <th>Stock</th>
                                     <th>Precio</th>
                                     <th>Precio Minimo</th>
 

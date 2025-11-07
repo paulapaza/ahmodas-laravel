@@ -12,7 +12,7 @@ class ProductSearch {
      */
     initProductTable() {
         const dataCrud = {
-            route: "/inventario/producto",
+            route: "/inventario/tiendas/listar-productos",
             subject: 'Producto',
             model: "producto",
             csrf: POSUtils.getCSRFToken(),
@@ -28,6 +28,7 @@ class ProductSearch {
             /*   { data: 'codigo_barras' }, */
             { data: 'nombre' },
             { data: 'alias' },
+            { data: 'total_stock' },
             { data: 'precio_unitario' },
             { data: 'precio_minimo', visible: false }
         ];
@@ -141,12 +142,18 @@ class ProductSearch {
     handleProductTableClick(row) {
         const data = this.tableProductos.row(row).data();
 
+        if (data.total_stock <= 0) {
+            POSUtils.showError('No hay stock disponible para este producto');
+            return;
+        }
+
         if (data) {
             this.cartManager.addProduct(
                 data.id,
                 data.alias,
                 data.precio_unitario,
-                data.precio_minimo
+                data.precio_minimo,
+                data.total_stock
             );
         }
     }

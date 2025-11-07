@@ -151,7 +151,7 @@ class CartManager {
     /**
      * Agrega un producto al carrito
      */
-    addProduct(id, nombre, precio, precio_minimo) {
+    addProduct(id, nombre, precio, precio_minimo, total_stock = 0) {
         // Verificar si el producto ya existe
         let productExists = false;
 
@@ -181,6 +181,7 @@ class CartManager {
             precio_minimo: precio_minimo,
             subtotal: precio,
             id: id,
+            total_stock: total_stock,
         };
 
         this.table.row.add(productData).draw();
@@ -296,6 +297,12 @@ class CartManager {
             //eliminar producto si la cantidad es menor a 1
             this.table.row(row).remove().draw();
             this.calculateTotal();
+            return;
+        }
+
+        if (nuevaCantidad > data.total_stock) {
+            POSUtils.showError(`No hay suficiente stock disponible. Stock actual: ${data.total_stock}`);
+            $(input).val(data.cantidad);
             return;
         }
 

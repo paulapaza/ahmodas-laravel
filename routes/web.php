@@ -85,13 +85,14 @@ Route::middleware([
     /*==============================
     =            ventas            =
     ==============================*/
-    
+
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);
     // tiendas
     Route::view('/inventario/tiendas','modules.inventario.tienda.index')->name('inventario.tiendas.index');
     Route::resource('/inventario/tienda', TiendaController::class);
+    Route::get('/inventario/tiendas/listar-productos', [ProductoController::class, 'productosTienda']);
 
     // categorias
     Route::view('/inventario/categorias','modules.inventario.categoria.index')->name('inventario.categorias.index');

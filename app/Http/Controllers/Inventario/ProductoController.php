@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Inventario;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductoRequest;
 use App\Models\Inventario\Producto;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -178,5 +179,27 @@ class ProductoController extends Controller
             "success" => true,
             "message" => "Producto eliminado correctamente",
         ]);
+    }
+
+    public function productosTienda()
+    {
+        $tiendaId = Auth::user()->tienda_id;
+
+        $productos = DB::table('productos as p')
+            ->join('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
+            ->where('pt.tienda_id', $tiendaId)
+            ->select(
+                'p.id',
+                'p.nombre',
+                'p.alias',
+                'p.precio_unitario',
+                'p.precio_minimo',
+                'p.precio_x_mayor',
+                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
+            )
+            ->groupBy('p.id', 'p.nombre', 'p.alias', 'p.precio_unitario', 'p.precio_minimo', 'p.precio_x_mayor')
+            ->get();
+
+        return response()->json($productos, 200);
     }
 }
