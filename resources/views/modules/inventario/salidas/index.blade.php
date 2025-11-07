@@ -269,10 +269,14 @@
                 console.log('Datos a enviar:', datos);
                 if (datos.length === 0) return;
 
+                const msg = this.variacion === 'AUMENTAR' 
+                    ? 'Stock aumentado correctamente.'
+                    : 'Stock reducido correctamente.';
+
                 window.api.post('/inventario/salidas/reducir', datos)
                     .then(res => {
                         console.log('✅ Respuesta del servidor:', res);
-                        this.$bvToast.toast('Stock reducido correctamente.', {
+                        this.$bvToast.toast(msg, {
                             title: 'Éxito',
                             variant: 'success',
                             solid: true
