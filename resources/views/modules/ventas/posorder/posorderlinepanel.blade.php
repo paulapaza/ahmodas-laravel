@@ -58,7 +58,7 @@
                                     <icon class="fas fa-store"></icon> {{ $tienda->nombre }}
                                 </h5>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="showProducto{{ $tienda->id }}" checked
+                                    <input class="form-check-input pos-checkbox" type="checkbox" id="showProducto{{ $tienda->id }}"
                                            onchange="toggleProductColumn(this, {{ $tienda->id }})">
                                     <label class="form-check-label text-sm" for="showProducto{{ $tienda->id }}">
                                          Ver Nombre Producto
@@ -274,6 +274,11 @@
             }
         });
 
+        $('.pos-checkbox').prop('checked', false);
+        const productoColumns = document.querySelectorAll('.producto-column');
+        productoColumns.forEach(column => {
+            column.style.display = 'none';
+        });
     });
 
     function cargarTabla(fechaInicio = "", fechaFin = "") {
