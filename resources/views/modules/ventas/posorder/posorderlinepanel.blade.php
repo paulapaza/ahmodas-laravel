@@ -15,7 +15,7 @@
             </button>
             <div class="form-group mb-0 ml-2">
                 <select id="selectColumnas" class="form-control">
-                    <option value=""># de columnas</option>
+                    <option value=""># columnas</option>
                     <option value="4">4 columnas</option>
                     <option value="3">3 columnas</option>
                     <option value="2">2 columnas</option>
@@ -248,7 +248,7 @@
             cargarTabla(fechaInicio, fechaFin);
         });
 
-
+        {{-- selector de columnas --}}
         const initialClass = @json($columnClass);
         $('#selectColumnas').val('');
         $('.pos-initial-class').each(function() {
@@ -262,7 +262,7 @@
             else if (valor == 3) columns = 'col-4'; 
             else if (valor == 2) columns = 'col-6'; 
             else if (valor == 1) columns = 'col-12'; 
-            
+
             if (columns) {
                 $('.pos-initial-class').each(function() {
                     $(this).attr('class', `${columns} mb-4 pos-initial-class`);
