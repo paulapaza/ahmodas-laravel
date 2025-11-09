@@ -2,9 +2,27 @@
     <x-slot name="menu">
         <x-menuVentas /> </x-slot>
 
-    <x-slot name="pagetitle">Visor de detalle ventas por tienda
-        <button class="btn btn-select-fecha bg-xsuccess" type="button" onclick="Selecionarfecha()"><span><i
-                    class="fas fa-calendar-alt "></i> Filtro: Hoy</span>
+    <x-slot name="pagetitle">
+        <div class="d-flex justify-content-start align-items-center mb-2">
+            Visor de detalle ventas por tienda:
+            <button 
+                class="btn btn-select-fecha bg-xsuccess ml-2" 
+                type="button" onclick="Selecionarfecha()"
+            >
+                <span><i class="fas fa-calendar-alt "></i> 
+                Filtro: Hoy
+                </span>
+            </button>
+            <div class="form-group mb-0 ml-2">
+                <select id="selectColumnas" class="form-control">
+                    <option value=""># de columnas</option>
+                    <option value="4">4 columnas</option>
+                    <option value="3">3 columnas</option>
+                    <option value="2">2 columnas</option>
+                    <option value="1">1 columna</option>
+                </select>
+            </div>
+        </div>
     </x-slot>
     <x-modalFechasPanel />
 
@@ -32,7 +50,7 @@
 
         <div class="row">
             @foreach ($alltiendas as $tienda)
-                <div class="{{ $columnClass }} mb-4">
+                <div class="{{ $columnClass }} mb-4 pos-initial-class">
                     <div class="card h-100">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
@@ -228,6 +246,32 @@
             fechaInicio = $('#fecha_inicio').val();
             fechaFin = $('#fecha_fin').val();
             cargarTabla(fechaInicio, fechaFin);
+        });
+
+
+        const initialClass = @json($columnClass);
+        $('#selectColumnas').val('');
+        $('.pos-initial-class').each(function() {
+            $(this).attr('class', `${initialClass} mb-4 pos-initial-class`);
+        });
+        $('#selectColumnas').on('change', function() {
+            const valor = $(this).val();
+            let columns = '';
+
+            if (valor == 4) columns = 'col-3'; 
+            else if (valor == 3) columns = 'col-4'; 
+            else if (valor == 2) columns = 'col-6'; 
+            else if (valor == 1) columns = 'col-12'; 
+            
+            if (columns) {
+                $('.pos-initial-class').each(function() {
+                    $(this).attr('class', `${columns} mb-4 pos-initial-class`);
+                });
+            } else {
+                $('.pos-initial-class').each(function() {
+                    $(this).attr('class', `${initialClass} mb-4 pos-initial-class`);
+                });
+            }
         });
 
     });
