@@ -436,7 +436,9 @@ class PosOrderController extends Controller
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
                 ->orderBy('order_date', 'Asc');
-        }])->get();
+        }])
+        ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")
+        ->get();
 
 
         return view('modules.ventas.posorder.posorderpanel', compact('alltiendas'));
@@ -477,7 +479,9 @@ class PosOrderController extends Controller
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
                 ->orderBy('order_date', 'Asc');
-        }])->get();
+        }])
+        ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")
+        ->get();
 
         return view('modules.ventas.posorder.posorderlinepanel', compact('alltiendas'));
     }
