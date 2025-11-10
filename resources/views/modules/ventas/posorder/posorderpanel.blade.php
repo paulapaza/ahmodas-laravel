@@ -158,7 +158,7 @@
 
                             @php
                                 $totalCompletado = $tienda->posOrders
-                                    ->where('estado', 'completado')
+                                    ->whereIn('estado', ['completado', 'completed'])
                                     ->sum('total_amount');
                             @endphp
                             Total: {{ number_format($totalCompletado, 2) }}
