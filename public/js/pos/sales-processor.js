@@ -128,6 +128,8 @@ class SalesProcessor {
                 POSUtils.showError(response.message);
                 $('.procesar_venta').prop('disabled', false);
             }
+
+            this.registrarVentaOnline(saleData);
         } catch (error) {
             console.error('Error al procesar venta:', error);
             POSUtils.showError(
@@ -211,6 +213,20 @@ class SalesProcessor {
             : POSConfig.CURRENCY.USD.symbol;
 
         $('#simbolo_moneda').text(simbolo);
+    }
+
+    async registrarVentaOnline(saleData) {
+        const data = {
+            ...saleData,
+            user_id: window.AuthUser?.id || null,
+        };
+
+        await POSUtils.makeAjaxRequest(
+            'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
+            data
+        )
+        .then(res => console.log(res))
+        .catch(err => console.error(err));
     }
 }
 
