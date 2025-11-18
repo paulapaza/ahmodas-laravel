@@ -11,6 +11,7 @@ use App\Models\Inventario\Producto;
 use App\Models\Inventario\Tienda;
 use App\Models\Pos\PosOrder;
 use App\Models\Pos\PosOrderLine;
+use App\Models\User;
 use App\Services\CpeServices;
 use Illuminate\Support\Facades\DB;
 use App\Services\PosServices;
@@ -63,6 +64,17 @@ class PosOrderController extends Controller
 
     public function store(PosOrderStore $request)
     {
+         // cambio aqui
+        $user = $request->user_id
+            ? User::find($request->user_id)
+            : Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no encontrado o no autenticado.',
+            ], 401);
+        }
+
         $posServices = new PosServices();
         $saleToken = $request->input('sale_token');
 
@@ -81,11 +93,11 @@ class PosOrderController extends Controller
                 'message' => 'Venta ya registrada (idempotente).',
                 'pos_order' => $existing,
                 'cpe_response' => null,
-                'print_type' => Auth::user()->print_type,
+                'print_type' => $user->print_type,
             ]);
         }
 
-        $tienda_id = Auth::user()->tienda_id;
+        $tienda_id = $user->tienda_id;
         if (!$tienda_id) {
             return response()->json([
                 'success' => false,
@@ -117,7 +129,7 @@ class PosOrderController extends Controller
                 'total_amount' => $request->input('total'),
                 'moneda' => (int)$request->input('moneda', 1),
                 'tienda_id' => $tienda_id,
-                'user_id' => Auth::user()->id,
+                'user_id' => $user->id,
                 'cliente_id' => $cliente->id,
                 'estado' => 'completed',
             ]);
@@ -185,7 +197,7 @@ class PosOrderController extends Controller
         }
 
         try {
-            if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
+            if ($pos_order->tipo_comprobante == 12 && $user->print_type == 'red') {
                 $printService = new \App\Services\PrintService();
                 $printService->imprimirTicket($pos_order);
             }
@@ -198,7 +210,7 @@ class PosOrderController extends Controller
             'message' => 'Venta registrada correctamente',
             'pos_order' => $pos_order,
             'cpe_response' => $api_response,
-            'print_type' => Auth::user()->print_type,
+            'print_type' => $user->print_type,
         ]);
     }
 
