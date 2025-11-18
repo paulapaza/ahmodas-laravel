@@ -42,7 +42,7 @@ class PosOrderStore extends FormRequest
             'cliente.razonSocial' => 'required_if:codigo_tipo_comprobante,01|string|max:255',   
             'moneda' => 'nullable|string|in:1,2', // 1 for PEN, 2 for USD
             'tipo_venta' => 'nullable|string|in:local,exportacion', // Validación para tipo de venta ,
-
+            'user_id' => 'nullable|integer|exists:users,id',
         ];
     }
 }
