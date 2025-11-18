@@ -207,6 +207,9 @@
 
 </x-pos-layout>
 
+<script>
+    window.AuthUser = @json(Auth::user());
+</script>
 
 {{-- Scripts del sistema POS en orden de dependencia --}}
 <script src="{{ asset('js/pos/pos-config.js') }}"></script>
