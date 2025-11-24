@@ -28,7 +28,7 @@
             </div>
             <div class="form-group d-inline-block mb-0 ml-2">
                 <select class="form-control" style="width: 135px;" id="usuario_id">
-                    <option value="">usuarios</option>
+                    <option value="">vendedores</option>
 
                     @foreach ($usuarios as $u)
                         <option value="{{ $u->id }}"
