@@ -404,7 +404,7 @@ class PosOrderController extends Controller
         }
     }
     // postOrderBystore
-    public function postOrderPanel($fecha_inicio = null, $fecha_fin = null)
+    public function postOrderPanel($fecha_inicio = null, $fecha_fin = null, $user_id = null)
     {
 
         $fecha_inicio = $fecha_inicio
@@ -430,20 +430,26 @@ class PosOrderController extends Controller
         }])->get(); */
 
         // 2. CONSULTA OPTIMIZADA CON SELECT ESPECÍFICO
-        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
+        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin, $user_id) {
 
             // 2.1 FILTRAR POR RANGO DE FECHAS
             $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
-
+                ->when($user_id, function ($q) use ($user_id) {
+                    $q->where('user_id', $user_id);
+                })
                 // 2.2 SUBCONSULTA OPTIMIZADA PARA PAYMENTS
-                ->with(['payments' => function ($paymentQuery) {
-                    // SOLO SELECCIONA LOS CAMPOS QUE NECESITAS
-                    $paymentQuery->select('id', 'pos_order_id', 'payment_method', 'amount');
-                    // Esto reduce la cantidad de datos transferidos desde la BD
-                }])
+                ->with(
+                    [
+                        'payments' => function ($paymentQuery) {
+                            // SOLO SELECCIONA LOS CAMPOS QUE NECESITAS
+                            $paymentQuery->select('id', 'pos_order_id', 'payment_method', 'amount');
+                            // Esto reduce la cantidad de datos transferidos desde la BD
+                        },
+                    ]
+                )
 
                 // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
-                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado')
+                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado', 'user_id')
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
@@ -452,8 +458,13 @@ class PosOrderController extends Controller
         ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")
         ->get();
 
+        $usuarios = User::select('id', 'name')->get();
+        $fecha_inicial = $fecha_inicio->format('Y-m-d');
+        $fecha_final = $fecha_fin->format('Y-m-d');
+        $vendedor_id = $user_id;
 
-        return view('modules.ventas.posorder.posorderpanel', compact('alltiendas'));
+        // return $alltiendas->toArray();
+        return view('modules.ventas.posorder.posorderpanel', compact('alltiendas', 'usuarios', 'fecha_inicial', 'fecha_final', 'vendedor_id'));
     }
 
     public function postOrderLinePanel($fecha_inicio = null, $fecha_fin = null)

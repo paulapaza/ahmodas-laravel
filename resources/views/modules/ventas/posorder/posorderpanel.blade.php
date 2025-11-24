@@ -18,12 +18,24 @@
                 </span>
             </button>
             <div class="form-group d-inline-block mb-0 ml-2">
-                <select id="selectColumnas" class="form-control">
+                <select id="selectColumnas" style="width: 115px;" class="form-control">
                     <option value=""># columnas</option>
                     <option value="4">4 columnas</option>
                     <option value="3">3 columnas</option>
                     <option value="2">2 columnas</option>
                     <option value="1">1 columna</option>
+                </select>
+            </div>
+            <div class="form-group d-inline-block mb-0 ml-2">
+                <select class="form-control" style="width: 135px;" id="usuario_id">
+                    <option value="">usuarios</option>
+
+                    @foreach ($usuarios as $u)
+                        <option value="{{ $u->id }}"
+                            {{ $vendedor_id == $u->id ? 'selected' : '' }}>
+                            {{ $u->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
             <div class="form-check d-inline-block ml-2">
@@ -79,8 +91,9 @@
                                             <th class="text-right">efect.</th>
                                             <th class="text-right">yape</th>
                                             <th class="text-right">tarje.</th>
-                                            <th class="text-right">transf.</th>
+                                            {{-- <th class="text-right">transf.</th> --}}
                                             <th class="text-right">subTot</th>
+                                            <th class="text-right">vendedor</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -142,10 +155,13 @@
                                                     {{ $yape > 0 ? '' . number_format($yape, 2) : '' }}</td>
                                                 <td class="text-right">
                                                     {{ $tarjeta > 0 ? '' . number_format($tarjeta, 2) : '' }}</td>
-                                                <td class="text-right">
+                                                {{-- <td class="text-right">
                                                     {{ $transferencia > 0 ? '' . number_format($transferencia, 2) : '' }}
-                                                </td>
+                                                </td> --}}
                                                 <td class="text-right">{{ number_format($order->total_amount, 2) }}
+                                                </td>
+                                                <td class="text-right">
+                                                    {{ $order->user->name ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -348,10 +364,24 @@
             }
         });
 
+        // usuarios selector
+        $('#usuario_id').on('change', function () {
+            const fecha_inicial = @json($fecha_inicial);
+            const fecha_final = @json($fecha_final);
+            const vendedor_id = $(this).val() || '';
+
+            cargarTabla(fecha_inicial, fecha_final, vendedor_id);
+            console.log("Filtrando ventas por usuario ID:", fecha_inicial, fecha_final, vendedor_id);
+            if (vendedor_id) {
+
+            } else {
+                console.log("Mostrando todas las ventas sin filtrar por usuario");
+            }
+        });
     });
     
-    function cargarTabla(fechaInicio = "", fechaFin = "") {
-        window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}`;
+    function cargarTabla(fechaInicio = "", fechaFin = "", userId = "") {
+        window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}/${userId}`;
     }
      
 </script>
