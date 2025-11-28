@@ -65,13 +65,22 @@ class PosOrderController extends Controller
     public function store(PosOrderStore $request)
     {
          // cambio aqui
-        $user = $request->user_id
-            ? User::find($request->user_id)
-            : Auth::user();
+        $user = User::find($request->user_id);
+            /*? User::find($request->user_id)
+            : Auth::user();*/
 
         if (!$user) {
             return response()->json([
                 'message' => 'Usuario no encontrado o no autenticado.',
+            ], 401);
+        }
+
+         // tienda
+        $tienda = Tienda::find($request->tienda_id);
+
+        if (!$tienda) {
+            return response()->json([
+                'message' => 'Tienda no encontrada.',
             ], 401);
         }
 
@@ -97,7 +106,9 @@ class PosOrderController extends Controller
             ]);
         }
 
-        $tienda_id = $user->tienda_id;
+        // tienda
+        $tienda_id = $request->tienda_id;
+
         if (!$tienda_id) {
             return response()->json([
                 'success' => false,

@@ -35,10 +35,13 @@
                                 </button>
                             </div>
                         </div>
-
+                        <div>
+                            <hr>
+                            <h3 class="text-center">{{ $tiendaDelUsuario }}</h3>
+                            <hr>
+                        </div>
                     </div>
                     <div class="col-md-12" id="productos-container" style="display: none;">
-
                         <!-- TABLA PARA CARGAR productos left -->
                         <table id="table-Productos" class="table table-striped w-100 pt-0 mt-0">
                             <thead class="bg-primary">
@@ -209,6 +212,8 @@
 
 <script>
     window.AuthUser = @json(Auth::user());
+    window.tiendas = @json( $tiendas);
+    window.idTiendaUsuario = @json( $idTiendaUsuario);
 </script>
 
 {{-- Scripts del sistema POS en orden de dependencia --}}

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inventario\Tienda;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\New_;
 
@@ -16,7 +18,7 @@ class TiendaController extends Controller
         return response()->json($tiendas, 200);
     }
 
-  
+
 
     public function store(Request $request)
     {
@@ -34,7 +36,8 @@ class TiendaController extends Controller
                 'success' => true,
                 'message' => 'Tienda creada correctamente',
                 'tienda' => $tienda
-            ], 201
+            ],
+            201
         );
     }
     public function update(Request $request, $id)
@@ -48,13 +51,14 @@ class TiendaController extends Controller
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
         $tienda->save();
-        return response()->json([
-            'success' => true,
-            'message' => 'Tienda actualizada correctamente',
-            'tienda' => $tienda
-        ]
-        , 200);
-    
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Tienda actualizada correctamente',
+                'tienda' => $tienda
+            ],
+            200
+        );
     }
     //destroy
     public function destroy($id)
@@ -65,5 +69,32 @@ class TiendaController extends Controller
             'success' => true,
             'message' => 'Tienda eliminada correctamente'
         ], 200);
+    }
+
+    public function cambiarTienda(Request $request)
+    {
+        // Validar solo tienda_id
+        $request->validate([
+            'tienda_id' => 'required|exists:tiendas,id',
+        ]);
+
+        // Buscar el usuario
+        $user = User::find($request->user_id);
+
+        // Validar que exista
+        if (!$user) {
+            return response()->json([
+                'message' => "Usuario no encontrado."
+            ], 404);
+        }
+
+        // Actualizar tienda
+        $user->tienda_id = $request->tienda_id;
+        $user->save();
+
+        return response()->json([
+            'message' => "Tienda del usuario actualizada correctamente",
+            'user' => $user
+        ]);
     }
 }

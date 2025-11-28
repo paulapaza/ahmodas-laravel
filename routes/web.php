@@ -13,6 +13,7 @@ use App\Http\Controllers\Inventario\StockController;
 use App\Http\Controllers\Inventario\TiendaController;
 
 use App\Http\Controllers\Pos\PosOrderController;
+use App\Models\Inventario\Tienda;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -36,10 +37,22 @@ Route::middleware([
     /*************************
      Punto de Venta
      ************************/
-    Route::view('/punto-de-venta', 'modules.puntodeventa.pos1')->name('puntodeventa.pos');
+    Route::get('/punto-de-venta', function () {
+        $tiendas = Tienda::select('id', 'nombre')->get();
+        $idTienda = Auth::user()->tienda_id ?? null;
+        $tiendaDelUsuario = $tiendas->firstWhere('id', $idTienda)->nombre ?? 'Sin tienda asignada';
+
+        return view('modules.puntodeventa.pos1', [
+            'tiendas' => $tiendas,
+            'idTiendaUsuario' => $idTienda,
+            'tiendaDelUsuario' => $tiendaDelUsuario
+        ]);
+    })->name('puntodeventa.pos');
+
     //venta
     Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
-     /*************************
+
+    /*************************
      Ventas
      ************************/
     Route::view('/ventas', 'modules.ventas.main')->name('ventas.main');

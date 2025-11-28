@@ -102,7 +102,9 @@ class SalesProcessor {
             codigo_tipo_comprobante: codigoTipoComprobante,
             cliente: cliente,
             productos: productos,
-            tipo_venta: $('#tipo_venta').val()
+            tipo_venta: $('#tipo_venta').val(),
+            tienda_id: window.idTiendaUsuario,
+            user_id: window.AuthUser.id,
         };
 
         try {
@@ -218,15 +220,17 @@ class SalesProcessor {
     async registrarVentaOnline(saleData) {
         const data = {
             ...saleData,
-            user_id: window.AuthUser?.id || null,
+            tienda_id: window.idTiendaUsuario,
+            user_id: window.AuthUser.id,
         };
-
-        await POSUtils.makeAjaxRequest(
-            'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
-            data
-        )
-        .then(res => console.log(res))
-        .catch(err => console.error(err));
+        console.log('data-libre:', data);
+        // descomentar en produccion
+        // await POSUtils.makeAjaxRequest(
+        //     'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
+        //     data
+        // )
+        // .then(res => console.log(res))
+        // .catch(err => console.error(err));
     }
 }
 

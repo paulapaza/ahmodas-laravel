@@ -39,8 +39,29 @@ class ProductSearch {
         this.tableProductos = new Larajax({
             data: dataCrud,
             idTable: "#table-Productos",
-            topButton: false,
+            topButton: true,
             columns: columns,
+            newRecordTopButton: false,
+            customTopButton: [
+                {
+                    text: 'Cambiar Tienda',
+                    icon: 'fas fa-store', // tu icono
+                    class: 'bg-info btn-selector-tienda',
+                    myfunction: () => {
+                        console.log('Acción personalizada');
+                    },
+                    extend: 'collection', // hace que se vea como el botón de filas
+                    buttons: this.generarTiendasOpciones(window.tiendas),
+                    // [
+                    //     { text: 'Opción 1', action: () => console.log('Opción 1', window.tiendas) },
+                    //     { text: 'Opción 2', action: () => console.log('Opción 2', window.tiendaDelUsuario) },
+                    // ]
+                }
+            ],
+        });
+        $(document).ready(function() {
+            $('#table-Productos_wrapper .dt-buttons button').hide();
+            $('#table-Productos_wrapper .dt-buttons .btn-selector-tienda').show();
         });
     }
 
@@ -163,5 +184,22 @@ class ProductSearch {
      */
     focusSearchBox() {
         $('#search-box').focus();
+    }
+
+    generarTiendasOpciones(tiendas) {
+        return tiendas.map((tienda, index) => ({
+            text: tienda.nombre, // nombre de la tienda en el botón
+            action: async () => {
+                try {
+                    await POSUtils.makeAjaxRequest(
+                        '/api/inventario/tiendas/cambiar-tienda',
+                        { tienda_id: tienda.id, user_id: window.AuthUser.id }
+                    );
+                    window.location.reload();
+                } catch (error) {
+                    console.log('error generarTiendasOpciones', error);
+                }
+            }
+        }));
     }
 }
