@@ -30,6 +30,7 @@ class UserController extends Controller
 
     try {
       $user = new User();
+      $user->uid = $request->uid;
       $user->name = $request->name;
       $user->email = $request->email;
       $user->estado = $request->estado;

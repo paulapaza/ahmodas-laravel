@@ -314,11 +314,16 @@
                 }
 
                 let formData = new FormData(form);
+
+                // agrega ulid a la data
+                const uid = ULID.ulid();
+                formData.append("uid", uid);
+
                 let data = Object.fromEntries(formData.entries());
 
                 store_record(dataAjax, formData, table);
 
-                vm.createUser(data)
+                // vm.createUser(data)
             });
         },
         methods: {

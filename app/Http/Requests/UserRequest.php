@@ -33,6 +33,12 @@ class UserRequest extends FormRequest
         return [
             
             // incluir ademas numero en el nombre
+            'uid' => [
+                $this->isMethod('post') ? 'required' : 'sometimes',
+                'nullable',
+                'ulid',
+                'unique:users,uid,' . $this->route('id'),
+            ],
             'name' => 'required|regex:/^[a-zA-Z0-9ñÑáéíóúü ]+$/|min:3',
             'role' => 'required|alpha|max:255',
             
