@@ -146,6 +146,11 @@
             let formData = new FormData(form);
             // console.log(formData);
             //store_record(dataCrud, formData, table) == true ? cargarCategorias() : console.log('error, no cargo');
+
+            // agrega ulid a la data
+            const uid = ULID.ulid();
+            formData.append("uid", uid);
+
             store_record(dataCrud, formData, table);
         });
 

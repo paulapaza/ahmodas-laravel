@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inventario;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TiendaRequest;
 use App\Models\Inventario\Tienda;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,9 +21,10 @@ class TiendaController extends Controller
 
 
 
-    public function store(Request $request)
+    public function store(TiendaRequest $request)
     {
         $tienda = new Tienda();
+        $tienda->uid = $request->uid;
         $tienda->nombre = $request->nombre;
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
