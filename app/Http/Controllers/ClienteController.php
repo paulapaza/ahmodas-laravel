@@ -1,5 +1,7 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Http\Requests\ClienteRequest;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 use App\Services\AjaxResponseService;
@@ -14,7 +16,7 @@ class ClienteController extends Controller
     }
 
     //store
-    public function store(Request $request)
+    public function store(ClienteRequest $request)
     {
         $cliente = Cliente::create($request->all());
         return (new AjaxResponseService)->successStore($cliente, 201);
@@ -23,7 +25,7 @@ class ClienteController extends Controller
     public function update(Request $request, $id)
     {
         $cliente = Cliente::findOrFail($id);
-        $cliente->update($request->all());
+        $cliente->update($request->except('uid'));
         return (new AjaxResponseService)->successUpdate($cliente, 200);
     }
     //destroy

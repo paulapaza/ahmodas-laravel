@@ -13,6 +13,7 @@ class Cliente extends Model
     protected $table = 'clientes';
 
     protected $fillable = [
+        'uid',
         'nombre',
         'tipo_documento_identidad',
         'numero_documento_identidad',
