@@ -15,6 +15,7 @@
         <th>precio minimo</th>
         <th>precio x mayor</th>
         <th>categoria</th>
+        <th>F.Creación</th>
         <th>estado</th>
         <th>acciones</th>
     </x-table>
@@ -273,6 +274,12 @@
                     data: 'categoria_id',
                     render: function (data, type, row) {
                         return row.categoria_nombre;
+                    }
+                },
+                {
+                    data: 'created_at',
+                    render: function (data, type, row) {
+                        return row.created_at;
                     }
                 },
                 {

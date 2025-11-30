@@ -31,6 +31,7 @@ class ProductoController extends Controller
                 'p.tipo_de_igv',
                 'p.moneda',
                 'p.estado',
+                'p.created_at',
                 'c.nombre as categoria_nombre',
                 'm.nombre as marca_nombre',
                 DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock'),
@@ -50,6 +51,7 @@ class ProductoController extends Controller
                 'p.tipo_de_igv',
                 'p.moneda',
                 'p.estado',
+                'p.created_at',
                 'c.nombre',
                 'm.nombre'
             )

@@ -20,3 +20,21 @@ window.api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+window.ahmodasApi = axios.create({
+  baseURL: 'https://ahmodas.com/v1/api',
+  timeout: 20000,
+  headers: {
+    "X-Requested-With": "XMLHttpRequest",
+  },
+});
+
+window.ahmodasApi.interceptors.response.use(
+  function (response) {
+    return response.data;
+  },
+  function (error) {
+    console.error("*** Error de ahmodasApi: ***", error.response || error);
+    return Promise.reject(error);
+  }
+);
