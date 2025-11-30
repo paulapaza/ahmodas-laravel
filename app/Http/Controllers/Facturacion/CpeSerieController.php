@@ -20,6 +20,7 @@ class CpeSerieController extends Controller
     public function store(Request $request)
     {
         $serie = new CpeSerie();
+        $serie->uid = $request->uid;
         $serie->tienda_id = $request->tienda_id;
         $serie->codigo_tipo_comprobante = $request->codigo_tipo_comprobante;
         $serie->serie = $request->serie;

@@ -11,6 +11,7 @@ class CpeSerie extends Model
     protected $table = 'cpe_series';
     protected $fillable = [
         'id',
+        'uid',
         'tienda_id',
         'codigo_tipo_comprobante',
         'serie',
