@@ -334,6 +334,10 @@
             let formData = new FormData(form);
             // console.log(formData);
 
+            // agrega ulid a la data
+            const uid = ULID.ulid();
+            formData.append("uid", uid);
+
             store_record(dataCrud, formData, table);
 
         });

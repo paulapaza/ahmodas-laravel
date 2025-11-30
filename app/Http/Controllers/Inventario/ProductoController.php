@@ -71,6 +71,7 @@ class ProductoController extends Controller
     {
 
         $producto = new Producto();
+        $producto->uid = $request->uid;
         $producto->codigo_barras = $request->codigo_barras;
         $producto->nombre = $request->nombre;
         $producto->alias = $request->alias;

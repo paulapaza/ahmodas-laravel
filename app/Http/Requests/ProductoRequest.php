@@ -25,6 +25,7 @@ class ProductoRequest extends FormRequest
         return [
             // revisar si el codigo de barras es unico solo en la creacion
             // si es edicion, no validar que sea unico
+            'uid' => 'required|ulid|unique:productos,uid',
             'codigo_barras' => $this->isMethod('post') ? 'nullable|string|max:13|unique:productos,codigo_barras' : 'nullable|string|max:13',
             'nombre' => 'required|string|max:100',
             'alias' => 'nullable|string|max:200',

@@ -145,6 +145,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
     <script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ulid@2.3.0/dist/index.umd.js"></script>
 
     {{-- config --}}
     <script src="{{ asset('modules/config/axios.js') }}"></script>
