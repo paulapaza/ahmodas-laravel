@@ -171,6 +171,7 @@ class SalesProcessor {
         }
 
         POSUtils.showSuccess(mensaje, footer);
+        window.productSearchTableProductos.ajax.reload(null, false);
         this.resetPOS();
     }
 

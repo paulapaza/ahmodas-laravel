@@ -37,7 +37,8 @@
                         </div>
                         <div>
                             <hr>
-                            <h3 class="text-center">{{ $tiendaDelUsuario }}</h3>
+                            <h3 class="text-center mb-0">{{ $tiendaDelUsuario }}</h3>
+                            <h5 class="text-muted text-center">{{ Auth::user()->name }}</h5>
                             <hr>
                         </div>
                     </div>

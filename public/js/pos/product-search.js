@@ -59,6 +59,7 @@ class ProductSearch {
                 }
             ],
         });
+        window.productSearchTableProductos = this.tableProductos;
         $(document).ready(function() {
             $('#table-Productos_wrapper .dt-buttons button').hide();
             $('#table-Productos_wrapper .dt-buttons .btn-selector-tienda').show();
