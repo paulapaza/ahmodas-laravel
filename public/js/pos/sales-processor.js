@@ -225,12 +225,12 @@ class SalesProcessor {
         };
         console.log('data-libre:', data);
         // descomentar en produccion
-        await POSUtils.makeAjaxRequest(
-            'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
-            data
-        )
-        .then(res => console.log('respuesta', res))
-        .catch(err => console.error('error', err));
+        // await POSUtils.makeAjaxRequest(
+        //     'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
+        //     data
+        // )
+        // .then(res => console.log('respuesta', res))
+        // .catch(err => console.error('error', err));
     }
 }
 
