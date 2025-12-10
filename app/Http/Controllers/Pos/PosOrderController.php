@@ -208,7 +208,7 @@ class PosOrderController extends Controller
         }
 
         try {
-            if ($pos_order->tipo_comprobante == 12 && $user->print_type == 'red') {
+            if ($pos_order->tipo_comprobante == 12 && ($user->print_type == 'red' || $user->print_type == 'local')) {
                 $printService = new \App\Services\PrintService();
                 $printService->imprimirTicket($pos_order);
             }

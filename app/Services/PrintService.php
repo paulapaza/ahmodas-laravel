@@ -177,6 +177,7 @@ class PrintService
         $printer->feed(1);
         $printer->text($posOrder->tienda->ticket_nota ?? "Gracias por su compra\n");
         $printer->feed(2);
+        $printer->pulse(); // abre gabeta
         $printer->cut();
         $printer->close();
     }
