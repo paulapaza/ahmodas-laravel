@@ -55,20 +55,30 @@
             </div>
 
             <div class="mb-3 col-md-6">
-                <label for="status" class="form-label">Tipo de Impresion (TICKET)</label>
-                <select class="form-control" id="print_type" name="print_type">
-                    <option value="pdf">Muestra PDF</option>
-                    <option value="red">Imprime en Red</option>
-
-                </select>
-            </div>
-
-            <div class="mb-3 col-md-6">
                 <label for="restriccion_precio_minimo" class="form-label">Restriccion Precio Minimo</label>
                 <select class="form-control" id="restriccion_precio_minimo" name="restriccion_precio_minimo">
                     <option value="si">Si</option>
                     <option value="no">No</option>
                 </select>
+            </div>
+
+            <div class="mb-3 col-md-6">
+                <label for="status" class="form-label">Tipo de Impresion (TICKET)</label>
+                <select class="form-control" id="print_type" name="print_type">
+                    <option value="pdf">Muestra PDF</option>
+                    <option value="red">Imprime en Red</option>
+                    <option value="local">Imprime en Local</option>
+                </select>
+            </div>
+
+            <div class="mb-3 col-md-6">
+                <label for="printer_name" class="form-label">Nombre de Impresora (LOCAL)</label>
+                <input type="text" class="form-control" id="printer_name" name="printer_name">
+            </div>
+
+            <div class="mb-3 col-md-6">
+                <label for="printer_ip" class="form-label">IP de Impresora (RED)</label>
+                <input type="text" class="form-control" id="printer_ip" name="printer_ip">
             </div>
     </x-mymodal>
 

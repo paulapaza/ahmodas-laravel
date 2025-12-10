@@ -38,6 +38,8 @@ class UserController extends Controller
       $user->print_type = $request->print_type;
       $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
       $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
+      $user->printer_name = $request->printer_name; // Asignamos el nombre de impresora al usuario
+      $user->printer_ip = $request->printer_ip; // Asignamos la IP de impresora al usuario
       $user->save();
 
       // asignamos el rol
@@ -67,6 +69,8 @@ class UserController extends Controller
       $user->print_type = $request->print_type;
       $user->restriccion_precio_minimo = $request->restriccion_precio_minimo;
       $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
+      $user->printer_name = $request->printer_name; // Asignamos el nombre de impresora al usuario
+      $user->printer_ip = $request->printer_ip; // Asignamos la IP de impresora al usuario
       $user->save();
 
       DB::table('model_has_roles')->where('model_id', $id)->delete();
