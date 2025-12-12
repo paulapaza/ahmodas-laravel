@@ -509,7 +509,7 @@ class PosOrderController extends Controller
                     // Esto reduce la cantidad de datos transferidos desde la BD
                 }]);
             // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
-            $query->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado')
+            $query->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado', 'user_id')
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
                 ->orderBy('order_date', 'Asc');

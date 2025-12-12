@@ -78,12 +78,12 @@
                                             <th class="producto-column">Producto</th>
                                             <th>Alias</th>
                                             <th class="text-center">Can.</th>
-                                            <th>Pre/U</th>
+                                            {{-- <th>Pre/U</th> --}}
                                              @can('ver-visor-ventas-detalle-ganacia')
                                             <th>Ganan.</th><!-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor -->
                                              @endcan
                                             <th>subtotal</th>
-
+                                            <th class="text-right">vendedor</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -113,7 +113,7 @@
                                                     <td class="producto-column">{{ $line->producto->nombre }}</td>
                                                     <td>{{ $line->producto->alias }}</td>
                                                     <td class="text-center">{{ $line->quantity }}</td>
-                                                    <td class="text-right">{{ number_format($line->price, 2) }}</td>
+                                                    {{-- <td class="text-right">{{ number_format($line->price, 2) }}</td> --}}
                                                     @can('ver-visor-ventas-detalle-ganacia')
                                                     <td class="text-right">
                                                         @if ($lineGanancia > 0)
@@ -125,6 +125,9 @@
                                                     @endcan
                                                         {{-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor --}}
                                                     <td class="text-right">{{ number_format($line->subtotal, 2) }}</td>
+                                                    <td class="text-right">
+                                                      {{ $order->user->name ?? 'N/A' }}
+                                                    </td>
                                                 </tr>
                                             @endforeach
                                             @php $ganancia += $ganancia; @endphp
