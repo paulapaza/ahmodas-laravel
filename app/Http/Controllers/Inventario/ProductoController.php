@@ -8,6 +8,9 @@ use App\Models\Inventario\Producto;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductoController extends Controller
 {
@@ -205,4 +208,119 @@ class ProductoController extends Controller
 
         return response()->json($productos, 200);
     }
+
+  public function _importExcel(Request $request)
+  {
+    $request->validate([
+      'excel' => 'required|file|mimes:xlsx,xls'
+    ]);
+
+    $path = $request->file('excel')->getRealPath();
+
+    // Lector optimizado (solo datos)
+    $reader = IOFactory::createReaderForFile($path);
+    $reader->setReadDataOnly(true);
+
+    $spreadsheet = $reader->load($path);
+    $sheet = $spreadsheet->getActiveSheet();
+
+    $startRow = 3;
+    $totalColumns = 8;
+
+    $data = [];
+
+    $highestRow = $sheet->getHighestRow();
+
+    for ($row = $startRow; $row <= $highestRow; $row++) {
+
+      $rowData = [];
+
+      for ($col = 1; $col <= $totalColumns; $col++) {
+        $columnLetter = Coordinate::stringFromColumnIndex($col);
+        // $rowData[] = $sheet->getCell($columnLetter . $row)->getValue();
+        $cell = $sheet->getCell($columnLetter . $row);
+
+        $value = $cell->isFormula()
+          ? $cell->getCalculatedValue()
+          : $cell->getValue();
+
+        $rowData[] = $value;
+      }
+
+      // Evitar filas totalmente vacías
+      if (array_filter($rowData)) {
+        $data[] = $rowData;
+      }
+    }
+
+    return $data;
+  }
+
+  private function _resolveStockPorTienda(array $row, int $productoId): array
+  {
+    $map = [
+      5 => 4,
+      6 => 1,
+      7 => 2,
+      8 => 3,
+    ];
+
+    $now = now();
+    $result = [];
+
+    foreach ($map as $index => $tiendaId) {
+      if (\array_key_exists($index, $row) && $row[$index] !== null) {
+        $result[] = [
+          'producto_id' => $productoId,
+          'tienda_id'   => $tiendaId,
+          'stock'       => (int) $row[$index],
+          'created_at'  => $now,
+          'updated_at'  => $now,
+        ];
+      }
+    }
+
+    return $result;
+  }
+
+  public function guardarProductosDesdeExcel(Request $request)
+  {
+    $datosExcel = $this->_importExcel($request);
+
+    DB::beginTransaction();
+
+    try {
+      foreach ($datosExcel as $row) {
+        $insertedId = DB::table('productos')->insertGetId([
+          'uid' => Str::ulid()->toString(),
+          'codigo_barras' => trim($row[0]),
+          'nombre' => trim($row[4]),
+          'alias' => trim($row[4]),
+          'costo_unitario' => $row[1],
+          'precio_unitario' => $row[2],
+          'precio_minimo' => $row[3],
+          'marca_id' => 1,
+          'categoria_id' => 1,
+          'created_at' => now(),
+          'updated_at' => now(),
+        ]);
+
+        $stockPorTienda = $this->_resolveStockPorTienda($row, $insertedId);
+
+        DB::table('producto_tienda')->insert($stockPorTienda);
+      }
+
+      DB::commit();
+
+      return response()->json([
+        'message' => 'Productos importados correctamente',
+        'total' => \count($datosExcel),
+      ], 200);
+    } catch (\Exception $e) {
+      DB::rollBack();
+      return response()->json([
+        'message' => 'Error al importar productos: ' . $e->getMessage(),
+      ], 500);
+    }
+  }
 }
