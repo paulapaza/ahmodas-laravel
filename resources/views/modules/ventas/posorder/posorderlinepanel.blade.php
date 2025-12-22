@@ -80,9 +80,9 @@
                                             <th class="text-center">Can.</th>
                                             {{-- <th>Pre/U</th> --}}
                                              @can('ver-visor-ventas-detalle-ganacia')
-                                            <th>Ganan.</th><!-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor -->
+                                            <th class="text-right">Ganan.</th><!-- Cambié 'Ganancia' a 'Ganan.' para que quepa mejor -->
                                              @endcan
-                                            <th>subtotal</th>
+                                            <th class="text-right">subtotal</th>
                                             <th class="text-right">vendedor</th>
                                         </tr>
                                     </thead>
@@ -111,7 +111,14 @@
                                                     <td>{{ \Carbon\Carbon::parse($order->order_date)->format('H:i') }}
                                                     </td>
                                                     <td class="producto-column">{{ $line->producto->nombre }}</td>
-                                                    <td>{{ $line->producto->alias }}</td>
+                                                    @php
+                                                      $codigo = (int) $line->producto->codigo_barras;
+                                                      $esRango = $codigo >= 11111615 && $codigo <= 11111864;
+                                                    @endphp
+                                                    <td class="{{ $esRango ? 'text-primary' : '' }}">
+                                                        {{ $line->producto->alias }}
+                                                    </td>
+                                                    {{-- <td class="text-primary">{{ $line->producto->alias }}</td> --}}
                                                     <td class="text-center">{{ $line->quantity }}</td>
                                                     {{-- <td class="text-right">{{ number_format($line->price, 2) }}</td> --}}
                                                     @can('ver-visor-ventas-detalle-ganacia')
