@@ -86,7 +86,7 @@ class PosServices
             //    throw new \Exception('Stock insuficiente para la venta.');  
             //} 
         } else {
-            throw new \Exception('Producto no encontrado.');
+            throw new Exception('Producto no encontrado.');
         }
     }
     // aumentar stock
@@ -97,7 +97,7 @@ class PosServices
             $stock = $producto->stockEnTienda($tienda_id);
             $producto->tiendas()->updateExistingPivot($tienda_id, ['stock' => $stock + $cantidad]);
         } else {
-            throw new \Exception('Producto no encontrado.');
+            throw new Exception('Producto no encontrado.');
         }
     }
     public function procesarCliente($cliente, $tipo_venta = 'local', $codigo_tipo_comprobante = null): Cliente
@@ -108,10 +108,10 @@ class PosServices
 
             // Validación de campos obligatorios para boleta de exportación
             if ($codigo_tipo_comprobante == '2' && empty($cliente['nombre']) && empty($cliente['direccion'])) {
-                throw new \Exception('Para una venta de exportación se  requiere nombre y dirección del cliente.');
+                throw new Exception('Para una venta de exportación se  requiere nombre y dirección del cliente.');
             }
             if ($codigo_tipo_comprobante == '1' && empty($cliente['razonSocial']) && empty($cliente['direccion'])) {
-                throw new \Exception('Para una venta de exportación se requiere nombre y dirección del cliente.');
+                throw new Exception('Para una venta de exportación se requiere nombre y dirección del cliente.');
             }
             if ($codigo_tipo_comprobante == '2') {
                 $nombreCliente = trim(strtolower($cliente['nombre']));
@@ -156,7 +156,7 @@ class PosServices
             empty($cliente['direccion']) ||
             empty($cliente['ruc'])
         )) {
-            throw new \Exception('Para emitir una factura se requiere RUC, nombre y dirección del cliente.');
+            throw new Exception('Para emitir una factura se requiere RUC, nombre y dirección del cliente.');
         }
 
         // Procesar según tipo de documento del cliente
@@ -206,40 +206,72 @@ class PosServices
     // El método lanza una excepción si el tipo de transacción no es válido o si no se proporcionan productos o cantidades.
     // Este método es más eficiente que el anterior porque utiliza una sola consulta SQL para actualizar
     // todos los productos en lugar de hacer múltiples consultas individuales.
-    public function actualizarStockProductos(int $tienda_id, array $productos_cantidades, string $tipo_transaccion = 'venta'): void
-    {
-        if (!in_array($tipo_transaccion, ['venta', 'anulacion', 'nota_credito'])) {
-            throw new \Exception("Tipo de transacción no soportado: $tipo_transaccion");
+    public function actualizarStockProductos(
+        int $tienda_id,
+        array $productos_cantidades,
+        string $tipo_transaccion = 'venta'
+    ): void {
+
+        if (!\in_array($tipo_transaccion, ['venta', 'anulacion', 'nota_credito'])) {
+            throw new Exception("Tipo de transacción no soportado: $tipo_transaccion");
         }
 
         if (empty($productos_cantidades)) {
             return;
         }
 
-        $cases = '';
-        $ids = [];
+        $ids = array_map('intval', array_keys($productos_cantidades));
+        $idsList = implode(',', $ids);
 
-        foreach ($productos_cantidades as $producto_id => $cantidad) {
-            $id = (int) $producto_id;
-            $cantidad = (float) $cantidad;
-            $ids[] = $id;
+        // 1️⃣ BLOQUEAR FILAS
+        $stocks = DB::select("
+            SELECT producto_id, stock
+            FROM producto_tienda
+            WHERE tienda_id = ?
+            AND producto_id IN ({$idsList})
+            FOR UPDATE
+        ", [$tienda_id]);
 
-            if (in_array($tipo_transaccion, ['anulacion', 'nota_credito'])) {
-                $cases .= "WHEN producto_id = {$id} THEN stock + {$cantidad} ";
-            } else {
-                $cases .= "WHEN producto_id = {$id} THEN stock - {$cantidad} ";
+        // Mapear stocks
+        $stockMap = [];
+        foreach ($stocks as $row) {
+            $stockMap[$row->producto_id] = $row->stock;
+        }
+
+        // 2️⃣ VALIDAR STOCK (solo para venta)
+        if ($tipo_transaccion === 'venta') {
+            foreach ($productos_cantidades as $producto_id => $cantidad) {
+                $stockActual = $stockMap[$producto_id] ?? 0;
+
+                if ($stockActual < $cantidad) {
+                    throw new Exception(
+                        "Stock insuficiente para el producto ID {$producto_id}"
+                    );
+                }
             }
         }
 
-        $idsList = implode(',', $ids);
+        // 3️⃣ UPDATE MASIVO (seguro ahora)
+        $cases = '';
+        foreach ($productos_cantidades as $producto_id => $cantidad) {
+            $producto_id = (int) $producto_id;
+            $cantidad = (float) $cantidad;
+
+            if (\in_array($tipo_transaccion, ['anulacion', 'nota_credito'])) {
+                $cases .= "WHEN producto_id = {$producto_id} THEN stock + {$cantidad} ";
+            } else {
+                $cases .= "WHEN producto_id = {$producto_id} THEN stock - {$cantidad} ";
+            }
+        }
 
         DB::update("
             UPDATE producto_tienda
-            SET stock = CASE 
+            SET stock = CASE
                 {$cases}
                 ELSE stock
             END
-            WHERE tienda_id = ? AND producto_id IN ({$idsList})
+            WHERE tienda_id = ?
+            AND producto_id IN ({$idsList})
         ", [$tienda_id]);
     }
 
