@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('productos', function (Blueprint $table) {
-            //add alias column
-            $table->string('alias')->nullable()->after('nombre')->index();
-        });
+        // Schema::table('productos', function (Blueprint $table) {
+        //     //add alias column
+        //     $table->string('alias')->nullable()->after('nombre')->index();
+        // });
     }
 
     /**
