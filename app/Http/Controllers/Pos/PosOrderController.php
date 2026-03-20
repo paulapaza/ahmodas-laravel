@@ -282,7 +282,7 @@ class PosOrderController extends Controller
         // Procesar los productos vendidos
         $pos_order_lines = $request->input('productos', []);
 
-     
+
         $datosInsert = [];
 
         foreach ($pos_order_lines as $line) {
@@ -305,7 +305,7 @@ class PosOrderController extends Controller
 
         $cpeServices = new CpeServices();
         // Enviar el CPE al servicio de facturación si el tiepo de doc es 01  y 03
-       
+
         // Aumentar el correlativo del CPE
         $posServices->increase_CpeSerie($cpeSerie);
 
@@ -322,7 +322,7 @@ class PosOrderController extends Controller
             //event(new VentaRealizada($pos_order)); // bloqueante
         //} catch (\Exception $e) {
             //Log::error('Error al despachar el evento VentaRealizada: ' . $e->getMessage());
-           
+
         //} 
         // Imprimir el recibo
         if ($pos_order->tipo_comprobante == 12 && Auth::user()->print_type == 'red') {
@@ -441,7 +441,7 @@ class PosOrderController extends Controller
         }])->get(); */
 
         // 2. CONSULTA OPTIMIZADA CON SELECT ESPECÍFICO
-        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin, $user_id) {
+        $alltiendas = Tienda::where('mostrar_en_visor', 1)->with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin, $user_id) {
 
             // 2.1 FILTRAR POR RANGO DE FECHAS
             $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
@@ -495,7 +495,7 @@ class PosOrderController extends Controller
 
         /* $alltiendas = Tienda::all(); */
         //2. CONSULTA OPTIMIZADA CON SELECT ESPECÍFICO
-        $alltiendas = Tienda::with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
+        $alltiendas = Tienda::where('mostrar_en_visor', 1)->with(['posOrders' => function ($query) use ($fecha_inicio, $fecha_fin) {
             // 2.1 FILTRAR POR RANGO DE FECHAS
             $query->whereBetween('order_date', [$fecha_inicio, $fecha_fin])
                 // 2.2 SUBCONSULTA OPTIMIZADA PARA orderLines
@@ -865,7 +865,7 @@ class PosOrderController extends Controller
                 $sheet->getStyle('J' . $row . ':N' . $row)
                     ->getAlignment()
                     ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
-                
+
                  // NUEVO: Centrar horizontalmente las columnas J–N
                 $sheet->getStyle('J' . $row . ':N' . $row)
                 ->getAlignment()

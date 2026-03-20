@@ -22,8 +22,9 @@ class TiendaRequest extends FormRequest
   public function rules(): array
   {
     return [
-      'uid' => 'required|ulid|unique:productos,uid',
+      'uid' => 'required|ulid|unique:tiendas,uid',
       'nombre' => 'required|string|max:100',
+      'mostrar_en_visor' => 'nullable|boolean',
     ];
   }
 }

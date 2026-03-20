@@ -11,6 +11,7 @@
         <th>Telefono</th>
         
         <th>Estado</th>
+        <th>Visor</th>
 
     </x-table>
 
@@ -68,6 +69,16 @@
                     <input type="text" class="form-control" id="token_facturacion" name="token_facturacion" required>
                 </div>
             </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="mostrar_en_visor">Mostrar en Visor</label>
+                    <select class="form-control" id="mostrar_en_visor" name="mostrar_en_visor" required>
+                        <option value="1">Sí</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
     </x-mymodal>
@@ -105,6 +116,12 @@
                     data: 'estado',
                     render: function(data) {
                         return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' : '<span class="badge bg-xsecondary text-white">Inactivo</span>'
+                    }
+                },
+                {
+                    data: 'mostrar_en_visor',
+                    render: function(data) {
+                        return (data == 1) ? '<span class="badge bg-xinfo">Sí</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
                     }
                 },
                

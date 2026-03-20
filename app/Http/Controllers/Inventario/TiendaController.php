@@ -32,6 +32,7 @@ class TiendaController extends Controller
         $tienda->ticket_nota = $request->ticket_nota; // Assuming ticket_nota is a field in the Tienda model
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
+        $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
         $tienda->save();
         return response()->json(
             [
@@ -52,6 +53,7 @@ class TiendaController extends Controller
         $tienda->ticket_nota = $request->ticket_nota; // Assuming ticket_nota is a field in the Tienda model
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
+        $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
         $tienda->save();
         return response()->json(
             [

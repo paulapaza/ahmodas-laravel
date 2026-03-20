@@ -16,6 +16,7 @@ class Tienda extends Model
         'tienda_nota',
         'telefono',
         'estado',
+        'mostrar_en_visor',
     ];
 
     public function productos()
