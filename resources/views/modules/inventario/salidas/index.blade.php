@@ -5,6 +5,26 @@
     <x-slot name="pagetitle">Stock de Productos</x-slot>
 
     <div id="salidas-index">
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-body bg-light rounded">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <label for="filtro-tienda" class="form-label font-weight-bold text-muted small uppercase mb-1">
+                            <i class="fas fa-store mr-1"></i> Filtrar por Tienda
+                        </label>
+                        <b-form-select 
+                            id="filtro-tienda" 
+                            v-model="tiendaSeleccionada" 
+                            :options="opcionesTiendas"
+                            @change="actualizarTabla"
+                            size="sm"
+                            class="shadow-sm border-0"
+                        ></b-form-select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <table id="salidas-productos-table"
             class="display responsive nowrap bordered shadow dataTable dtr-inline collapsed" style="width:100%">
             <thead>
@@ -14,10 +34,10 @@
                     <th>Nombre</th>
                     <th>Alias</th>
                     <th>Stock por tienda</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
         </table>
-
          <b-modal
             id="modal-reducir-stock"
             :title="title"
@@ -105,6 +125,8 @@
                 },
                 table: null,
                 variacion: 'REDUCIR', // 'AUMENTAR' o 'REDUCIR'
+                tiendaSeleccionada: null,
+                tiendas: [],
             }
         },
         computed: {
@@ -127,79 +149,119 @@
                     { key: "comentario", label: "Comentario", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
                 ]
             },
+            opcionesTiendas() {
+                console.log('Calculando opcionesTiendas con:', this.tiendas);
+                const options = [{ value: null, text: 'Todas las Tiendas' }];
+                if (Array.isArray(this.tiendas)) {
+                    this.tiendas.forEach(t => {
+                        options.push({ value: t.id, text: t.nombre });
+                    });
+                }
+                return options;
+            }
         },
         mounted() {
-            const table = initDataTable('#salidas-productos-table', {
-                ajax: '{{ route('inventario.salidas.listado') }}',
-                order: [[0, 'desc']],
-                columns: [{
-                        data: 'id',
-                        name: 'id'
-                    },
-                    {
-                        data: 'codigo_barras',
-                        name: 'codigo_barras'
-                    },
-                    {
-                        data: 'nombre',
-                        name: 'nombre'
-                    },
-                    {
-                        data: 'alias',
-                        name: 'alias'
-                    },
-                    {
-                        data: 'tiendas',
-                        name: 'tiendas',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data) {
-                            return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`)
-                                .join('<br>');
-                        }
-                    },
-                    {
-                        data: null,
-                        name: 'action',
-                        title: 'Acciones',
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row) {
-                            return `
-                                <button class="btn btn-sm bg-danger text-white edit-btn">Reducir</button>
-                                <button class="btn btn-sm bg-success text-white aumentar-btn">Aumentar</button>
-                            `;
-                        },
-                    }
-                ],
-                layout: {
-                    topStart: {
-                        buttons: [
-                            "pageLength",
-                            "copy",
-                            "excel",
-                            "print",
-                            "colvis"
-                        ]
-                    }
-                }
-            }, this);
-
-            this.table = table;
-
-            $('#salidas-productos-table').on('click', '.edit-btn', function(e) {
-                const rowData = table.row($(this).closest('tr')).data();
-                table.vue.variacion = 'REDUCIR';
-                table.vue.editProduct(rowData);
-            });
-
-            $('#salidas-productos-table').on('click', '.aumentar-btn', function(e) {
-                const rowData = table.row($(this).closest('tr')).data();
-                table.vue.variacion = 'AUMENTAR';
-                table.vue.editProduct(rowData);
-            });
+            this.cargarTiendas();
+            this.inicializarTabla();
         },
         methods: {
+            cargarTiendas() {
+                window.api.get('{{ route('inventario.salidas.tiendas.listado') }}')
+                    .then(res => {
+                        // window.api ya retorna response.data
+                        this.tiendas = res.data || res;
+                        if (!Array.isArray(this.tiendas)) {
+                            this.tiendas = [];
+                        }
+                        console.log('Tiendas asignadas a Vue:', this.tiendas);
+                    })
+                    .catch(err => {
+                        console.error('Error al cargar tiendas:', err);
+                    });
+            },
+            inicializarTabla() {
+                const self = this;
+                const table = initDataTable('#salidas-productos-table', {
+                    ajax: {
+                        url: '{{ route('inventario.salidas.listado') }}',
+                        data: function (d) {
+                            d.tienda_id = self.tiendaSeleccionada;
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    columns: [{
+                            data: 'id',
+                            name: 'id'
+                        },
+                        {
+                            data: 'codigo_barras',
+                            name: 'codigo_barras'
+                        },
+                        {
+                            data: 'nombre',
+                            name: 'nombre'
+                        },
+                        {
+                            data: 'alias',
+                            name: 'alias'
+                        },
+                        {
+                            data: 'tiendas',
+                            name: 'tiendas',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data) {
+                                return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`)
+                                    .join('<br>');
+                            }
+                        },
+                        {
+                            data: null,
+                            name: 'action',
+                            title: 'Acciones',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                return `
+                                    <button class="btn btn-sm bg-danger text-white edit-btn">Reducir</button>
+                                    <button class="btn btn-sm bg-success text-white aumentar-btn">Aumentar</button>
+                                    <a href="{{ route('inventario.kardex.index') }}?producto_id=${row.id}" class="btn btn-sm bg-info text-white">Kardex</a>
+                                `;
+                            },
+                        }
+                    ],
+                    layout: {
+                        topStart: {
+                            buttons: [
+                                "pageLength",
+                                "copy",
+                                "excel",
+                                "print",
+                                "colvis"
+                            ]
+                        }
+                    }
+                }, this);
+
+                this.table = table;
+
+                $('#salidas-productos-table').on('click', '.edit-btn', function(e) {
+                    const rowData = table.row($(this).closest('tr')).data();
+                    table.vue.variacion = 'REDUCIR';
+                    table.vue.editProduct(rowData);
+                });
+
+                $('#salidas-productos-table').on('click', '.aumentar-btn', function(e) {
+                    const rowData = table.row($(this).closest('tr')).data();
+                    table.vue.variacion = 'AUMENTAR';
+                    table.vue.editProduct(rowData);
+                });
+            },
+            actualizarTabla() {
+                if (this.table) {
+                    this.table.ajax.reload();
+                }
+            },
             editProduct(row) {
                 this.producto = {
                     id: row.id,
@@ -213,11 +275,13 @@
                     },
                     tiendas: row.tiendas,
                 };
-                this.producto.tiendas.forEach((t) => {
-                    this.$set(t, "variacion", 0);
-                    this.$set(t, "stock_resultante", t.stock);
-                    this.$set(t, "comentario", "");
-                });
+                if (Array.isArray(this.producto.tiendas)) {
+                    this.producto.tiendas.forEach((t) => {
+                        this.$set(t, "variacion", 0);
+                        this.$set(t, "stock_resultante", t.stock);
+                        this.$set(t, "comentario", "");
+                    });
+                }
                 this.abrirModal();
             },
             abrirModal() {

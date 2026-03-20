@@ -1,7 +1,7 @@
 // pos-config.js - Configuración del sistema POS
 class POSConfig {
     static ROUTES = {
-        SEARCH_PRODUCT: "/invetario/producto/buscar",
+        SEARCH_PRODUCT: "/inventario/producto/buscar",
         PROCESS_SALE: "/punto-de-venta/venta",
         CONSULT_DNI: "/consultar-dni",
         CONSULT_RUC: "/consultar-ruc"

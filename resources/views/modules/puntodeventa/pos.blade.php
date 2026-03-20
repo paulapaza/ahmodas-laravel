@@ -329,7 +329,7 @@
 
 
             $.ajax({
-                url: "/invetario/producto/buscar",
+                url: "/inventario/producto/buscar",
                 type: "POST",
                 data: {
                     '_token': _token,

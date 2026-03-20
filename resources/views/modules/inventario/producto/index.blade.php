@@ -501,8 +501,9 @@
             async cargarHistorial() {
                 if (!this.productoIdHistorial) return;
                 try {
-                    const { data } = await window.api.get(`/inventario/salidas/historial/${this.productoIdHistorial}`);
-                    this.historial = data;
+                    const res = await window.api.get(`/inventario/salidas/historial/${this.productoIdHistorial}`);
+                    // window.api ya retorna response.data
+                    this.historial = Array.isArray(res) ? res : (res.data || []);
                 } catch (error) {
                     console.error("❌ Error al cargar historial:", error);
                     this.historial = [];
@@ -528,13 +529,14 @@
                 // Obtener la lista de tiendas desde el servidor
                 window.api.get('/inventario/salidas/tiendas/listado')
                     .then(res => {
-                        console.log('tiendas', res.data);
+                        // window.api ya retorna response.data
+                        const dataList = res.data || res;
                         this.tiendas = [
                             {
                                 id: null,
                                 nombre: 'Todas las tiendas'
                             },
-                            ...res.data
+                            ...(Array.isArray(dataList) ? dataList : [])
                         ];
                     })
                     .catch(err => {

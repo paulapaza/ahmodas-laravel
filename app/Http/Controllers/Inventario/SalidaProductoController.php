@@ -77,16 +77,23 @@ class SalidaProductoController extends Controller
     $this->salidaProductoService = $salidaProductoService;
   }
 
-  public function index()
+  public function index(Request $request)
   {
-    // Obtener todas las tiendas (una sola vez)
-    $tiendas = DB::table('tiendas')
+    $tiendaId = $request->input('tienda_id');
+
+    // Obtener todas las tiendas o solo la filtrada
+    $tiendasQuery = DB::table('tiendas')
       ->select('id', 'nombre')
-      ->orderBy('id')
-      ->get();
+      ->orderBy('id');
+    
+    if ($tiendaId) {
+        $tiendasQuery->where('id', $tiendaId);
+    }
+    
+    $tiendas = $tiendasQuery->get();
 
     // Obtener productos con su stock por tienda
-    $productos = DB::table('productos as p')
+    $productosQuery = DB::table('productos as p')
       ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
       ->leftJoin('tiendas as t', 'pt.tienda_id', '=', 't.id')
       ->select(
@@ -96,9 +103,17 @@ class SalidaProductoController extends Controller
         'p.nombre as producto_nombre',
         't.id as tienda_id',
         't.nombre as tienda_nombre',
-        DB::raw('COALESCE(pt.stock, 0) as stock') // si no hay stock, devuelve 0
-      )
-      ->orderBy('p.id')
+        DB::raw('COALESCE(pt.stock, 0) as stock') 
+      );
+
+    if ($tiendaId) {
+        $productosQuery->where(function($q) use ($tiendaId) {
+            $q->where('t.id', $tiendaId)
+              ->orWhereNull('t.id');
+        });
+    }
+
+    $productos = $productosQuery->orderBy('p.id')
       ->orderBy('t.id')
       ->get();
 

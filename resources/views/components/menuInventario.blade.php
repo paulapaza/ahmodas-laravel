@@ -23,6 +23,15 @@
     <a href="{{route('inventario.salidas.index')}}" class="nav-link">Stock</a>
 </li>
 
+<li class="nav-item dropdown">
+    <a id="dropdownTransacciones" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+        class="nav-link dropdown-toggle">Transacciones</a>
+    <ul aria-labelledby="dropdownTransacciones" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
+        <li><a href="{{route('inventario.kardex.index')}}" class="dropdown-item">Movimientos (Kardex)</a></li>
+        <li><a href="{{route('inventario.transacciones.index')}}" class="dropdown-item">Gestión de Stock</a></li>
+    </ul>
+</li>
+
 {{-- <li class="nav-item dropdown">
     <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
         class="nav-link dropdown-toggle">Informes</a>

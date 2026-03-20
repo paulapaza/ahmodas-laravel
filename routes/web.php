@@ -90,6 +90,16 @@ Route::middleware([
     Route::post('/inventario/salidas/reducir', [SalidaProductoController::class, 'store'])->name('inventario.salidas.reducir');
     Route::get('/inventario/salidas/historial/{producto_id}', [SalidaProductoController::class, 'history'])->name('inventario.salidas.historial');
 
+    // Transacciones y Kardex
+    Route::get('/inventario/transacciones', [\App\Http\Controllers\Inventario\MovimientoController::class, 'indexTransacciones'])->name('inventario.transacciones.index');
+    Route::post('/inventario/transacciones/store', [\App\Http\Controllers\Inventario\MovimientoController::class, 'storeTransaccion'])->name('inventario.transacciones.store');
+    
+    Route::get('/inventario/kardex', [\App\Http\Controllers\Inventario\MovimientoController::class, 'indexKardex'])->name('inventario.kardex.index');
+    Route::get('/inventario/kardex/datos', [\App\Http\Controllers\Inventario\MovimientoController::class, 'getKardexData'])->name('inventario.kardex.data');
+    Route::get('/inventario/producto/stock/{producto_id}/{tienda_id}', [\App\Http\Controllers\Inventario\MovimientoController::class, 'getStock'])->name('inventario.producto.stock');
+    Route::post('/inventario/transacciones/traslado-masivo', [\App\Http\Controllers\Inventario\MovimientoController::class, 'storeTrasladoMasivo'])->name('inventario.transacciones.traslado_masivo');
+    Route::get('/inventario/traslados/imprimir/{id}', [\App\Http\Controllers\Inventario\MovimientoController::class, 'imprimirTraslado'])->name('inventario.traslados.imprimir');
+
     // vistas
     Route::get('/inventario/salidas/{any?}', function () {
         return view('modules.inventario.salidas.index');
@@ -101,7 +111,7 @@ Route::middleware([
 
     Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
-    Route::post('/invetario/producto/buscar', [ProductoController::class, 'buscarProducto']);
+    Route::post('/inventario/producto/buscar', [ProductoController::class, 'buscarProducto']);
     // tiendas
     Route::view('/inventario/tiendas','modules.inventario.tienda.index')->name('inventario.tiendas.index');
     Route::resource('/inventario/tienda', TiendaController::class);

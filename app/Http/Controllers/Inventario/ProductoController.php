@@ -151,20 +151,22 @@ class ProductoController extends Controller
 
         ], 201);
     }
-    //buscarProducto
     public function buscarProducto(Request $request)
     {
+        $search = $request->input('query') ?? $request->input('stringSearch') ?? $request->input('q') ?? '';
+        $search = trim($search);
 
-        $stringBuscado = trim($request->stringSearch ?? '');
-
-        if ($stringBuscado === '') {
-            return response()->json(['error' => 'Búsqueda vacía'], 400);
+        if ($search === '') {
+            return response()->json([]);
         }
 
-        //quitar espacio adelante y atraz
-        $stringBuscado = trim($stringBuscado);
-        $productoPorCodigo = Producto::where('codigo_barras', $stringBuscado)->first();
-        return response()->json([$productoPorCodigo]);
+        $productos = Producto::where('nombre', 'LIKE', "%{$search}%")
+            ->orWhere('alias', 'LIKE', "%{$search}%")
+            ->orWhere('codigo_barras', 'LIKE', "%{$search}%")
+            ->limit(20)
+            ->get();
+
+        return response()->json($productos);
     }
     // eliminar
     public function destroy($id)
