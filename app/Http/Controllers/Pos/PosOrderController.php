@@ -207,13 +207,15 @@ class PosOrderController extends Controller
             Log::warning('Fallo envío CPE post-commit: ' . $e->getMessage());
         }
 
+        $print_error = null;
         try {
             if ($pos_order->tipo_comprobante == 12 && ($user->print_type == 'red' || $user->print_type == 'local')) {
                 $printService = new \App\Services\PrintService();
                 $printService->imprimirTicket($pos_order);
             }
         } catch (\Throwable $e) {
-            Log::warning('Fallo impresión ticket: ' . $e->getMessage());
+            $print_error = $e->getMessage();
+            Log::warning('Fallo impresión ticket: ' . $print_error);
         }
 
         return response()->json([
@@ -222,6 +224,7 @@ class PosOrderController extends Controller
             'pos_order' => $pos_order,
             'cpe_response' => $api_response,
             'print_type' => $user->print_type,
+            'print_error' => $print_error,
         ]);
     }
 
