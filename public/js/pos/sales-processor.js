@@ -119,6 +119,11 @@ class SalesProcessor {
             );
 
             if (response.success) {
+                // Impresión remota automática si se recibe el ID
+                if (response.print_id) {
+                    window.location.href = "ahmodas-print:" + response.print_id;
+                }
+
                 this.handleSuccessfulSale(response);
                 if (response.pos_order.tipo_comprobante === POSConfig.DOCUMENT_TYPES.TICKET
                     && response.print_type == 'pdf'

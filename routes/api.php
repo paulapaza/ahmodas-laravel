@@ -19,6 +19,10 @@ Route::post('/users/{user}/reset-password', [UserController::class, 'resetPasswo
 
 Route::post('/user/create-user', [UserController::class, 'store'])->name('user.createUser');
 
+use App\Http\Controllers\Pos\PrintController;
+
+Route::get('/print/order/{id}', [PrintController::class, 'getOrderTicket'])->name('print.order');
+
 // pos order
 Route::post('/productos/import-excel', [ProductoController::class, 'guardarProductosDesdeExcel'])->name('productos.importExcel');
 

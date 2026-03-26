@@ -36,6 +36,7 @@ class User extends Authenticatable
         'print_type',
         'printer_ip',
         'printer_name',
+        'device_ip',
         'restricion_precio_minimo',
         'estado',
     ];

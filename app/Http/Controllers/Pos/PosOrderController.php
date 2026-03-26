@@ -207,10 +207,21 @@ class PosOrderController extends Controller
             Log::warning('Fallo envío CPE post-commit: ' . $e->getMessage());
         }
 
+        $print_id = null;
         try {
-            if ($pos_order->tipo_comprobante == 12 && ($user->print_type == 'red' || $user->print_type == 'local')) {
-                $printService = new \App\Services\PrintService();
-                $printService->imprimirTicket($pos_order);
+            if ($pos_order->tipo_comprobante == 12) {
+                // Si la IP es la registrada para esta PC, forzamos impresión remota
+                if ($user->device_ip && $user->device_ip == request()->ip()) {
+                    $print_id = $pos_order->id;
+                    Log::info('Impresión remota forzada: ' . $print_id);
+                } else if ($user->print_type == 'red' || $user->print_type == 'local') {
+                    // Si no, intentamos la tradicional (Red o Local del Servidor)
+                    $printService = new \App\Services\PrintService();
+                    $printService->imprimirTicket($pos_order);
+                    Log::info('Impresión tradicional: ' . $pos_order->id);
+                } else {
+                    Log::info('Impresión no realizada: ' . $pos_order->id);
+                }
             }
         } catch (\Throwable $e) {
             Log::warning('Fallo impresión ticket: ' . $e->getMessage());
@@ -222,6 +233,10 @@ class PosOrderController extends Controller
             'pos_order' => $pos_order,
             'cpe_response' => $api_response,
             'print_type' => $user->print_type,
+            'print_id' => $print_id,
+            'tipo_comprobante' => $pos_order->tipo_comprobante,
+            'user_device_ip' => $user->device_ip,
+            'request_ip' => request()->ip(),
         ]);
     }
 
