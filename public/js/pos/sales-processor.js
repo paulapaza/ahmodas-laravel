@@ -120,13 +120,7 @@ class SalesProcessor {
 
             if (response.success) {
                 this.handleSuccessfulSale(response);
-
-                if (response.print_error && response.print_type !== 'pdf') {
-                    POSUtils.showError(
-                        'Error en tiquetera: ' + response.print_error, 
-                        'Revisa la conexión de la impresora física.'
-                    );
-                } else if (response.pos_order.tipo_comprobante === POSConfig.DOCUMENT_TYPES.TICKET
+                if (response.pos_order.tipo_comprobante === POSConfig.DOCUMENT_TYPES.TICKET
                     && response.print_type == 'pdf'
                 ) {
                     window.open(`/pos/imprimir-recibo/${response.pos_order.id}`, '_blank');

@@ -12,8 +12,6 @@ use Mike42\Escpos\PrintConnectors\WindowsPrintConnector; // Para Windows
 use Illuminate\Http\JsonResponse;
 use Mike42\Escpos\PrintConnectors\DummyPrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
-use Mike42\Escpos\PrintConnectors\FilePrintConnector;
-use Mike42\Escpos\CapabilityProfile;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -35,19 +33,20 @@ class PrintService
             throw new Exception("Tipo de impresora no configurado.");
         }
 
-        $profile = CapabilityProfile::load("simple"); // Compatible con Epson TM-T20III
-
         switch ($user->print_type) {
             case 'red':
+                // Verificar si la IP de la impresora está configurada
                 if (empty($user->printer_ip)) {
-                    throw new Exception("IP de impresora de red no configurada.");
+                    throw new Exception("IP o puerto de impresora de red no configurados.");
                 }
                 try {
-                    // Timeout de 2 segundos para red
-                    $connector = new NetworkPrintConnector($user->printer_ip, 9100, 2);
+
+                    $connector = new NetworkPrintConnector($user->printer_ip, 9100);
                 } catch (Exception $e) {
-                    throw new Exception("Error al conectar con la IP {$user->printer_ip}: " . $e->getMessage());
+
+                    throw new Exception("No se pudo conectar a la impresora de red: ");
                 }
+
                 break;
 
             case 'local':
@@ -58,17 +57,16 @@ class PrintService
                 break;
 
             default:
-                throw new Exception("Tipo de impresora no soportado: " . $user->print_type);
+                throw new Exception("Tipo de impresora no soportado: ");
         }
 
-        $this->printer = new Printer($connector, $profile);
+        $this->printer = new Printer($connector);
     }
     /**
-     * Imprime un ticket de venta.
-     * @param PosOrder $pos_order
-     * @return bool
-     * @throws Exception
-     */
+     * Imprime un ticket de entrada para un parqueo.
+     * @param Parqueo $parqueo Objeto Parqueo recién creado, con código QR y fecha de ingreso.
+     * @return JsonResponse Respuesta JSON indicando éxito o error.
+     * */
 
     public function imprimirTicket(PosOrder $pos_order)
     {
@@ -130,9 +128,9 @@ class PrintService
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $this->imprimirPie($printer, $pos_order);
 
-            return true;
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            throw new Exception("Error al imprimir: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()]);
         }
     }
 
