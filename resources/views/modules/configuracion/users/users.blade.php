@@ -80,6 +80,11 @@
                 <label for="printer_ip" class="form-label">IP de Impresora (RED)</label>
                 <input type="text" class="form-control" id="printer_ip" name="printer_ip">
             </div>
+
+            <div class="mb-3 col-md-6">
+                <label for="device_ip" class="form-label">IP de Dispositivo (REMOTO)</label>
+                <input type="text" class="form-control" id="device_ip" name="device_ip">
+            </div>
     </x-mymodal>
 
     <div id="users-index">

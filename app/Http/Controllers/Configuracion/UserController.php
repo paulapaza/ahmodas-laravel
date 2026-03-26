@@ -40,6 +40,7 @@ class UserController extends Controller
       $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
       $user->printer_name = $request->printer_name; // Asignamos el nombre de impresora al usuario
       $user->printer_ip = $request->printer_ip; // Asignamos la IP de impresora al usuario
+      $user->device_ip = $request->device_ip; // Asignamos la IP del dispositivo para impresión remota
       $user->save();
 
       // asignamos el rol
@@ -71,6 +72,7 @@ class UserController extends Controller
       $user->tienda_id = (int)$request->tienda_id; // Asignamos la tienda al usuario
       $user->printer_name = $request->printer_name; // Asignamos el nombre de impresora al usuario
       $user->printer_ip = $request->printer_ip; // Asignamos la IP de impresora al usuario
+      $user->device_ip = $request->device_ip; // Asignamos la IP del dispositivo para impresión remota
       $user->save();
 
       DB::table('model_has_roles')->where('model_id', $id)->delete();

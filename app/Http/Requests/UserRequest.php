@@ -49,7 +49,7 @@ class UserRequest extends FormRequest
                 Rule::unique('users')->ignore($this->id),
             ],
             'tienda' => 'regex:/^[0-9]+$/',
-            
+            'device_ip' => 'nullable|string|max:45',
         ];
     }
 
