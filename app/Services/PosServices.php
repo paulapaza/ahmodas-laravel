@@ -48,7 +48,7 @@ class PosServices
         if ($query->count() === 0) {
             throw new Exception("No se encontró CPE serie para tienda. Crea la serie en el menú <a href='/facturacion/cpe-series' style=\"color:#007bff; text-decoration:underline;\">Facturación</a>.");
         }
-        return $query->first();
+        return $query->lockForUpdate()->first();
     }
     // aumentar correlativo
     public function increase_CpeSerie(CpeSerie $cpe_serie): CpeSerie

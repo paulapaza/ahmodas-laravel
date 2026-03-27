@@ -5,7 +5,7 @@
     <div id="header">
 
         <div class="datos-institucion">
-            <img src={{ asset('img/logo-maluz.jpg') }} width="130px">
+            <img src="{{ public_path('img/logo-maluz.jpg') }}" width="130px">
             <div class="nombre">{{ $pos_order->tienda->nombre }}</div>
             <div class="direccion">{{ $pos_order->tienda->direccion }}</div>
         </div>

@@ -67,6 +67,7 @@ class SalidaProductoService
       ->where('pt.tienda_id', $tienda_id)
       ->whereIn('pt.producto_id', array_keys($productos_cantidades))
       ->select('pt.producto_id', 'pt.stock')
+      ->lockForUpdate()
       ->get();
 
     $now = now();
