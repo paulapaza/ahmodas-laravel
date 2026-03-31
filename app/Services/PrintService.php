@@ -79,6 +79,7 @@ class PrintService
             // $connector = new NetworkPrintConnector("192.168.0.100", 9100);
 
             $printer = $this->printer;
+            $printer->initialize(); // Limpia memoria de la impresora para corte exacto
             $this->imprimirCabecera($printer, $pos_order);
 
 
@@ -176,7 +177,7 @@ class PrintService
         $printer->setJustification(Printer::JUSTIFY_CENTER);
         $printer->feed(1);
         $printer->text($posOrder->tienda->ticket_nota ?? "Gracias por su compra\n");
-        $printer->feed(2);
+        $printer->feed(5); // Avance extra para superar el borde de corte
         $printer->pulse(); // abre gabeta
         $printer->cut();
         $printer->close();
