@@ -159,8 +159,7 @@
                                             class="text-primary border-bottom pb-2 mb-3 small uppercase font-weight-bold">
                                             <i class="fas"
                                                 :class="form.tipo === 'transferencia' ? 'fa-cart-plus' : 'fa-box'"></i>
-                                            @{{ form.tipo === 'transferencia' ? 'Agregar al Listado' : 'Selección de
-                                            Producto' }}
+                                            @{{ form.tipo === 'transferencia' ? 'Agregar al Listado' : 'Selección de Producto' }}
                                         </h6>
 
                                         <!-- Buscador de Producto -->
