@@ -12,14 +12,8 @@
                         <label for="filtro-tienda" class="form-label font-weight-bold text-muted small uppercase mb-1">
                             <i class="fas fa-store mr-1"></i> Filtrar por Tienda
                         </label>
-                        <b-form-select 
-                            id="filtro-tienda" 
-                            v-model="tiendaSeleccionada" 
-                            :options="opcionesTiendas"
-                            @change="actualizarTabla"
-                            size="sm"
-                            class="shadow-sm border-0"
-                        ></b-form-select>
+                        <b-form-select id="filtro-tienda" v-model="tiendaSeleccionada" :options="opcionesTiendas"
+                            @change="actualizarTabla" size="sm" class="shadow-sm border-0"></b-form-select>
                     </div>
                 </div>
             </div>
@@ -38,28 +32,15 @@
                 </tr>
             </thead>
         </table>
-         <b-modal
-            id="modal-reducir-stock"
-            :title="title"
-            ok-title="Guardar"
-            @ok.prevent="guardarCambios"
-            size="lg"
-            header-class="bg-xprimary text-white"
-            dialog-class="modal-lg"
-        >
+        <b-modal id="modal-reducir-stock" :title="title" ok-title="Guardar" @ok.prevent="guardarCambios" size="lg"
+            header-class="bg-xprimary text-white" dialog-class="modal-lg">
             <div>
-                <h5><strong v-text="producto.codigo_barras.label"></strong> <span v-text="producto.codigo_barras.value"></span></h5>
+                <h5><strong v-text="producto.codigo_barras.label"></strong> <span
+                        v-text="producto.codigo_barras.value"></span></h5>
                 <h5><strong v-text="producto.nombre.label"></strong> <span v-text="producto.nombre.value"></span></h5>
             </div>
 
-            <b-table
-                :items="producto.tiendas"
-                :fields="campos"
-                bordered
-                small
-                responsive
-                class="mt-3"
-            >
+            <b-table :items="producto.tiendas" :fields="campos" bordered small responsive class="mt-3">
                 <!-- Nombre de la tienda -->
                 <template #cell(nombre)="data">
                     @{{data.item.nombre }}
@@ -72,15 +53,9 @@
 
                 <!-- Variación -->
                 <template #cell(variacion)="data">
-                    <b-form-input
-                        type="text"
-                        v-model="data.item.variacion"
-                        @input="soloNumerosPositivos(data.item)"
-                        @focus="$event.target.select()"
-                        size="sm"
-                        style="display: inline-block; width:70px; text-align:right;"
-                        placeholder="0"
-                    />
+                    <b-form-input type="text" v-model="data.item.variacion" @input="soloNumerosPositivos(data.item)"
+                        @focus="$event.target.select()" size="sm"
+                        style="display: inline-block; width:70px; text-align:right;" placeholder="0" />
                 </template>
 
                 <!-- Stock resultante -->
@@ -90,12 +65,8 @@
 
                 <!-- Comentario -->
                 <template #cell(comentario)="data">
-                    <b-form-input
-                        type="text"
-                        v-model="data.item.comentario"
-                        placeholder="Escribe un comentario..."
-                        size="sm"
-                    />
+                    <b-form-input type="text" v-model="data.item.comentario" placeholder="Escribe un comentario..."
+                        size="sm" />
                 </template>
             </b-table>
         </b-modal>
@@ -190,45 +161,45 @@
                     },
                     order: [[0, 'desc']],
                     columns: [{
-                            data: 'id',
-                            name: 'id'
-                        },
-                        {
-                            data: 'codigo_barras',
-                            name: 'codigo_barras'
-                        },
-                        {
-                            data: 'nombre',
-                            name: 'nombre'
-                        },
-                        {
-                            data: 'alias',
-                            name: 'alias'
-                        },
-                        {
-                            data: 'tiendas',
-                            name: 'tiendas',
-                            orderable: false,
-                            searchable: false,
-                            render: function(data) {
-                                return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`)
-                                    .join('<br>');
-                            }
-                        },
-                        {
-                            data: null,
-                            name: 'action',
-                            title: 'Acciones',
-                            orderable: false,
-                            searchable: false,
-                            render: function(data, type, row) {
-                                return `
+                        data: 'id',
+                        name: 'id'
+                    },
+                    {
+                        data: 'codigo_barras',
+                        name: 'codigo_barras'
+                    },
+                    {
+                        data: 'nombre',
+                        name: 'nombre'
+                    },
+                    {
+                        data: 'alias',
+                        name: 'alias'
+                    },
+                    {
+                        data: 'tiendas',
+                        name: 'tiendas',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data) {
+                            return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`)
+                                .join('<br>');
+                        }
+                    },
+                    {
+                        data: null,
+                        name: 'action',
+                        title: 'Acciones',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return `
                                     <button class="btn btn-sm bg-danger text-white edit-btn">Reducir</button>
                                     <button class="btn btn-sm bg-success text-white aumentar-btn">Aumentar</button>
                                     <a href="{{ route('inventario.kardex.index') }}?producto_id=${row.id}" class="btn btn-sm bg-info text-white">Kardex</a>
                                 `;
-                            },
-                        }
+                        },
+                    }
                     ],
                     layout: {
                         topStart: {
@@ -245,13 +216,13 @@
 
                 this.table = table;
 
-                $('#salidas-productos-table').on('click', '.edit-btn', function(e) {
+                $('#salidas-productos-table').on('click', '.edit-btn', function (e) {
                     const rowData = table.row($(this).closest('tr')).data();
                     table.vue.variacion = 'REDUCIR';
                     table.vue.editProduct(rowData);
                 });
 
-                $('#salidas-productos-table').on('click', '.aumentar-btn', function(e) {
+                $('#salidas-productos-table').on('click', '.aumentar-btn', function (e) {
                     const rowData = table.row($(this).closest('tr')).data();
                     table.vue.variacion = 'AUMENTAR';
                     table.vue.editProduct(rowData);
@@ -333,7 +304,7 @@
                 console.log('Datos a enviar:', datos);
                 if (datos.length === 0) return;
 
-                const msg = this.variacion === 'AUMENTAR' 
+                const msg = this.variacion === 'AUMENTAR'
                     ? 'Stock aumentado correctamente.'
                     : 'Stock reducido correctamente.';
 
@@ -358,8 +329,8 @@
                             title: 'Error',
                             variant: 'danger',
                             solid: true
+                        });
                     });
-                });
             },
         },
     })

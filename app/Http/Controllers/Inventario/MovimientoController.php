@@ -13,7 +13,12 @@ class MovimientoController extends Controller
 {
     public function indexTransacciones()
     {
-        return view('modules.inventario.transacciones');
+        $user = auth()->user();
+        $tienda_id_usuario = $user->tienda_id;
+        $es_admin = $user->hasAnyRole(['Administrador', 'Super']);
+        $es_almacen = $user->hasRole('almacen');
+
+        return view('modules.inventario.transacciones', compact('tienda_id_usuario', 'es_admin', 'es_almacen'));
     }
 
     public function indexKardex()
@@ -133,7 +138,7 @@ class MovimientoController extends Controller
         }
 
         return DataTables::of($query)
-            ->editColumn('tipo', function($row) {
+            ->editColumn('tipo', function ($row) {
                 $tipos = [
                     1 => 'Salida Manual',
                     2 => 'Venta',
@@ -172,7 +177,7 @@ class MovimientoController extends Controller
 
             // Generar código único para el traslado (T-000001)
             $ultimoTraslado = Traslado::latest()->first();
-            $nuevoNumero = $ultimoTraslado ? (int)str_replace('T-', '', $ultimoTraslado->codigo) + 1 : 1;
+            $nuevoNumero = $ultimoTraslado ? (int) str_replace('T-', '', $ultimoTraslado->codigo) + 1 : 1;
             $codigo = 'T-' . str_pad($nuevoNumero, 6, '0', STR_PAD_LEFT);
 
             $traslado = Traslado::create([
@@ -199,7 +204,7 @@ class MovimientoController extends Controller
 
                 // 2. Ejecutar ajuste de stock (Salida Origen)
                 $this->ajustarStockConTraslado($productoId, $request->tienda_origen_id, -$cantidad, 4, "Traslado $codigo a tienda " . $request->tienda_destino_id, $traslado->id);
-                
+
                 // 3. Ejecutar ajuste de stock (Ingreso Destino)
                 $this->ajustarStockConTraslado($productoId, $request->tienda_destino_id, $cantidad, 5, "Traslado $codigo desde tienda " . $request->tienda_origen_id, $traslado->id);
             }

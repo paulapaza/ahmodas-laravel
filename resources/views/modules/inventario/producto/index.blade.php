@@ -41,8 +41,8 @@
             </div>
             <div class="form-group col-3">
                 <label for="precio_unitario" class="form-label text-xaccent">Precio Venta </label>
-                <input type="number" class="form-control" id="precio_unitario" name="precio_unitario"
-                    autocomplete="off" required step="0.01">
+                <input type="number" class="form-control" id="precio_unitario" name="precio_unitario" autocomplete="off"
+                    required step="0.01">
             </div>
 
             <div class="form-group col-3">
@@ -116,110 +116,94 @@
     </x-mymodal>
 
     <div id="productos-index">
-        <div
-            class="modal fade"
-            id="modal-historial-salidas"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="tituloHistorial"
-            aria-hidden="true"
-        >
+        <div class="modal fade" id="modal-historial-salidas" tabindex="-1" role="dialog"
+            aria-labelledby="tituloHistorial" aria-hidden="true">
             <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <!-- HEADER -->
-                <div class="modal-header bg-xprimary text-white">
-                    <h5 style="margin-bottom: 0; line-height: 1.5;" id="tituloHistorial">
-                        Historial de stock
-                    </h5>
-                    <button
-                        type="button"
-                        class="close text-white"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                    >
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <!-- BODY -->
-                <div class="modal-body">
-                    <div class="d-flex justify-content-between">
-                        <div v-if="producto">
-                            <h6><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h6>
-                            <h6><strong>Nombre:</strong> @{{producto.nombre }}</h6>
-                        </div>
-                        <b-form-group label-for="tienda-select">
-                            <b-form-select
-                                id="tienda-select"
-                                v-model="selectedTienda"
-                                :options="tiendas"
-                                value-field="id"
-                                text-field="nombre"
-                            ></b-form-select>
-                        </b-form-group>
+                <div class="modal-content">
+                    <!-- HEADER -->
+                    <div class="modal-header bg-xprimary text-white">
+                        <h5 style="margin-bottom: 0; line-height: 1.5;" id="tituloHistorial">
+                            Historial de stock
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th class="text-center align-middle">Tienda</th>
-                                    <th class="text-center align-middle">Stock anterior</th>
-                                    <th class="text-center align-middle">Variación</th>
-                                    <th class="text-center align-middle">Stock resultante</th>
-                                    <th class="text-center align-middle">Tipo</th>
-                                    <th class="text-center align-middle">Comentario</th>
-                                    <th class="text-center align-middle">Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(item, index) in filteredHistorial" :key="item.id">
-                                    <td class="text-center align-middle">@{{ item.tienda_nombre }}</td>
-                                    <td class="text-center align-middle">@{{ item.stock_antes }}</td>
-                                    <td class="text-center align-middle">
-                                        @{{ item.cantidad_reducida }}
-                                        <i class="fa-solid fa-arrow-down text-danger" v-if="[1, 2].includes(item.tipo)"></i>
-                                        <i class="fa-solid fa-arrow-up text-success" v-if="[3, 4].includes(item.tipo)"></i>
-                                    </td>
-                                    <td class="text-center align-middle">@{{ item.stock_despues }}</td>
-                                    <td class="text-center align-middle">
-                                        <span class="badge badge-secondary" v-if="item.tipo === 1">Salida</span>
-                                        <span class="badge badge-warning" v-else-if="item.tipo === 2">Venta</span>
-                                        <span class="badge badge-primary" v-else-if="item.tipo === 3">Ingreso</span>
-                                        <span class="badge badge-info" v-else-if="item.tipo === 4">Anulacion</span>
-                                        <span v-else>-</span>
-                                    </td>
-                                    <td class="text-center align-middle" style="width: 300px">
-                                        <div style="
+
+                    <!-- BODY -->
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-between">
+                            <div v-if="producto">
+                                <h6><strong>Código de barras:</strong> @{{producto.codigo_barras }}</h6>
+                                <h6><strong>Nombre:</strong> @{{producto.nombre }}</h6>
+                            </div>
+                            <b-form-group label-for="tienda-select">
+                                <b-form-select id="tienda-select" v-model="selectedTienda" :options="tiendas"
+                                    value-field="id" text-field="nombre"></b-form-select>
+                            </b-form-group>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="text-center align-middle">Tienda</th>
+                                        <th class="text-center align-middle">Stock anterior</th>
+                                        <th class="text-center align-middle">Variación</th>
+                                        <th class="text-center align-middle">Stock resultante</th>
+                                        <th class="text-center align-middle">Tipo</th>
+                                        <th class="text-center align-middle">Comentario</th>
+                                        <th class="text-center align-middle">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in filteredHistorial" :key="item.id">
+                                        <td class="text-center align-middle">@{{ item.tienda_nombre }}</td>
+                                        <td class="text-center align-middle">@{{ item.stock_antes }}</td>
+                                        <td class="text-center align-middle">
+                                            @{{ item.cantidad_reducida }}
+                                            <i class="fa-solid fa-arrow-down text-danger"
+                                                v-if="[1, 2].includes(item.tipo)"></i>
+                                            <i class="fa-solid fa-arrow-up text-success"
+                                                v-if="[3, 4].includes(item.tipo)"></i>
+                                        </td>
+                                        <td class="text-center align-middle">@{{ item.stock_despues }}</td>
+                                        <td class="text-center align-middle">
+                                            <span class="badge badge-secondary" v-if="item.tipo === 1">Salida</span>
+                                            <span class="badge badge-warning" v-else-if="item.tipo === 2">Venta</span>
+                                            <span class="badge badge-primary" v-else-if="item.tipo === 3">Ingreso</span>
+                                            <span class="badge badge-info" v-else-if="item.tipo === 4">Anulacion</span>
+                                            <span v-else>-</span>
+                                        </td>
+                                        <td class="text-center align-middle" style="width: 300px">
+                                            <div style="
                                                 max-width: 300px;
                                                 white-space: nowrap;
                                                 overflow-x: auto;
                                                 display: block;
                                                 padding-bottom: 6px;
-                                            "
-                                            v-html="item.comentario"
-                                        >
-                                        </div>
-                                    </td>
-                                    <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
-                                </tr>
+                                            " v-html="item.comentario">
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
+                                    </tr>
 
-                                <tr v-if="historial.length === 0">
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                    No hay registros de reducciones para este producto.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    <tr v-if="historial.length === 0">
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            No hay registros de reducciones para este producto.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </div>
 
 </x-admin-layout>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
 
 
         let csrf = $('input[name="_token"]').val();
@@ -233,62 +217,62 @@
         let table = new Larajax({
             data: dataCrud,
             columns: [{
-                    data: 'id'
-                },
-                {
-                    data: 'codigo_barras',
-                },
-                {
-                    data: 'nombre',
-                    className: 'col-nombre-producto'
+                data: 'id'
+            },
+            {
+                data: 'codigo_barras',
+            },
+            {
+                data: 'nombre',
+                className: 'col-nombre-producto'
 
+            },
+            {
+                data: 'alias'
+            },
+            {
+                data: 'total_stock',
+                render: function (data, type, row) {
+                    if (data === 0 || data === "0" || row.tiene_salida === 0) {
+                        return data;
+                    } else {
+                        return `<span class="edit-btn text-primary" style="cursor: pointer">${data}</span>`;
+                    }
                 },
-                {
-                    data: 'alias'
-                },
-                {
-                    data: 'total_stock',
-                    render: function (data, type, row) {
-                        if (data === 0 || data === "0" || row.tiene_salida === 0) {
-                            return data;
-                        } else {
-                            return `<span class="edit-btn text-primary" style="cursor: pointer">${data}</span>`;
-                        }
-                    },
-                },
-                {
-                    data: 'costo_unitario'
-                },
-                {
-                    data: 'precio_unitario'
-                },
+            },
+            {
+                data: 'costo_unitario'
+            },
+            {
+                data: 'precio_unitario'
+            },
 
-                {
-                    data: 'precio_minimo'
-                },
-                {
-                    data: 'precio_x_mayor',
-                    visible: window.currentUserPermissions?.includes('ver-precio-x-mayor') //
-                },
-                {
-                    data: 'categoria_id',
-                    render: function (data, type, row) {
-                        return row.categoria_nombre;
-                    }
-                },
-                {
-                    data: 'created_at',
-                    render: function (data, type, row) {
-                        return row.created_at;
-                    }
-                },
-                {
-                    data: 'estado',
-                    render: function(data, type, row) {
-                        return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' :
-                            '<span class="badge bg-xsecondary text-white">Inactivo</span>'
-                    }
-                },
+            {
+                data: 'precio_minimo'
+            },
+            {
+                data: 'precio_x_mayor',
+                visible: window.currentUserPermissions?.includes('ver-precio-x-mayor') //
+            },
+            {
+                data: 'categoria_id',
+                render: function (data, type, row) {
+                    return row.categoria_nombre;
+                }
+            },
+            {
+                data: 'created_at',
+                render: function (data, type, row) {
+                    return row.created_at;
+                }
+            },
+            {
+                data: 'estado',
+                render: function (data, type, row) {
+                    return (data == 1) ? '<span class="badge bg-xsuccess">Activo</span>' :
+                        '<span class="badge bg-xsecondary text-white">Inactivo</span>'
+                }
+            },
 
             ],
             actionsButtons: {
@@ -311,7 +295,7 @@
              edit_record(rowData, table, $(this));
          
          }); */
-        $('#table').on('click', '.btn-edit', async function() {
+        $('#table').on('click', '.btn-edit', async function () {
             let rowData = ($(this).parents('tr').hasClass('child')) ?
                 table.row($(this).parents().prev('tr')).data() :
                 table.row($(this).parents('tr')).data();
@@ -322,7 +306,7 @@
         });
 
         // store record
-        $(document).on('click', '.btn-store', function() {
+        $(document).on('click', '.btn-store', function () {
 
             no_send_form('#form');
 
@@ -343,7 +327,7 @@
         });
 
         // destroy record
-        $('#table').on("click", ".btn-destroy", function() {
+        $('#table').on("click", ".btn-destroy", function () {
             console.log('destroy')
 
             let rowData = ($(this).parents('tr').hasClass('child')) ?
@@ -358,7 +342,7 @@
             url: '/inventario/categoria',
             type: 'GET',
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 let html = '';
                 data.forEach(element => {
                     if (element.id == 1) {
@@ -376,7 +360,7 @@
             url: '/inventario/marca',
             type: 'GET',
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 let html = '';
                 data.forEach(element => {
                     if (element.id == 1) {
@@ -426,7 +410,7 @@
                     },
                     type: 'GET',
                     dataType: 'json',
-                    success: function(data) {
+                    success: function (data) {
                         let html = '';
                         data.forEach(tienda => {
 
@@ -443,7 +427,7 @@
                         $('#stocks_por_tienda').html(html);
                         resolve(); // <- resuelve la promesa después de completar
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         reject(error); // <- en caso de error
                     }
                 });
@@ -485,7 +469,7 @@
         },
         mounted() {
             const vm = this;
-            $('#table').on('click', '.edit-btn', function() {
+            $('#table').on('click', '.edit-btn', function () {
                 const rowData = window.productosIndexTable.row($(this).closest('tr')).data();
                 vm.abrirHistorial(rowData);
             });

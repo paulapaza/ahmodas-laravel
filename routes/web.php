@@ -32,8 +32,10 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    Route::get('/admin', function () {return view('layouts.admin');})->name('adminpanel');
-    Route::get('/facturacion', function () {return view('facturacion.home');})->name('facturacion.home');
+    Route::get('/admin', function () {
+        return view('layouts.admin'); })->name('adminpanel');
+    Route::get('/facturacion', function () {
+        return view('facturacion.home'); })->name('facturacion.home');
     /*************************
      Punto de Venta
      ************************/
@@ -58,7 +60,7 @@ Route::middleware([
     Route::view('/ventas', 'modules.ventas.main')->name('ventas.main');
     // ventas
     Route::view('/ventas/ventas', 'modules.ventas.posorder.index')->name('ventas.posorder.index');
-    Route::resource('ventas/posorder', PosOrderController::class)->only(['index','show']);
+    Route::resource('ventas/posorder', PosOrderController::class)->only(['index', 'show']);
     Route::get('ventas/posorder/{fecha_inicio?}/{fecha_fin?}', [posOrderController::class, 'indexByDate'])->name('playa.parqueo.indexByDate  ');
     // put for cancelhttp://svp.test/ventas/posorder/cancel/15 405 (Method Not Allowed)
     Route::put('/ventas/posorder/cancel/{id}', [PosOrderController::class, 'cancel'])->name('ventas.posorder.cancel');
@@ -73,14 +75,14 @@ Route::middleware([
     Route::post('/ventas/nota-de-credito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadecredito');
     Route::post('/ventas/nota-de-debito/{id}', [PosOrderController::class, 'emitirNota'])->name('ventas.posorder.notadebito');
     //consultar estado del CPE
-    Route::get('/consultar-estado-cpe/{cpe_id}', [PosOrderController::class, 'consultarEstadoCpe'])->name('ventas.posorder.consultarEstadoCpe');    
+    Route::get('/consultar-estado-cpe/{cpe_id}', [PosOrderController::class, 'consultarEstadoCpe'])->name('ventas.posorder.consultarEstadoCpe');
     Route::POST('/comunicar-baja', [PosOrderController::class, 'comunicarBajaCpe'])->name('comunicarBajaCpe');
     Route::get('/consultar-cumunicacion-de-baja/{cpe_id}', [PosOrderController::class, 'consultarComunicacionBaja'])->name('consultarComunicacionBaja');
     /*************************
      MODULO DE INVENTARIO
-     ************************/ 
-    Route::view('/inventario','modules.inventario.main')->name('inventario.main');
-    
+     ************************/
+    Route::view('/inventario', 'modules.inventario.main')->name('inventario.main');
+
     /*=================================
     =            productos            =
     =================================*/
@@ -93,7 +95,7 @@ Route::middleware([
     // Transacciones y Kardex
     Route::get('/inventario/transacciones', [\App\Http\Controllers\Inventario\MovimientoController::class, 'indexTransacciones'])->name('inventario.transacciones.index');
     Route::post('/inventario/transacciones/store', [\App\Http\Controllers\Inventario\MovimientoController::class, 'storeTransaccion'])->name('inventario.transacciones.store');
-    
+
     Route::get('/inventario/kardex', [\App\Http\Controllers\Inventario\MovimientoController::class, 'indexKardex'])->name('inventario.kardex.index');
     Route::get('/inventario/kardex/datos', [\App\Http\Controllers\Inventario\MovimientoController::class, 'getKardexData'])->name('inventario.kardex.data');
     Route::get('/inventario/producto/stock/{producto_id}/{tienda_id}', [\App\Http\Controllers\Inventario\MovimientoController::class, 'getStock'])->name('inventario.producto.stock');
@@ -109,52 +111,52 @@ Route::middleware([
     =            ventas            =
     ==============================*/
 
-    Route::view('/inventario/productos','modules.inventario.producto.index')->name('inventario.productos.index');
+    Route::view('/inventario/productos', 'modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/inventario/producto/buscar', [ProductoController::class, 'buscarProducto']);
     // tiendas
-    Route::view('/inventario/tiendas','modules.inventario.tienda.index')->name('inventario.tiendas.index');
+    Route::view('/inventario/tiendas', 'modules.inventario.tienda.index')->name('inventario.tiendas.index');
     Route::resource('/inventario/tienda', TiendaController::class);
     Route::get('/inventario/tiendas/listar-productos', [ProductoController::class, 'productosTienda']);
 
     // categorias
-    Route::view('/inventario/categorias','modules.inventario.categoria.index')->name('inventario.categorias.index');
+    Route::view('/inventario/categorias', 'modules.inventario.categoria.index')->name('inventario.categorias.index');
     Route::resource('/inventario/categoria', CategoriaController::class);
     // marcas
-    Route::view('/inventario/marcas','modules.inventario.marca.index')->name('inventario.marcas.index');
+    Route::view('/inventario/marcas', 'modules.inventario.marca.index')->name('inventario.marcas.index');
     Route::resource('/inventario/marca', MarcaController::class)->except(['show, create, edit']);
 
-    
+
     // stock
     Route::get('/inventario/stock', [StockController::class, 'tiendasConStock']);
     /*************************
      MODULO DE FACTURACION
      ************************/
-    Route::view('/facturacion','modules.facturacion.main')->name('facturacion.main');
-    
+    Route::view('/facturacion', 'modules.facturacion.main')->name('facturacion.main');
+
 
     //cep_serie
-    Route::get('/facturacion/serie', [CpeSerieController::class,'index'])->name('cpe.serie.index');
-    Route::get('/facturacion/serie/{id}', [CpeSerieController::class,'getCorrelativo'])->name('cpe.serie.getCorrelativo');
-    Route::post('/facturacion/serie-correlativo', [CpeSerieController::class,'getSerieCorrelativo'])->name('cpe.serie.getSerieCorrelativo');
-    Route::view('/facturacion/cpe-series', 'modules.facturacion.CpeSeries')->name('facturacion.configuracion.cpe.serie.list'); 
+    Route::get('/facturacion/serie', [CpeSerieController::class, 'index'])->name('cpe.serie.index');
+    Route::get('/facturacion/serie/{id}', [CpeSerieController::class, 'getCorrelativo'])->name('cpe.serie.getCorrelativo');
+    Route::post('/facturacion/serie-correlativo', [CpeSerieController::class, 'getSerieCorrelativo'])->name('cpe.serie.getSerieCorrelativo');
+    Route::view('/facturacion/cpe-series', 'modules.facturacion.CpeSeries')->name('facturacion.configuracion.cpe.serie.list');
     Route::resource('/facturacion/cpe-serie', CpeSerieController::class);
 
-   
+
     /*************************
      MODULO DE CONFIGURACION
-     ************************/    
-    Route::view('/configuracion','modules.configuracion.main')->name('configuracion.main');
+     ************************/
+    Route::view('/configuracion', 'modules.configuracion.main')->name('configuracion.main');
     // ajustes generales
-    Route::view('/configuracion/general','modules.configuracion.ajustesgenerales.show')->name('configuracion.ajustesGenerales.show');
+    Route::view('/configuracion/general', 'modules.configuracion.ajustesgenerales.show')->name('configuracion.ajustesGenerales.show');
     // configuracion de usuarios
     //Route::view('/configuracion/usuarios', 'modules.configuracion.users.index')->name('configuracion.usuarios.index');
     //Route::resource('/configuracion/user', UserController::class);
- 
+
     /*************************
      MODULO DE Usuarios roles y permisos
-     ************************/ 
-      
+     ************************/
+
     Route::get('/usuarios', function () {
         return view('modules.configuracion.users.users');
     })->name('users');
@@ -169,8 +171,9 @@ Route::middleware([
     route::get('/user/resetpassword/{id}', [UserController::class, 'resetPassword'])->name('user.resetpassword');
 
     //rutas para roles
-    Route::get('/roles', function () {return view('modules.configuracion.users.roles');})->name('roles');
-    
+    Route::get('/roles', function () {
+        return view('modules.configuracion.users.roles'); })->name('roles');
+
 
     Route::get('/role', [RoleController::class, 'index'])->name('role.index');
     Route::post('/role', [RoleController::class, 'store'])->name('role.store');
@@ -186,16 +189,15 @@ Route::middleware([
     Route::post('/permission', [PermissionController::class, 'store'])->name('permission.store');
     Route::get('/permission/{id}', [PermissionController::class, 'show'])->name('permission.show');
     Route::patch('/permission/{id}', [PermissionController::class, 'update'])->name('permission.update');
-    Route::delete('/permission/{id}', [PermissionController::class, 'destroy'])->name('permission.destroy');  
+    Route::delete('/permission/{id}', [PermissionController::class, 'destroy'])->name('permission.destroy');
 
     // api de consulta ruc y dni
     Route::get('/consultar-ruc/{ruc}', [ApiConsultaController::class, 'consultarRuc'])->name('consultar.ruc');
-    Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');  
+    Route::get('/consultar-dni/{dni}', [ApiConsultaController::class, 'consultarDni'])->name('consultar.dni');
 
-   // ruta de impresion de ticket
-   Route::get('/pos/imprimir-recibo/{id}', [PosOrderController::class, 'mostrarRecibo'])->name('posorder.imprimirRecibo');
+    // ruta de impresion de ticket
+    Route::get('/pos/imprimir-recibo/{id}', [PosOrderController::class, 'mostrarRecibo'])->name('posorder.imprimirRecibo');
 
 });
 
-    
-    
+

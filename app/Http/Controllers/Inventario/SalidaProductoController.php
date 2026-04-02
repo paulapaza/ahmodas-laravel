@@ -85,11 +85,11 @@ class SalidaProductoController extends Controller
     $tiendasQuery = DB::table('tiendas')
       ->select('id', 'nombre')
       ->orderBy('id');
-    
+
     if ($tiendaId) {
-        $tiendasQuery->where('id', $tiendaId);
+      $tiendasQuery->where('id', $tiendaId);
     }
-    
+
     $tiendas = $tiendasQuery->get();
 
     // Obtener productos con su stock por tienda
@@ -103,14 +103,14 @@ class SalidaProductoController extends Controller
         'p.nombre as producto_nombre',
         't.id as tienda_id',
         't.nombre as tienda_nombre',
-        DB::raw('COALESCE(pt.stock, 0) as stock') 
+        DB::raw('COALESCE(pt.stock, 0) as stock')
       );
 
     if ($tiendaId) {
-        $productosQuery->where(function($q) use ($tiendaId) {
-            $q->where('t.id', $tiendaId)
-              ->orWhereNull('t.id');
-        });
+      $productosQuery->where(function ($q) use ($tiendaId) {
+        $q->where('t.id', $tiendaId)
+          ->orWhereNull('t.id');
+      });
     }
 
     $productos = $productosQuery->orderBy('p.id')
@@ -187,7 +187,7 @@ class SalidaProductoController extends Controller
     } catch (\Throwable $e) {
       DB::rollBack();
       return response()->json([
-        'error'  => 'Error al registrar las salidas',
+        'error' => 'Error al registrar las salidas',
         'detail' => $e->getMessage(),
       ], 500);
     }
@@ -219,7 +219,8 @@ class SalidaProductoController extends Controller
     return response()->json(['data' => $salidas], 201);
   }
 
-  public function getListadoTiendas() {
+  public function getListadoTiendas()
+  {
     $tiendas = DB::table('tiendas')
       ->select('id', 'nombre')
       ->orderBy('nombre')

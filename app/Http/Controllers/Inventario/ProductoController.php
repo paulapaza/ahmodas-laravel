@@ -14,202 +14,202 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductoController extends Controller
 {
-    public function index()
-    {
-        $productos = DB::table('productos as p')
-            ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
-            ->join('marcas as m', 'p.marca_id', '=', 'm.id')
-            ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
-            ->select(
-                'p.id',
-                'p.codigo_barras',
-                'p.nombre',
-                'p.alias',
-                'p.costo_unitario',
-                'p.precio_unitario',
-                'p.precio_minimo',
-                'p.categoria_id',
-                'p.marca_id',
-                'p.precio_x_mayor',
-                'p.tipo_de_igv',
-                'p.moneda',
-                'p.estado',
-                'p.created_at',
-                'c.nombre as categoria_nombre',
-                'm.nombre as marca_nombre',
-                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock'),
-                DB::raw("EXISTS (SELECT 1 FROM salida_productos sp WHERE sp.producto_id = p.id) as tiene_salida")
-            )
-            ->groupBy(
-                'p.id',
-                'p.codigo_barras',
-                'p.nombre',
-                'p.alias',
-                'p.costo_unitario',
-                'p.precio_unitario',
-                'p.precio_minimo',
-                'p.categoria_id',
-                'p.marca_id',
-                'p.precio_x_mayor',
-                'p.tipo_de_igv',
-                'p.moneda',
-                'p.estado',
-                'p.created_at',
-                'c.nombre',
-                'm.nombre'
-            )
-            ->orderBy('p.nombre')
-            ->get();
+  public function index()
+  {
+    $productos = DB::table('productos as p')
+      ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
+      ->join('marcas as m', 'p.marca_id', '=', 'm.id')
+      ->leftJoin('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
+      ->select(
+        'p.id',
+        'p.codigo_barras',
+        'p.nombre',
+        'p.alias',
+        'p.costo_unitario',
+        'p.precio_unitario',
+        'p.precio_minimo',
+        'p.categoria_id',
+        'p.marca_id',
+        'p.precio_x_mayor',
+        'p.tipo_de_igv',
+        'p.moneda',
+        'p.estado',
+        'p.created_at',
+        'c.nombre as categoria_nombre',
+        'm.nombre as marca_nombre',
+        DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock'),
+        DB::raw("EXISTS (SELECT 1 FROM salida_productos sp WHERE sp.producto_id = p.id) as tiene_salida")
+      )
+      ->groupBy(
+        'p.id',
+        'p.codigo_barras',
+        'p.nombre',
+        'p.alias',
+        'p.costo_unitario',
+        'p.precio_unitario',
+        'p.precio_minimo',
+        'p.categoria_id',
+        'p.marca_id',
+        'p.precio_x_mayor',
+        'p.tipo_de_igv',
+        'p.moneda',
+        'p.estado',
+        'p.created_at',
+        'c.nombre',
+        'm.nombre'
+      )
+      ->orderBy('p.nombre')
+      ->get();
 
-        return response()->json($productos, 200);
-    }
-    //show
-    public function show($id)
-    {
-        $producto = Producto::find($id);
+    return response()->json($productos, 200);
+  }
+  //show
+  public function show($id)
+  {
+    $producto = Producto::find($id);
 
-        return response()->json($producto, 200);
-    }
-    public function store(ProductoRequest $request)
-    {
+    return response()->json($producto, 200);
+  }
+  public function store(ProductoRequest $request)
+  {
 
-        $producto = new Producto();
-        $producto->uid = $request->uid;
-        $producto->codigo_barras = $request->codigo_barras;
-        $producto->nombre = $request->nombre;
-        $producto->alias = $request->alias;
-        $producto->costo_unitario = $request->costo_unitario;
-        $producto->precio_unitario = $request->precio_unitario;
-        $producto->precio_minimo = $request->precio_minimo;
-        $producto->precio_x_mayor = $request->precio_x_mayor;
-        $producto->marca_id = $request->marca_id;
-        $producto->categoria_id = $request->categoria_id;
-        $producto->tipo_de_igv = $request->tipo_de_igv;
-        $producto->save();
+    $producto = new Producto();
+    $producto->uid = $request->uid;
+    $producto->codigo_barras = $request->codigo_barras;
+    $producto->nombre = $request->nombre;
+    $producto->alias = $request->alias;
+    $producto->costo_unitario = $request->costo_unitario;
+    $producto->precio_unitario = $request->precio_unitario;
+    $producto->precio_minimo = $request->precio_minimo;
+    $producto->precio_x_mayor = $request->precio_x_mayor;
+    $producto->marca_id = $request->marca_id;
+    $producto->categoria_id = $request->categoria_id;
+    $producto->tipo_de_igv = $request->tipo_de_igv;
+    $producto->save();
 
-        $stocks = $request->input('stocks', []);
+    $stocks = $request->input('stocks', []);
 
-        foreach ($stocks as $tiendaId => $stock) {
-            //SI EL STOK ES NULL O VACIO, SE ASIGNA 0
-            if (is_null($stock) || $stock === '') {
-                $stock = 0;
-            }
-            $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
-        }
-
-        return response()->json([
-            "success" => true,
-            "message" => "Producto creado correctamente",
-
-        ], 201);
-    }
-    //update
-    public function update(ProductoRequest  $request, $id)
-    {
-        $producto = Producto::find($id);
-        if (!$producto) {
-            return response()->json([
-                "success" => false,
-                "message" => "Producto no encontrado",
-            ], 404);
-        }
-        $producto->codigo_barras = $request->codigo_barras;
-        $producto->nombre = $request->nombre;
-        $producto->alias = $request->alias;
-        $producto->costo_unitario = $request->costo_unitario;
-        $producto->precio_unitario = $request->precio_unitario;
-        $producto->precio_minimo = $request->precio_minimo;
-        $producto->precio_x_mayor = $request->precio_x_mayor;
-        $producto->marca_id = $request->marca_id;
-        $producto->categoria_id = $request->categoria_id;
-        $producto->tipo_de_igv = $request->tipo_de_igv;
-        $producto->save();
-        // Actualizar stocks
-        $stocks = $request->input('stocks', []);
-        foreach ($stocks as $tiendaId => $stock) {
-            // Verificar si la tienda ya está asociada al producto
-            if ($producto->tiendas()->where('tienda_id', $tiendaId)->exists()) {
-                // Actualizar stock existente
-                $producto->tiendas()->updateExistingPivot($tiendaId, ['stock' => $stock]);
-            } else {
-                // Asociar nueva tienda con stock
-                $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
-            }
-        }
-        // Eliminar tiendas que no están en el request
-        $tiendasExistentes = $producto->tiendas->pluck('id')->toArray();
-        $tiendasRequest = array_keys($stocks);
-        $tiendasAEliminar = array_diff($tiendasExistentes, $tiendasRequest);
-        foreach ($tiendasAEliminar as $tiendaId) {
-            $producto->tiendas()->detach($tiendaId);
-        }
-
-
-        return response()->json([
-            "success" => true,
-            "message" => "Producto actualizado correctamente",
-
-        ], 201);
-    }
-    public function buscarProducto(Request $request)
-    {
-        $search = $request->input('query') ?? $request->input('stringSearch') ?? $request->input('q') ?? '';
-        $search = trim($search);
-
-        if ($search === '') {
-            return response()->json([]);
-        }
-
-        $productos = Producto::where('nombre', 'LIKE', "%{$search}%")
-            ->orWhere('alias', 'LIKE', "%{$search}%")
-            ->orWhere('codigo_barras', 'LIKE', "%{$search}%")
-            ->limit(20)
-            ->get();
-
-        return response()->json($productos);
-    }
-    // eliminar
-    public function destroy($id)
-    {
-        $producto = Producto::find($id);
-        if (!$producto) {
-            return response()->json([
-                "success" => false,
-                "message" => "Producto no encontrado",
-            ], 404);
-        }
-        // Eliminar las relaciones con tiendas
-        $producto->tiendas()->detach();
-        // Eliminar el producto
-        $producto->delete();
-
-        return response()->json([
-            "success" => true,
-            "message" => "Producto eliminado correctamente",
-        ]);
+    foreach ($stocks as $tiendaId => $stock) {
+      //SI EL STOK ES NULL O VACIO, SE ASIGNA 0
+      if (is_null($stock) || $stock === '') {
+        $stock = 0;
+      }
+      $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
     }
 
-    public function productosTienda()
-    {
-        $tiendaId = Auth::user()->tienda_id;
+    return response()->json([
+      "success" => true,
+      "message" => "Producto creado correctamente",
 
-        $productos = DB::table('productos as p')
-            ->join('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
-            ->where('pt.tienda_id', $tiendaId)
-            ->select(
-                'p.id',
-                'p.nombre',
-                'p.alias',
-                'p.precio_unitario',
-                'p.precio_minimo',
-                'p.precio_x_mayor',
-                DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
-            )
-            ->groupBy('p.id', 'p.nombre', 'p.alias', 'p.precio_unitario', 'p.precio_minimo', 'p.precio_x_mayor')
-            ->get();
-
-        return response()->json($productos, 200);
+    ], 201);
+  }
+  //update
+  public function update(ProductoRequest $request, $id)
+  {
+    $producto = Producto::find($id);
+    if (!$producto) {
+      return response()->json([
+        "success" => false,
+        "message" => "Producto no encontrado",
+      ], 404);
     }
+    $producto->codigo_barras = $request->codigo_barras;
+    $producto->nombre = $request->nombre;
+    $producto->alias = $request->alias;
+    $producto->costo_unitario = $request->costo_unitario;
+    $producto->precio_unitario = $request->precio_unitario;
+    $producto->precio_minimo = $request->precio_minimo;
+    $producto->precio_x_mayor = $request->precio_x_mayor;
+    $producto->marca_id = $request->marca_id;
+    $producto->categoria_id = $request->categoria_id;
+    $producto->tipo_de_igv = $request->tipo_de_igv;
+    $producto->save();
+    // Actualizar stocks
+    $stocks = $request->input('stocks', []);
+    foreach ($stocks as $tiendaId => $stock) {
+      // Verificar si la tienda ya está asociada al producto
+      if ($producto->tiendas()->where('tienda_id', $tiendaId)->exists()) {
+        // Actualizar stock existente
+        $producto->tiendas()->updateExistingPivot($tiendaId, ['stock' => $stock]);
+      } else {
+        // Asociar nueva tienda con stock
+        $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
+      }
+    }
+    // Eliminar tiendas que no están en el request
+    $tiendasExistentes = $producto->tiendas->pluck('id')->toArray();
+    $tiendasRequest = array_keys($stocks);
+    $tiendasAEliminar = array_diff($tiendasExistentes, $tiendasRequest);
+    foreach ($tiendasAEliminar as $tiendaId) {
+      $producto->tiendas()->detach($tiendaId);
+    }
+
+
+    return response()->json([
+      "success" => true,
+      "message" => "Producto actualizado correctamente",
+
+    ], 201);
+  }
+  public function buscarProducto(Request $request)
+  {
+    $search = $request->input('query') ?? $request->input('stringSearch') ?? $request->input('q') ?? '';
+    $search = trim($search);
+
+    if ($search === '') {
+      return response()->json([]);
+    }
+
+    $productos = Producto::where('nombre', 'LIKE', "%{$search}%")
+      ->orWhere('alias', 'LIKE', "%{$search}%")
+      ->orWhere('codigo_barras', 'LIKE', "%{$search}%")
+      ->limit(20)
+      ->get();
+
+    return response()->json($productos);
+  }
+  // eliminar
+  public function destroy($id)
+  {
+    $producto = Producto::find($id);
+    if (!$producto) {
+      return response()->json([
+        "success" => false,
+        "message" => "Producto no encontrado",
+      ], 404);
+    }
+    // Eliminar las relaciones con tiendas
+    $producto->tiendas()->detach();
+    // Eliminar el producto
+    $producto->delete();
+
+    return response()->json([
+      "success" => true,
+      "message" => "Producto eliminado correctamente",
+    ]);
+  }
+
+  public function productosTienda()
+  {
+    $tiendaId = Auth::user()->tienda_id;
+
+    $productos = DB::table('productos as p')
+      ->join('producto_tienda as pt', 'p.id', '=', 'pt.producto_id')
+      ->where('pt.tienda_id', $tiendaId)
+      ->select(
+        'p.id',
+        'p.nombre',
+        'p.alias',
+        'p.precio_unitario',
+        'p.precio_minimo',
+        'p.precio_x_mayor',
+        DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
+      )
+      ->groupBy('p.id', 'p.nombre', 'p.alias', 'p.precio_unitario', 'p.precio_minimo', 'p.precio_x_mayor')
+      ->get();
+
+    return response()->json($productos, 200);
+  }
 
   public function _importExcel(Request $request)
   {
@@ -274,10 +274,10 @@ class ProductoController extends Controller
       if (\array_key_exists($index, $row) && $row[$index] !== null) {
         $result[] = [
           'producto_id' => $productoId,
-          'tienda_id'   => $tiendaId,
-          'stock'       => (int) $row[$index],
-          'created_at'  => $now,
-          'updated_at'  => $now,
+          'tienda_id' => $tiendaId,
+          'stock' => (int) $row[$index],
+          'created_at' => $now,
+          'updated_at' => $now,
         ];
       }
     }

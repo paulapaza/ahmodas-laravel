@@ -12,13 +12,64 @@
                 border-radius: 0.25rem;
                 border: 1px solid #ced4da;
             }
+
             .v-select-sm .vs__dropdown-toggle {
                 height: 31px;
                 font-size: 0.875rem;
             }
-            .bg-xprimary { background-color: #4e73df; }
-            .shadow-xs { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important; }
-            .uppercase { text-transform: uppercase; letter-spacing: 0.5px; }
+
+            .bg-xprimary {
+                background-color: #4e73df;
+            }
+
+            .shadow-xs {
+                box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
+            }
+
+            .uppercase {
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .store-btn {
+                border: 1px solid #dee2e6;
+                transition: all 0.2s;
+                cursor: pointer;
+                border-radius: 8px;
+                background-color: #f8f9fc;
+            }
+
+            .store-btn:hover {
+                border-color: #4e73df;
+                background-color: #eaecf4;
+                transform: translateY(-1px);
+            }
+
+            .store-btn.active {
+                border-color: #4e73df;
+                background-color: #4e73df;
+                color: white;
+                box-shadow: 0 4px 6px rgba(78, 115, 223, 0.2);
+            }
+
+            .store-btn.disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
+
+            .store-info-label {
+                font-size: 0.75rem;
+                display: block;
+                color: inherit;
+            }
+
+            .store-name-label {
+                font-size: 0.85rem;
+                font-weight: 700;
+                display: block;
+                color: inherit;
+            }
         </style>
     @endpush
     @push('scripts')
@@ -32,59 +83,71 @@
             <div :class="form.tipo === 'transferencia' ? 'col-12' : 'col-md-9 col-lg-7 col-xl-6 mx-auto'">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-xprimary text-white py-2">
-                        <h5 class="card-title mb-0 small uppercase"><i class="fas fa-exchange-alt mr-2"></i> Nueva Operación de Inventario</h5>
+                        <h5 class="card-title mb-0 small uppercase"><i class="fas fa-exchange-alt mr-2"></i> Nueva
+                            Operación de Inventario</h5>
                     </div>
                     <div class="card-body p-3">
                         <b-form @submit.prevent="submitForm">
                             <div class="row">
                                 <!-- Columna Izquierda: Configuración y Selección de Productos -->
                                 <div :class="form.tipo === 'transferencia' ? 'col-lg-4 border-right' : 'col-12'">
-                                    
+
                                     <!-- Selección de Tipo de Movimiento -->
                                     <b-form-group label="Tipo de Movimiento:" label-class="small font-weight-bold mb-1">
-                                        <b-form-radio-group
-                                            v-model="form.tipo"
-                                            :options="tiposMovimiento"
-                                            buttons
-                                            button-variant="outline-primary"
-                                            class="w-100 btn-group-sm mb-2"
-                                            required
-                                        ></b-form-radio-group>
+                                        <b-form-radio-group v-model="form.tipo" :options="opcionesMovimientoFiltradas"
+                                            buttons button-variant="outline-primary" class="w-100 btn-group-sm mb-2"
+                                            required></b-form-radio-group>
                                     </b-form-group>
 
                                     <!-- Configuración de Tiendas -->
-                                    <div class="row no-gutters mx-n1">
-                                        <div class="col px-1" v-if="form.tipo !== 'ingreso'">
-                                            <b-form-group label="Tienda Origen:" label-class="small font-weight-bold mb-1">
-                                                <b-form-select
-                                                    v-model="form.tienda_origen_id"
-                                                    :options="opcionesTiendas"
-                                                    size="sm"
-                                                    required
-                                                ></b-form-select>
-                                            </b-form-group>
+                                    <div class="mb-3">
+                                        <!-- Tienda Origen -->
+                                        <div v-if="form.tipo !== 'ingreso'" class="mb-3">
+                                            <label class="small font-weight-bold mb-2 uppercase text-muted">
+                                                <i class="fas fa-sign-out-alt mr-1"></i> Tienda Origen
+                                            </label>
+                                            <div class="row no-gutters mx-n1">
+                                                <div v-for="tienda in tiendas" :key="'origen-'+tienda.id"
+                                                    v-if="form.es_admin || form.tienda_id_usuario === tienda.id"
+                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
+                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center"
+                                                        :class="{ 
+                                                            'active': form.tienda_origen_id === tienda.id
+                                                        }" @click="form.tienda_origen_id = tienda.id">
+                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
+                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col px-1" v-if="form.tipo !== 'salida'">
-                                            <b-form-group label="Tienda Destino:" label-class="small font-weight-bold mb-1">
-                                                <b-form-select
-                                                    v-model="form.tienda_destino_id"
-                                                    :options="opcionesTiendas"
-                                                    size="sm"
-                                                    required
-                                                ></b-form-select>
-                                            </b-form-group>
+
+                                        <!-- Tienda Destino -->
+                                        <div v-if="form.tipo !== 'salida'" class="mb-3">
+                                            <label class="small font-weight-bold mb-2 uppercase text-success">
+                                                <i class="fas fa-sign-in-alt mr-1"></i> Tienda Destino
+                                            </label>
+                                            <div class="row no-gutters mx-n1">
+                                                <div v-for="tienda in tiendas" :key="'destino-'+tienda.id"
+                                                    v-if="form.tienda_origen_id !== tienda.id"
+                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
+                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center border-success-light"
+                                                        :class="{ 
+                                                            'active bg-success border-success': form.tienda_destino_id === tienda.id
+                                                        }" @click="form.tienda_destino_id = tienda.id">
+                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
+                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Motivo de Ingreso (Solo para Ingresos) -->
                                     <div v-if="form.tipo === 'ingreso'" class="mb-3">
-                                        <b-form-group label="Motivo de Ingreso:" label-class="small font-weight-bold mb-1">
-                                            <b-form-select
-                                                v-model="form.motivo"
-                                                :options="opcionesMotivos"
-                                                size="sm"
-                                                required
-                                            ></b-form-select>
+                                        <b-form-group label="Motivo de Ingreso:"
+                                            label-class="small font-weight-bold mb-1">
+                                            <b-form-select v-model="form.motivo" :options="opcionesMotivos" size="sm"
+                                                required></b-form-select>
                                         </b-form-group>
                                     </div>
 
@@ -92,26 +155,25 @@
 
                                     <!-- Panel de Selección de Producto -->
                                     <div class="bg-light p-3 rounded border shadow-xs">
-                                        <h6 class="text-primary border-bottom pb-2 mb-3 small uppercase font-weight-bold">
-                                            <i class="fas" :class="form.tipo === 'transferencia' ? 'fa-cart-plus' : 'fa-box'"></i>
-                                            @{{ form.tipo === 'transferencia' ? 'Agregar al Listado' : 'Selección de Producto' }}
+                                        <h6
+                                            class="text-primary border-bottom pb-2 mb-3 small uppercase font-weight-bold">
+                                            <i class="fas"
+                                                :class="form.tipo === 'transferencia' ? 'fa-cart-plus' : 'fa-box'"></i>
+                                            @{{ form.tipo === 'transferencia' ? 'Agregar al Listado' : 'Selección de
+                                            Producto' }}
                                         </h6>
 
                                         <!-- Buscador de Producto -->
                                         <b-form-group label="Producto:" label-class="small font-weight-bold mb-1">
-                                            <v-select 
-                                                v-model="productoSeleccionado" 
-                                                :options="productos" 
-                                                label="nombre"
-                                                :filterable="false"
-                                                @search="onSearchProduct"
-                                                placeholder="Nombre o código..."
-                                                class="v-select-sm"
-                                            >
+                                            <v-select v-model="productoSeleccionado" :options="productos" label="nombre"
+                                                :filterable="false" @search="onSearchProduct"
+                                                placeholder="Nombre o código..." class="v-select-sm"
+                                                ref="productoSearch">
                                                 <template #option="option">
                                                     <div class="small">
                                                         <div class="font-weight-bold">@{{ option.nombre }}</div>
-                                                        <div class="text-muted" style="font-size: 0.75rem;">@{{ option.codigo_barras }}</div>
+                                                        <div class="text-muted" style="font-size: 0.75rem;">@{{
+                                                            option.codigo_barras }}</div>
                                                     </div>
                                                 </template>
                                             </v-select>
@@ -120,18 +182,15 @@
                                         <!-- Cantidad y Añadir -->
                                         <div class="row align-items-end no-gutters mx-n1 mt-2">
                                             <div class="col-7 px-1">
-                                                <b-form-group label="Cantidad:" label-class="small font-weight-bold mb-1" class="mb-0">
-                                                    <b-form-input
-                                                        v-model.number="form.cantidad"
-                                                        type="number"
-                                                        min="1"
-                                                        size="sm"
-                                                        :state="cantidadValida"
-                                                    ></b-form-input>
+                                                <b-form-group label="Cantidad:"
+                                                    label-class="small font-weight-bold mb-1" class="mb-0">
+                                                    <b-form-input v-model.number="form.cantidad" type="number" min="1"
+                                                        size="sm" :state="cantidadValida"></b-form-input>
                                                 </b-form-group>
                                             </div>
                                             <div class="col-5 px-1" v-if="form.tipo === 'transferencia'">
-                                                <b-button variant="success" size="sm" block @click="agregarItem" :disabled="!productoSeleccionado || !cantidadValida || form.cantidad < 1">
+                                                <b-button variant="success" size="sm" block @click="agregarItem"
+                                                    :disabled="!productoSeleccionado || !cantidadValida || form.cantidad < 1">
                                                     <i class="fas fa-plus mr-1"></i> Añadir
                                                 </b-button>
                                             </div>
@@ -139,27 +198,33 @@
 
                                         <!-- Estado de Stock en tiempo real -->
                                         <div class="mt-3 p-2 bg-white rounded border small" v-if="productoSeleccionado">
-                                            <div class="d-flex justify-content-between mb-1" v-if="form.tipo !== 'ingreso'">
+                                            <div class="d-flex justify-content-between mb-1"
+                                                v-if="form.tipo !== 'ingreso'">
                                                 <span class="text-muted">Stock Origen:</span>
                                                 <span class="font-weight-bold">@{{ stockDisponible }}</span>
                                             </div>
                                             <div class="d-flex justify-content-between" v-if="form.tipo !== 'salida'">
                                                 <span class="text-success">Stock Destino:</span>
-                                                <span class="text-success font-weight-bold">@{{ stockDestinoDisponible }}</span>
+                                                <span class="text-success font-weight-bold">@{{ stockDestinoDisponible
+                                                    }}</span>
                                             </div>
-                                            <div class="d-flex justify-content-between border-top pt-1 mt-1 font-italic" v-if="form.tipo !== 'ingreso'">
+                                            <div class="d-flex justify-content-between border-top pt-1 mt-1 font-italic"
+                                                v-if="form.tipo !== 'ingreso'">
                                                 <span>Disponible tras op.:</span>
-                                                <span :class="stockRestante < 0 ? 'text-danger' : 'text-primary'" class="font-weight-bold">@{{ stockRestante }}</span>
+                                                <span :class="stockRestante < 0 ? 'text-danger' : 'text-primary'"
+                                                    class="font-weight-bold">@{{ stockRestante }}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Botón de Registro para Movimientos Simples -->
                                     <div v-if="form.tipo !== 'transferencia'" class="mt-4">
                                         <b-form-group label="Comentario:" label-class="small font-weight-bold mb-1">
-                                            <b-form-textarea v-model="form.comentario" rows="2" size="sm" placeholder="Opcional..."></b-form-textarea>
+                                            <b-form-textarea v-model="form.comentario" rows="2" size="sm"
+                                                placeholder="Opcional..."></b-form-textarea>
                                         </b-form-group>
-                                        <b-button type="submit" variant="primary" block size="lg" :disabled="loading || !productoSeleccionado || !cantidadValida">
+                                        <b-button type="submit" variant="primary" block size="lg"
+                                            :disabled="loading || !productoSeleccionado || !cantidadValida">
                                             <b-spinner small v-if="loading"></b-spinner>
                                             <i class="fas fa-save mr-1"></i> Registrar
                                         </b-button>
@@ -169,11 +234,14 @@
                                 <!-- Columna Derecha (Solo Transferencia): Listado de Productos -->
                                 <div class="col-lg-8" v-if="form.tipo === 'transferencia'">
                                     <div class="d-flex justify-content-between align-items-center mb-2 px-2">
-                                        <h6 class="text-primary mb-0 font-weight-bold small uppercase"><i class="fas fa-list-ul mr-1"></i> Detalle del Traslado Masivo</h6>
-                                        <span class="badge badge-pill badge-primary">@{{ itemsTraslado.length }} productos seleccionados</span>
+                                        <h6 class="text-primary mb-0 font-weight-bold small uppercase"><i
+                                                class="fas fa-list-ul mr-1"></i> Detalle del Traslado Masivo</h6>
+                                        <span class="badge badge-pill badge-primary">@{{ itemsTraslado.length }}
+                                            productos seleccionados</span>
                                     </div>
 
-                                    <div class="table-responsive border rounded bg-white shadow-xs" style="min-height: 280px; max-height: 400px;">
+                                    <div class="table-responsive border rounded bg-white shadow-xs"
+                                        style="min-height: 280px; max-height: 400px;">
                                         <table class="table table-sm table-hover table-striped mb-0">
                                             <thead class="bg-light sticky-top shadow-sm">
                                                 <tr class="small text-muted uppercase">
@@ -186,19 +254,25 @@
                                             <tbody>
                                                 <tr v-if="itemsTraslado.length === 0">
                                                     <td colspan="4" class="text-center py-5 text-muted">
-                                                        <div class="mb-2"><i class="fas fa-box-open fa-3x opacity-2"></i></div>
+                                                        <div class="mb-2"><i
+                                                                class="fas fa-box-open fa-3x opacity-2"></i></div>
                                                         <p class="mb-0">No hay productos en la lista.</p>
-                                                        <small>Use el panel de la izquierda para agregar productos.</small>
+                                                        <small>Use el panel de la izquierda para agregar
+                                                            productos.</small>
                                                     </td>
                                                 </tr>
                                                 <tr v-for="(item, index) in itemsTraslado" :key="index">
                                                     <td class="align-middle pl-3">
-                                                        <div class="font-weight-bold small text-dark">@{{ item.nombre }}</div>
+                                                        <div class="font-weight-bold small text-dark">@{{ item.nombre }}
+                                                        </div>
                                                     </td>
-                                                    <td class="text-center align-middle font-mono small">@{{ item.codigo_barras }}</td>
-                                                    <td class="text-center align-middle font-weight-bold text-primary">@{{ item.cantidad }}</td>
+                                                    <td class="text-center align-middle font-mono small">@{{
+                                                        item.codigo_barras }}</td>
+                                                    <td class="text-center align-middle font-weight-bold text-primary">
+                                                        @{{ item.cantidad }}</td>
                                                     <td class="text-center align-middle">
-                                                        <b-button variant="link" class="text-danger p-0 action-btn" @click="quitarItem(index)">
+                                                        <b-button variant="link" class="text-danger p-0 action-btn"
+                                                            @click="quitarItem(index)">
                                                             <i class="fas fa-minus-circle"></i>
                                                         </b-button>
                                                     </td>
@@ -209,12 +283,15 @@
 
                                     <div class="row mt-4 align-items-end">
                                         <div class="col-md-7">
-                                            <b-form-group label="Comentario del Traslado:" label-class="small font-weight-bold mb-1">
-                                                <b-form-textarea v-model="form.comentario" rows="2" size="sm" placeholder="Escriba aquí observaciones adicionales..."></b-form-textarea>
+                                            <b-form-group label="Comentario del Traslado:"
+                                                label-class="small font-weight-bold mb-1">
+                                                <b-form-textarea v-model="form.comentario" rows="2" size="sm"
+                                                    placeholder="Escriba aquí observaciones adicionales..."></b-form-textarea>
                                             </b-form-group>
                                         </div>
                                         <div class="col-md-5">
-                                            <b-button type="submit" variant="success" size="lg" block :disabled="loading || itemsTraslado.length === 0" class="shadow-sm">
+                                            <b-button type="submit" variant="success" size="lg" block
+                                                :disabled="loading || itemsTraslado.length === 0" class="shadow-sm">
                                                 <b-spinner small v-if="loading"></b-spinner>
                                                 <i class="fas fa-check-double mr-1"></i> Procesar Traslado
                                             </b-button>
@@ -237,10 +314,12 @@
                             <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
                         </div>
                         <h3 class="font-weight-bold text-dark">¡Operación Completada!</h3>
-                        <p class="text-muted lead small mb-4">El documento <strong>@{{ ultimoTrasladoCodigo }}</strong> se ha registrado y el stock ha sido actualizado.</p>
-                        
+                        <p class="text-muted lead small mb-4">El documento <strong>@{{ ultimoTrasladoCodigo }}</strong>
+                            se ha registrado y el stock ha sido actualizado.</p>
+
                         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-2">
-                            <b-button :href="'/inventario/traslados/imprimir/' + ultimoTrasladoId" target="_blank" variant="primary" size="lg" class="px-4 shadow-sm mb-2 mb-sm-0">
+                            <b-button :href="'/inventario/traslados/imprimir/' + ultimoTrasladoId" target="_blank"
+                                variant="primary" size="lg" class="px-4 shadow-sm mb-2 mb-sm-0">
                                 <i class="fas fa-print mr-2"></i> Imprimir Voucher
                             </b-button>
                             <b-button variant="outline-dark" size="lg" @click="nuevoTraslado" class="ml-sm-3 px-4">
@@ -269,7 +348,10 @@
                     tienda_destino_id: null,
                     cantidad: 1,
                     motivo: 'compra',
-                    comentario: ''
+                    comentario: '',
+                    tienda_id_usuario: @json($tienda_id_usuario),
+                    es_admin: @json($es_admin),
+                    es_almacen: @json($es_almacen)
                 },
                 productoSeleccionado: null,
                 productos: [],
@@ -293,6 +375,12 @@
             }
         },
         computed: {
+            opcionesMovimientoFiltradas() {
+                if (this.form.es_almacen) {
+                    return [{ text: 'Transferencia', value: 'transferencia' }];
+                }
+                return this.tiposMovimiento;
+            },
             opcionesTiendas() {
                 return this.tiendas.map(t => ({ value: t.id, text: t.nombre }));
             },
@@ -342,10 +430,12 @@
                     this.checkStock();
                     this.checkStockDestino();
                 }
+                this.enfocarBuscador();
             }
         },
         mounted() {
             this.cargarTiendas();
+            this.enfocarBuscador();
         },
         methods: {
             checkStock() {
@@ -384,10 +474,19 @@
                 window.api.get('{{ route('inventario.salidas.tiendas.listado') }}')
                     .then(res => {
                         this.tiendas = res.data || res;
+
+                        // Auto-selección de tienda origen basado en el usuario
+                        if (this.form.tienda_id_usuario) {
+                            this.form.tienda_origen_id = this.form.tienda_id_usuario;
+                        }
+
+                        if (this.form.es_almacen) {
+                            this.form.tipo = 'transferencia';
+                        }
                     });
             },
             onSearchProduct(search, loading) {
-                if(search.length < 2) return;
+                if (search.length < 2) return;
                 loading(true);
                 window.api.post('/inventario/producto/buscar', { query: search })
                     .then(res => {
@@ -416,6 +515,7 @@
 
                 this.productoSeleccionado = null;
                 this.form.cantidad = 1;
+                this.enfocarBuscador();
             },
             quitarItem(index) {
                 this.itemsTraslado.splice(index, 1);
@@ -479,19 +579,33 @@
                 const tipoActual = this.form.tipo;
                 const origenId = this.form.tienda_origen_id;
                 const destinoId = this.form.tienda_destino_id;
+                const tiendaIdUsuario = this.form.tienda_id_usuario;
+                const esAdmin = this.form.es_admin;
+                const esAlmacen = this.form.es_almacen;
                 this.form = {
-                    tipo: tipoActual,
+                    tipo: esAlmacen ? 'transferencia' : tipoActual,
                     producto_id: null,
                     tienda_origen_id: origenId,
                     tienda_destino_id: destinoId,
                     cantidad: 1,
                     motivo: 'compra',
-                    comentario: ''
+                    comentario: '',
+                    tienda_id_usuario: tiendaIdUsuario,
+                    es_admin: esAdmin,
+                    es_almacen: esAlmacen
                 };
                 this.productoSeleccionado = null;
                 this.itemsTraslado = [];
                 this.stockDisponible = 0;
                 this.stockDestinoDisponible = 0;
+                this.enfocarBuscador();
+            },
+            enfocarBuscador() {
+                this.$nextTick(() => {
+                    if (this.$refs.productoSearch && this.$refs.productoSearch.$refs.search) {
+                        this.$refs.productoSearch.$refs.search.focus();
+                    }
+                });
             }
         }
     });

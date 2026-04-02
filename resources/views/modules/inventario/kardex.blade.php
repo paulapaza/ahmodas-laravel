@@ -31,14 +31,8 @@
                     <!-- Producto -->
                     <div class="col-md-3">
                         <label class="small font-weight-bold">Producto:</label>
-                        <v-select 
-                            v-model="productoSeleccionado" 
-                            :options="productos" 
-                            label="nombre"
-                            :filterable="false"
-                            @search="onSearchProduct"
-                            placeholder="Todos los productos..."
-                        >
+                        <v-select v-model="productoSeleccionado" :options="productos" label="nombre" :filterable="false"
+                            @search="onSearchProduct" placeholder="Todos los productos...">
                             <template #option="option">
                                 <div class="d-flex justify-content-between">
                                     <span>@{{ option.nombre }}</span>
@@ -61,10 +55,7 @@
                     <!-- Tienda -->
                     <div class="col-md-3">
                         <label class="small font-weight-bold">Tienda:</label>
-                        <b-form-select
-                            v-model="filtros.tienda_id"
-                            :options="opcionesTiendas"
-                        ></b-form-select>
+                        <b-form-select v-model="filtros.tienda_id" :options="opcionesTiendas"></b-form-select>
                     </div>
 
                     <!-- Botón Filtrar -->
@@ -134,7 +125,7 @@
         },
         mounted() {
             this.cargarTiendas();
-            
+
             // Cargar producto si viene por URL
             const urlParams = new URLSearchParams(window.location.search);
             const productoId = urlParams.get('producto_id');
@@ -156,7 +147,7 @@
                     });
             },
             onSearchProduct(search, loading) {
-                if(search.length < 2) return;
+                if (search.length < 2) return;
                 loading(true);
                 window.api.post('/inventario/producto/buscar', { query: search })
                     .then(res => {
