@@ -99,60 +99,6 @@
                                             required></b-form-radio-group>
                                     </b-form-group>
 
-                                    <!-- Configuración de Tiendas -->
-                                    <div class="mb-3">
-                                        <!-- Tienda Origen -->
-                                        <div v-if="form.tipo !== 'ingreso'" class="mb-3">
-                                            <label class="small font-weight-bold mb-2 uppercase text-muted">
-                                                <i class="fas fa-sign-out-alt mr-1"></i> Tienda Origen
-                                            </label>
-                                            <div class="row no-gutters mx-n1">
-                                                <div v-for="tienda in tiendas" :key="'origen-'+tienda.id"
-                                                    v-if="form.es_admin || form.tienda_id_usuario === tienda.id"
-                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
-                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center"
-                                                        :class="{ 
-                                                            'active': form.tienda_origen_id === tienda.id
-                                                        }" @click="form.tienda_origen_id = tienda.id">
-                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
-                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Tienda Destino -->
-                                        <div v-if="form.tipo !== 'salida'" class="mb-3">
-                                            <label class="small font-weight-bold mb-2 uppercase text-success">
-                                                <i class="fas fa-sign-in-alt mr-1"></i> Tienda Destino
-                                            </label>
-                                            <div class="row no-gutters mx-n1">
-                                                <div v-for="tienda in tiendas" :key="'destino-'+tienda.id"
-                                                    v-if="form.tienda_origen_id !== tienda.id"
-                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
-                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center border-success-light"
-                                                        :class="{ 
-                                                            'active bg-success border-success': form.tienda_destino_id === tienda.id
-                                                        }" @click="form.tienda_destino_id = tienda.id">
-                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
-                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Motivo de Ingreso (Solo para Ingresos) -->
-                                    <div v-if="form.tipo === 'ingreso'" class="mb-3">
-                                        <b-form-group label="Motivo de Ingreso:"
-                                            label-class="small font-weight-bold mb-1">
-                                            <b-form-select v-model="form.motivo" :options="opcionesMotivos" size="sm"
-                                                required></b-form-select>
-                                        </b-form-group>
-                                    </div>
-
-                                    <hr class="my-3">
-
                                     <!-- Panel de Selección de Producto -->
                                     <div class="bg-light p-3 rounded border shadow-xs">
                                         <h6
@@ -214,6 +160,60 @@
                                                     class="font-weight-bold">@{{ stockRestante }}</span>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <hr class="my-3">
+
+                                    <!-- Configuración de Tiendas -->
+                                    <div class="mb-3">
+                                        <!-- Tienda Origen -->
+                                        <div v-if="form.tipo !== 'ingreso'" class="mb-3">
+                                            <label class="small font-weight-bold mb-2 uppercase text-muted">
+                                                <i class="fas fa-sign-out-alt mr-1"></i> Tienda Origen
+                                            </label>
+                                            <div class="row no-gutters mx-n1">
+                                                <div v-for="tienda in tiendas" :key="'origen-'+tienda.id"
+                                                    v-if="form.es_admin || form.tienda_id_usuario === tienda.id"
+                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
+                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center"
+                                                        :class="{ 
+                                                            'active': form.tienda_origen_id === tienda.id
+                                                        }" @click="form.tienda_origen_id = tienda.id">
+                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
+                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tienda Destino -->
+                                        <div v-if="form.tipo !== 'salida'" class="mb-3">
+                                            <label class="small font-weight-bold mb-2 uppercase text-success">
+                                                <i class="fas fa-sign-in-alt mr-1"></i> Tienda Destino
+                                            </label>
+                                            <div class="row no-gutters mx-n1">
+                                                <div v-for="tienda in tiendas" :key="'destino-'+tienda.id"
+                                                    v-if="form.tienda_origen_id !== tienda.id"
+                                                    class="col-6 col-sm-4 col-md-3 col-lg-6 px-1 mb-2">
+                                                    <div class="store-btn p-2 text-center h-100 d-flex flex-column justify-content-center border-success-light"
+                                                        :class="{ 
+                                                            'active bg-success border-success': form.tienda_destino_id === tienda.id
+                                                        }" @click="form.tienda_destino_id = tienda.id">
+                                                        <span class="store-info-label">ID: @{{ tienda.id }}</span>
+                                                        <span class="store-name-label">@{{ tienda.nombre }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Motivo de Ingreso (Solo para Ingresos) -->
+                                    <div v-if="form.tipo === 'ingreso'" class="mb-3">
+                                        <b-form-group label="Motivo de Ingreso:"
+                                            label-class="small font-weight-bold mb-1">
+                                            <b-form-select v-model="form.motivo" :options="opcionesMotivos" size="sm"
+                                                required></b-form-select>
+                                        </b-form-group>
                                     </div>
 
                                     <!-- Botón de Registro para Movimientos Simples -->
