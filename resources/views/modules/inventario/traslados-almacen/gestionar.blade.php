@@ -503,7 +503,7 @@
                         return;
                     }
 
-                    if (currentTime - lastKeyTime > 200) buffer = ''; // Resetear si es escritura humana lenta
+                    if (currentTime - lastKeyTime > 300) buffer = ''; // Resetear si es escritura humana lenta (aumentado a 300ms)
                     lastKeyTime = currentTime;
 
                     if (e.key === 'Enter') {
@@ -579,11 +579,11 @@
                         if (this.form.productoId === prod.id) {
                             // Mismo producto: Incrementamos cantidad
                             this.form.cantidad++;
-                            this.toast(`+1 unidad: ${prod.nombre}`, 'Scanner', 'success');
+                            this.toast(`+1 unidad: ${prod.alias || prod.nombre}`, 'Scanner', 'success');
                         } else {
                             // Nuevo producto: Seleccionamos (watcher pondrá cantidad=1 y sincronizará)
                             this.form.productoId = prod.id;
-                            this.toast(`Detectado: ${prod.nombre}`, 'Scanner', 'success');
+                            this.toast(`Detectado: ${prod.alias || prod.nombre}`, 'Scanner', 'success');
                         }
                     } else {
                         this.toast(`Código '${barcode}' no encontrado.`, 'Scanner', 'warning');
