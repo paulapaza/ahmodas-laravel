@@ -29,7 +29,7 @@ class TrasladoAlmacenController extends Controller
                      ->where('producto_tienda.tienda_id', '=', 1);
             })
             ->where('productos.estado', 1)
-            ->select('productos.id', 'productos.nombre', 'productos.codigo_barras as codigo', DB::raw('COALESCE(producto_tienda.stock, 0) as stock'))
+            ->select('productos.id', 'productos.nombre', 'productos.alias', 'productos.codigo_barras as codigo', DB::raw('COALESCE(producto_tienda.stock, 0) as stock'))
             ->get();
 
         // Mapa de stock de todos los productos en todas las tiendas (solo columnas necesarias)
@@ -51,6 +51,7 @@ class TrasladoAlmacenController extends Controller
                 'almacen_traslados.id as traslado_id',
                 'almacen_traslados.producto_id as id',
                 'productos.nombre',
+                'productos.alias',
                 'productos.codigo_barras as codigo',
                 'almacen_traslados.tienda_id',
                 'tiendas.nombre as tienda_nombre',
@@ -501,6 +502,7 @@ class TrasladoAlmacenController extends Controller
             ->select(
                 'almacen_traslados.id as traslado_id',
                 'productos.nombre',
+                'productos.alias',
                 'productos.codigo_barras as codigo',
                 'tiendas.nombre as tienda_nombre',
                 'almacen_traslados.tienda_id',
@@ -515,6 +517,7 @@ class TrasladoAlmacenController extends Controller
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('productos.nombre', 'like', "%{$search}%")
+                  ->orWhere('productos.alias', 'like', "%{$search}%")
                   ->orWhere('productos.codigo_barras', 'like', "%{$search}%");
             });
         }

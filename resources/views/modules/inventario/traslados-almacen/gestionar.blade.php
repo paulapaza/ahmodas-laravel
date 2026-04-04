@@ -68,6 +68,32 @@
         .store-box.active .store-name { color: var(--xprimary); }
         .store-box i.main-icon { font-size: 1.5rem; color: #b7b9cc; }
         .store-box.active i.main-icon { color: var(--xprimary); }
+
+        /* Buscador de Productos Dinámico */
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e3e6f0;
+            border-radius: 0 0 10px 10px;
+            z-index: 1050;
+            max-height: 280px;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-top: none;
+        }
+        .search-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fc;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        .search-item:hover { background: #eaecf4; color: var(--xprimary); padding-left: 20px; }
+        .search-item:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+        .search-item .item-code { font-size: 0.75rem; font-weight: 700; color: #b7b9cc; }
     </style>
     @endpush
 
@@ -83,7 +109,7 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            <form action="#">
+                            <form action="#" @submit.prevent>
                                 <div class="form-group mb-4">
                                     <label class="small font-weight-bold mb-2 d-block text-xprimary">1. TIENDA DESTINO:</label>
                                     <div class="store-grid">
@@ -100,12 +126,40 @@
                                 </div>
                                 <div class="form-group mb-4">
                                     <label class="small font-weight-bold text-xprimary">2. PRODUCTO EN ALMACÉN:</label>
-                                    <select class="form-control form-control-lg shadow-sm" v-model="form.productoId" :disabled="cargando" style="font-size: 0.9rem;">
-                                        <option value="">@{{ cargando ? 'Cargando catálogo...' : 'Buscar producto...' }}</option>
-                                        <option v-for="prod in listaProductos" :key="prod.id" :value="prod.id">
-                                            @{{ prod.nombre }}
-                                        </option>
-                                    </select>
+                                    <div class="position-relative">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                            </div>
+                                            <input type="text" 
+                                                   class="form-control form-control-lg border-left-0 shadow-sm" 
+                                                   :placeholder="cargando ? 'Cargando catálogo...' : 'Escriba para buscar...'"
+                                                   v-model="busquedaSelector"
+                                                   @focus="dropdownAbierto = true"
+                                                   @blur="cerrarDropdownDespues"
+                                                   :disabled="cargando"
+                                                   style="font-size: 0.9rem;">
+                                            <div class="input-group-append" v-if="form.productoId">
+                                                <button class="btn btn-outline-secondary border-left-0" type="button" @click="limpiarSeleccion">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Lista de Sugerencias -->
+                                        <div v-if="dropdownAbierto && listaSugerencias.length > 0" class="search-dropdown">
+                                                 <div v-for="prod in listaSugerencias" 
+                                                 :key="prod.id" 
+                                                 class="search-item d-flex justify-content-between align-items-center"
+                                                 @mousedown="seleccionarSugerencia(prod)">
+                                                <div>
+                                                    <div class="font-weight-bold text-dark">@{{ prod.alias || prod.nombre }}</div>
+                                                    <div class="item-code uppercase">Código: @{{ prod.codigo || 'S/C' }}</div>
+                                                </div>
+                                                <span class="badge badge-light border text-muted">Stock: @{{ prod.stock }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div v-if="productoSeleccionadoDetalle" 
                                          class="mt-1 small font-weight-bold"
                                          :class="productoSeleccionadoDetalle.stock <= 0 ? 'text-danger' : 'text-muted'">
@@ -195,8 +249,8 @@
                                     <tbody>
                                     <tr v-for="traslado in trasladosFiltrados" :key="`${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
-                                            <div class="font-weight-bold">@{{ traslado.nombre }}</div>
-                                            <div class="small text-muted">Código: @{{ traslado.codigo || 'S/C' }}</div>
+                                            <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
+                                            <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
                                         </td>
                                         <td class="align-middle small">@{{ traslado.tienda_nombre }}</td>
                                         <td class="align-middle small font-weight-bold">@{{ formatearFecha(traslado.fecha) }}</td>
@@ -211,9 +265,6 @@
                                         <td class="text-right align-middle">
                                             <!-- Grupo 1: Operaciones (Confirmar/Borrar o Venta/Devolución) -->
                                             <div class="btn-group btn-group-sm ml-2" v-if="!traslado.confirmado">
-                                                <button @click="confirmarItem(traslado)" type="button" class="btn btn-primary btn-sm" v-b-tooltip.hover title="Confirmar e ingresar a tienda">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
                                                 <button @click="quitarTraslado(traslado)" type="button" class="btn btn-outline-danger btn-sm" v-b-tooltip.hover title="Quitar de la lista">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -388,15 +439,29 @@
                     // Filtros
                     filtroTienda: '',
                     filtroProducto: '',
-                    filtroFecha: ''
+                    filtroFecha: '',
+
+                    // Scanner
+                    scannerBarcode: '',
+
+                    // Buscador Dinámico
+                    busquedaSelector: '',
+                    dropdownAbierto: false
                 }
             },
             watch: {
                 'form.productoId'(newVal) {
                     if (newVal) {
                         const prod = this.listaProductos.find(p => p.id === newVal);
-                        this.form.cantidad = (prod && prod.stock > 0) ? 1 : 0;
+                        if (prod) {
+                            this.form.cantidad = (prod.stock > 0) ? 1 : 0;
+                            this.busquedaSelector = prod.alias || prod.nombre; // Prioriza Alias
+                        } else {
+                            this.busquedaSelector = '';
+                        }
                         this.sincronizarTraslado();
+                    } else {
+                        this.busquedaSelector = '';
                     }
                 },
                 'form.cantidad'(newVal) {
@@ -425,6 +490,32 @@
                     }
                 }
                 this.fetchProductos();
+
+                // --- LECTOR GLOBAL (Ghost Scanner) ---
+                let buffer = '';
+                let lastKeyTime = Date.now();
+
+                document.addEventListener('keypress', (e) => {
+                    const currentTime = Date.now();
+                    
+                    // Si el usuario está en un input (excepto el body), ignoramos para no romper su escritura manual
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                        return;
+                    }
+
+                    if (currentTime - lastKeyTime > 200) buffer = ''; // Resetear si es escritura humana lenta
+                    lastKeyTime = currentTime;
+
+                    if (e.key === 'Enter') {
+                        if (buffer.length > 2) {
+                            this.procesarEscaneoGlobal(buffer);
+                            buffer = '';
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (e.key.length === 1) buffer += e.key;
+                    }
+                });
             },
             computed: {
                 productoSeleccionadoDetalle() {
@@ -462,9 +553,60 @@
                         
                         return matchesTienda && matchesProducto && matchesFecha;
                     });
+                },
+                listaSugerencias() {
+                    const search = this.busquedaSelector.toLowerCase().trim();
+                    if (!search || !this.dropdownAbierto) return [];
+                    
+                    return this.listaProductos.filter(p => {
+                        const nombre = p.nombre ? p.nombre.toLowerCase() : '';
+                        const alias = p.alias ? p.alias.toLowerCase() : '';
+                        const codigo = p.codigo ? p.codigo.toLowerCase() : '';
+                        
+                        return nombre.includes(search) || 
+                               alias.includes(search) ||
+                               codigo.includes(search);
+                    }).slice(0, 15);
                 }
             },
             methods: {
+                // --- MÉTODOS DEL SCANNER ---
+                procesarEscaneoGlobal(barcode) {
+                    barcode = barcode.trim();
+                    const prod = this.listaProductos.find(p => p.codigo === barcode);
+
+                    if (prod) {
+                        if (this.form.productoId === prod.id) {
+                            // Mismo producto: Incrementamos cantidad
+                            this.form.cantidad++;
+                            this.toast(`+1 unidad: ${prod.nombre}`, 'Scanner', 'success');
+                        } else {
+                            // Nuevo producto: Seleccionamos (watcher pondrá cantidad=1 y sincronizará)
+                            this.form.productoId = prod.id;
+                            this.toast(`Detectado: ${prod.nombre}`, 'Scanner', 'success');
+                        }
+                    } else {
+                        this.toast(`Código '${barcode}' no encontrado.`, 'Scanner', 'warning');
+                    }
+                },
+                seleccionarSugerencia(prod) {
+                    this.form.productoId = prod.id;
+                    this.busquedaSelector = prod.alias || prod.nombre;
+                    this.dropdownAbierto = false;
+                },
+                limpiarSeleccion() {
+                    this.form.productoId = '';
+                    this.form.cantidad = 1;
+                    this.busquedaSelector = '';
+                    this.dropdownAbierto = false;
+                },
+                cerrarDropdownDespues() {
+                    // Pequeño retraso para permitir que el @mousedown se registre
+                    setTimeout(() => {
+                        this.dropdownAbierto = false;
+                    }, 200);
+                },
+
                 // --- HELPERS ATÓMICOS ---
                 toast(msg, title = 'Aviso', variant = 'info') {
                     this.$bvToast.toast(msg, { title, variant, solid: true });
@@ -566,7 +708,19 @@
                         const keysConfirmados = confirmados.map(c => `${c.id}-${c.tienda_id}`);
                         const borradoresSinDuplicados = pendientesLocal.filter(p => {
                             const keyP = `${p.id}-${p.tienda_id}`;
-                            return !keysConfirmados.includes(keyP);
+                            const isNewInDB = keysConfirmados.includes(keyP);
+                            
+                            if (!isNewInDB) {
+                                // Aprovechamos para actualizar alias/nombres de borradores antiguos en localStorage
+                                const prodMaster = this.listaProductos.find(lp => lp.id === p.id);
+                                if (prodMaster) {
+                                    p.alias = prodMaster.alias;
+                                    p.nombre = prodMaster.nombre;
+                                    p.codigo = prodMaster.codigo;
+                                }
+                                return true;
+                            }
+                            return false;
                         });
 
                         // Unimos: Primero confirmados, luego borradores
@@ -609,7 +763,7 @@
 
                     if (index !== -1) {
                         if (this.trasladosEnCurso[index].confirmado) {
-                            this.toast(`El producto ${prod.nombre} ya fue enviado. Usa 'Editar' para ajustar.`, 'Aviso', 'info');
+                            this.toast(`El producto ${prod.alias || prod.nombre} ya fue enviado. Usa 'Editar' para ajustar.`, 'Aviso', 'info');
                             this.form.productoId = '';
                             this.form.cantidad = 1;
                             return;
@@ -625,10 +779,12 @@
                                 this.toast('Límite de stock alcanzado.', 'Límite', 'warning');
                             }
                         }
+                        this.trasladosEnCurso[index].alias = prod.alias; // Actualizar por si era un borrador viejo
                     } else {
                         this.trasladosEnCurso.push({
                             id: prod.id,
                             nombre: prod.nombre,
+                            alias: prod.alias,
                             codigo: prod.codigo,
                             tienda_id: this.form.tiendaId,
                             tienda_nombre: tienda ? tienda.nombre : 'Sin Tienda',
@@ -642,7 +798,7 @@
                 },
                 confirmarItem(traslado) {
                     traslado.confirmado = true;
-                    this.toast(`Traslado de ${traslado.nombre} validado.`, 'Confirmado', 'primary');
+                    this.toast(`Traslado de ${traslado.alias || traslado.nombre} validado.`, 'Confirmado', 'primary');
                 },
                 confirmarTodo() {
                     const pendientes = this.trasladosEnCurso.filter(t => !t.confirmado);

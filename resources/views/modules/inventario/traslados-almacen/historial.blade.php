@@ -119,8 +119,8 @@
                                 </tr>
                                 <tr v-else v-for="t in traslados" :key="t.traslado_id">
                                     <td class="pl-4 align-middle">
-                                        <div class="font-weight-bold text-dark">@{{ t.nombre }}</div>
-                                        <div class="small text-muted">Código: @{{ t.codigo || 'S/C' }}</div>
+                                        <div class="font-weight-bold text-dark">@{{ t.alias || t.nombre }}</div>
+                                        <div class="small text-muted font-weight-bold">Código: @{{ t.codigo || 'S/C' }}</div>
                                     </td>
                                     <td class="align-middle">
                                         <span class="badge badge-light border px-2 py-1">@{{ t.tienda_nombre }}</span>
