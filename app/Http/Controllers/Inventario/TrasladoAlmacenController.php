@@ -483,6 +483,60 @@ class TrasladoAlmacenController extends Controller
         ]);
     }
 
+    public function getHistorialGlobal(Request $request)
+    {
+        $tiendaId = $request->get('tienda_id');
+        $fechaInicio = $request->get('fecha_inicio');
+        $fechaFin = $request->get('fecha_fin');
+        $search = $request->get('search');
+
+        $query = DB::table('almacen_traslados')
+            ->join('productos', 'almacen_traslados.producto_id', '=', 'productos.id')
+            ->join('tiendas', 'almacen_traslados.tienda_id', '=', 'tiendas.id')
+            ->leftJoin('producto_tienda as pt_almacen', function($join) {
+                $join->on('almacen_traslados.producto_id', '=', 'pt_almacen.producto_id')
+                     ->where('pt_almacen.tienda_id', '=', 1);
+            })
+            ->whereNull('almacen_traslados.deleted_at')
+            ->select(
+                'almacen_traslados.id as traslado_id',
+                'productos.nombre',
+                'productos.codigo_barras as codigo',
+                'tiendas.nombre as tienda_nombre',
+                'almacen_traslados.tienda_id',
+                'almacen_traslados.stock_vendido as vendido',
+                'almacen_traslados.stock_disponible as disponible',
+                'almacen_traslados.created_at',
+                'almacen_traslados.updated_at',
+                DB::raw('COALESCE(pt_almacen.stock, 0) as stock_almacen')
+            );
+
+        if ($tiendaId) $query->where('almacen_traslados.tienda_id', $tiendaId);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('productos.nombre', 'like', "%{$search}%")
+                  ->orWhere('productos.codigo_barras', 'like', "%{$search}%");
+            });
+        }
+        if ($fechaInicio) $query->whereDate('almacen_traslados.created_at', '>=', $fechaInicio);
+        if ($fechaFin) $query->whereDate('almacen_traslados.created_at', '<=', $fechaFin);
+
+        $traslados = $query->orderByDesc('almacen_traslados.updated_at')->get()->map(function($t) {
+            $t->created_fmt = date('d/m/Y H:i', strtotime($t->created_at));
+            $t->updated_fmt = date('d/m/Y H:i', strtotime($t->updated_at));
+            return $t;
+        });
+
+        // También necesitamos las tiendas para el filtro
+        $tiendas = DB::table('tiendas')->where('id', '!=', 1)->where('estado', 1)->select('id', 'nombre')->get();
+
+        return response()->json([
+            'success' => true,
+            'traslados' => $traslados,
+            'tiendas' => $tiendas
+        ]);
+    }
+
     public function historial()
     {
         return view('modules.inventario.traslados-almacen.historial');

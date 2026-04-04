@@ -6,129 +6,223 @@
 
     @push('styles')
     <style>
+        :root {
+            --xprimary: #4e73df;
+            --xsuccess: #1cc88a;
+            --xdanger: #e74a3b;
+            --xwarning: #f6c23e;
+            --xsecondary: #858796;
+            --xdark: #3a3b45;
+            --xlight: #f8f9fc;
+        }
         .card-title.uppercase {
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 700;
         }
-        .bg-xprimary {
-            background-color: #4e73df;
-        }
-        .shadow-xs {
-            box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
-        }
-        .table-sm-text {
-            font-size: 0.85rem;
+        .bg-xprimary { background-color: var(--xprimary); }
+        .text-xprimary { color: var(--xprimary); }
+        
+        .shadow-xs { box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important; }
+        .table-sm-text { font-size: 0.85rem; }
+        
+        [v-cloak] { display: none; }
+
+        .filter-bar {
+            background: rgba(248, 249, 250, 0.85);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e3e6f0;
         }
     </style>
     @endpush
 
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="card-title mb-0 text-primary uppercase">
-                                <i class="fas fa-history mr-2"></i> Traslados desde Almacén
-                            </h6>
-                            <a href="{{ route('inventario.traslados_almacen.index') }}" class="btn btn-primary btn-sm shadow-sm">
-                                <i class="fas fa-arrow-left mr-1"></i> Volver a Gestión
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <!-- Filtros de Historial -->
-                        <div class="row mb-4">
+    <div id="historial-traslados-app" v-cloak>
+        <div class="container-fluid py-4">
+            <!-- Header con Botón de Regreso -->
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 font-weight-bold text-dark">
+                        <i class="fas fa-history mr-2 text-primary"></i> HISTORIAL DE TRASLADOS
+                    </h4>
+                    <a href="{{ route('inventario.traslados_almacen.index') }}" class="btn btn-primary shadow-sm px-4">
+                        <i class="fas fa-arrow-left mr-2"></i> Volver a Gestión
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filtros Avanzados -->
+            <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="filter-bar">
+                        <div class="row align-items-end">
                             <div class="col-md-3">
-                                <div class="form-group small">
-                                    <label class="font-weight-bold">Desde:</label>
-                                    <input type="date" class="form-control form-control-sm" name="fecha_inicio">
-                                </div>
+                                <label class="small font-weight-bold text-muted uppercase">Tienda Destino:</label>
+                                <select class="form-control form-control-sm shadow-none" v-model="filtros.tienda_id" @change="fetchHistorial">
+                                    <option value="">Todas las tiendas</option>
+                                    <option v-for="t in tiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="small font-weight-bold text-muted uppercase">Desde:</label>
+                                <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.desde" @change="fetchHistorial">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="small font-weight-bold text-muted uppercase">Hasta:</label>
+                                <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.hasta" @change="fetchHistorial">
                             </div>
                             <div class="col-md-3">
-                                <div class="form-group small">
-                                    <label class="font-weight-bold">Hasta:</label>
-                                    <input type="date" class="form-control form-control-sm" name="fecha_fin">
+                                <label class="small font-weight-bold text-muted uppercase">Producto:</label>
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm border-left-0 shadow-none" 
+                                           placeholder="Nombre o código..." 
+                                           v-model="filtros.search" 
+                                           @input="debounceFetch">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group small">
-                                    <label class="font-weight-bold">Producto:</label>
-                                    <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre...">
-                                </div>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-outline-secondary btn-sm btn-block mb-3">
-                                    <i class="fas fa-filter mr-1"></i> Filtrar
+                            <div class="col-md-2">
+                                <button @click="resetFiltros" class="btn btn-outline-secondary btn-sm btn-block">
+                                    <i class="fas fa-sync-alt mr-1"></i> Limpiar
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Tabla de Historial -->
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped table-sm mb-0 table-sm-text">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="pl-3 py-3 border-top-0">Cant. Enviada</th>
-                                        <th class="py-3 border-top-0">Producto / Código</th>
-                                        <th class="py-3 border-top-0">Tienda Destino</th>
-                                        <th class="py-3 border-top-0">Fecha y Hora</th>
-                                        <th class="text-center py-3 border-top-0">Vendido</th>
-                                        <th class="text-center py-3 border-top-0">Devuelto</th>
-                                        <th class="text-center py-3 border-top-0 pr-3">Disp. Actual</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Ejemplos demostrativos -->
-                                    <tr>
-                                        <td class="pl-3 align-middle font-weight-bold">10</td>
-                                        <td class="align-middle">
-                                            <div class="font-weight-bold">Producto Demo A</div>
-                                            <div class="small text-muted">Cód. Producto: <span class="font-mono text-primary">BAR-123456</span></div>
-                                        </td>
-                                        <td class="align-middle">Tienda Principal</td>
-                                        <td class="align-middle small font-weight-bold">02/04/2026 14:30:15</td>
-                                        <td class="text-center align-middle">3</td>
-                                        <td class="text-center align-middle">0</td>
-                                        <td class="text-center align-middle pr-3 text-primary font-weight-bold">7</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="pl-3 align-middle font-weight-bold">25</td>
-                                        <td class="align-middle">
-                                            <div class="font-weight-bold">Producto Demo B</div>
-                                            <div class="small text-muted">Cód. Producto: <span class="font-mono text-primary">BAR-789012</span></div>
-                                        </td>
-                                        <td class="align-middle">Sucursal Norte</td>
-                                        <td class="align-middle small font-weight-bold">01/04/2026 09:15:42</td>
-                                        <td class="text-center align-middle">5</td>
-                                        <td class="text-center align-middle text-danger">1</td>
-                                        <td class="text-center align-middle pr-3 text-primary font-weight-bold">19</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
-                    <div class="card-footer bg-white py-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <span class="small text-muted mb-2 mb-md-0">Mostrando 2 registros históricos</span>
-                            <nav aria-label="Navegación de historial">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Anterior</a>
-                                    </li>
-                                    <li class="page-item active">
-                                        <a class="page-link" href="#">1</a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">Siguiente</a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Resultados -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped table-sm mb-0 table-sm-text">
+                            <thead class="bg-light text-muted uppercase">
+                                <tr>
+                                    <th class="pl-4 py-3 border-top-0">Producto</th>
+                                    <th class="py-3 border-top-0">Tienda</th>
+                                    <th class="text-center py-3 border-top-0">Vendido</th>
+                                    <th class="text-center py-3 border-top-0">Disponible</th>
+                                    <th class="text-center py-3 border-top-0">En Almacén</th>
+                                    <th class="py-3 border-top-0">Fecha Registro</th>
+                                    <th class="py-3 border-top-0 pr-4">Última Actividad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if="cargando">
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
+                                        Cargando historial...
+                                    </td>
+                                </tr>
+                                <tr v-else v-for="t in traslados" :key="t.traslado_id">
+                                    <td class="pl-4 align-middle">
+                                        <div class="font-weight-bold text-dark">@{{ t.nombre }}</div>
+                                        <div class="small text-muted">Código: @{{ t.codigo || 'S/C' }}</div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-light border px-2 py-1">@{{ t.tienda_nombre }}</span>
+                                    </td>
+                                    <td class="text-center align-middle font-weight-bold">@{{ t.vendido }}</td>
+                                    <td class="text-center align-middle text-primary font-weight-bold">@{{ t.disponible }}</td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge badge-light border text-muted px-3 py-2" style="font-size: 0.85rem;">
+                                            @{{ t.stock_almacen }} @{{ t.stock_almacen === 1 ? 'unidad' : 'unidades' }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="font-weight-bold text-dark">@{{ t.created_fmt.split(' ')[0] }}</div>
+                                        <div class="small text-muted">@{{ t.created_fmt.split(' ')[1] }}</div>
+                                    </td>
+                                    <td class="align-middle pr-4">
+                                        <div class="font-weight-bold text-primary">@{{ t.updated_fmt.split(' ')[0] }}</div>
+                                        <div class="small text-muted">@{{ t.updated_fmt.split(' ')[1] }}</div>
+                                    </td>
+                                </tr>
+                                <tr v-if="!cargando && traslados.length === 0">
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i> No se encontraron registros con los filtros aplicados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 py-3">
+                    <div class="small text-muted">
+                        Se muestran <strong>@{{ traslados.length }}</strong> registros históricos encontrados.
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <script>
+        new Vue({
+            el: '#historial-traslados-app',
+            data() {
+                return {
+                    tiendas: [],
+                    traslados: [],
+                    filtros: {
+                        tienda_id: '',
+                        desde: '',
+                        hasta: '',
+                        search: ''
+                    },
+                    cargando: false,
+                    timeout: null
+                }
+            },
+            mounted() {
+                this.fetchHistorial();
+            },
+            methods: {
+                async fetchHistorial() {
+                    this.cargando = true;
+                    try {
+                        const response = await axios.get('/api/inventario/traslados/historial-global', {
+                            params: {
+                                tienda_id: this.filtros.tienda_id,
+                                fecha_inicio: this.filtros.desde,
+                                fecha_fin: this.filtros.hasta,
+                                search: this.filtros.search
+                            }
+                        });
+                        if (response.data.success) {
+                            this.traslados = response.data.traslados;
+                            this.tiendas = response.data.tiendas;
+                        }
+                    } catch (error) {
+                        console.error("Error al cargar historial", error);
+                        alert("Error al conectar con el servidor.");
+                    } finally {
+                        this.cargando = false;
+                    }
+                },
+                debounceFetch() {
+                    clearTimeout(this.timeout);
+                    this.timeout = setTimeout(() => {
+                        this.fetchHistorial();
+                    }, 500);
+                },
+                resetFiltros() {
+                    this.filtros = {
+                        tienda_id: '',
+                        desde: '',
+                        hasta: '',
+                        search: ''
+                    };
+                    this.fetchHistorial();
+                }
+            }
+        });
+    </script>
+    @endpush
 </x-admin-layout>

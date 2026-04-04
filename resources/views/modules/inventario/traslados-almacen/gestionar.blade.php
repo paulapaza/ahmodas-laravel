@@ -229,11 +229,11 @@
 
                                             <!-- Grupo 2: Gestión (Historial / Editar) -->
                                             <div class="btn-group btn-group-sm ml-2" v-if="traslado.confirmado">
+                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar más stock">
+                                                   <i class="fas fa-truck-loading"></i>
+                                                </button>
                                                 <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
                                                     <i class="fas fa-list"></i>
-                                                </button>
-                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar más stock">
-                                                    <i class="fas fa-truck-loading"></i>
                                                 </button>
                                             </div>
                                         </td>

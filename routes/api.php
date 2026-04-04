@@ -32,4 +32,5 @@ Route::post('/inventario/traslados/actualizar-venta', [TrasladoAlmacenController
 Route::post('/inventario/traslados/actualizar-devolucion', [TrasladoAlmacenController::class, 'actualizarDevolucion']);
 Route::post('/inventario/traslados/eliminar', [TrasladoAlmacenController::class, 'eliminarTraslado']);
 Route::get('/inventario/traslados/historial-datos', [TrasladoAlmacenController::class, 'getHistorial']);
+Route::get('/inventario/traslados/historial-global', [TrasladoAlmacenController::class, 'getHistorialGlobal']);
 
