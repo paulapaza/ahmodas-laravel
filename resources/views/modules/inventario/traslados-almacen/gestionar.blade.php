@@ -210,7 +210,7 @@
 
                                             <!-- Grupo 2: Gestión (Historial / Editar) -->
                                             <div class="btn-group btn-group-sm ml-2" v-if="traslado.confirmado">
-                                                <button @click="verHistorialProducto(traslado.nombre)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
+                                                <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
                                                     <i class="fas fa-list"></i>
                                                 </button>
                                                 <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar más stock">
@@ -245,49 +245,36 @@
         </div>
 
         <!-- Modal: Historial de Producto -->
-        <b-modal id="modal-historial-producto" title="HISTORIAL DE CAMBIOS" hide-footer header-class="bg-xprimary text-white">
+        <b-modal id="modal-historial-producto" title="HISTORIAL DE CAMBIOS" hide-footer header-class="bg-info text-white">
             <div class="p-2">
                 <h6 class="font-weight-bold truncate mb-3 text-center">@{{ productoSeleccionado }}</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-hover border">
-                    <thead class="bg-light text-center small uppercase">
-                        <tr>
-                            <th>Vendido</th>
-                            <th>Devuelto</th>
-                            <th>Disp.</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-center">
-                        <tr v-for="(item, index) in historialProducto" :key="index">
-                            <td class="align-middle">@{{ item.vendido }}</td>
-                            <td class="align-middle">@{{ item.devuelto }}</td>
-                            <td class="align-middle font-weight-bold">@{{ item.disponible }}</td>
-                            <td class="align-middle">
-                                <button @click="confirmarRetorno(item)" class="btn btn-xs btn-outline-warning text-dark px-2">
-                                    <i class="fas fa-history mr-1"></i> Volver a este punto
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
+                        <thead class="bg-light text-center small uppercase">
+                            <tr>
+                                <th class="py-2">Fecha y Hora</th>
+                                <th class="py-2">Vendido</th>
+                                <th class="py-2">Disponible</th>
+                                <th class="py-2 text-muted">Stock Almacén</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <tr v-for="(item, index) in historialProducto" :key="index">
+                                <td class="align-middle small">@{{ item.fecha_formateada }}</td>
+                                <td class="align-middle">@{{ item.vendido }}</td>
+                                <td class="align-middle font-weight-bold text-primary">@{{ item.disponible }}</td>
+                                <td class="align-middle text-muted">@{{ item.almacen }} @{{ item.almacen === 1 ? 'unidad' : 'unidades' }}</td>
+                            </tr>
+                            <tr v-if="historialProducto.length === 0">
+                                <td colspan="4" class="py-4 text-muted small">No hay movimientos registrados para este ítem todavía.</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
         </b-modal>
 
-        <!-- Modal: Confirmación de Retorno -->
-        <b-modal id="modal-confirmacion-retorno" title="Confirmar Retorno" header-class="bg-warning text-dark" @ok="procesarRetorno">
-            <div class="text-center py-3">
-                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                <h5>¿Estás seguro de volver a este estado?</h5>
-                <p class="text-muted small">Esta acción revertirá los valores de Vendido, Devuelto y Disponible a este punto del historial.</p>
-                <div class="bg-light p-2 rounded border small">
-                    <strong>Vendido:</strong> @{{ puntoSeleccionado.vendido }} | 
-                    <strong>Devuelto:</strong> @{{ puntoSeleccionado.devuelto }} | 
-                    <strong>Disp:</strong> @{{ puntoSeleccionado.disponible }}
-                </div>
-            </div>
-        </b-modal>
+
 
         <!-- Modal: Editar Traslado (Carga Adicional) -->
         <b-modal id="modal-editar-traslado" title="CARGA ADICIONAL DESDE ALMACÉN" size="sm" hide-footer header-class="bg-success text-white">
@@ -377,12 +364,7 @@
                     nuevaCantidadEdicion: 0,
                     puntoSeleccionado: {},
                     itemParaOperar: null, // Objeto de traslado para Venta/Devolución
-                    historialProducto: [
-                        { vendido: 3, devuelto: 0, disponible: 7 },
-                        { vendido: 2, devuelto: 0, disponible: 8 },
-                        { vendido: 1, devuelto: 0, disponible: 9 },
-                        { vendido: 0, devuelto: 0, disponible: 10 }
-                    ]
+                    historialProducto: []
                 }
             },
             watch: {
@@ -447,9 +429,19 @@
                     if (!this.form.productoId) return 0;
                     return (this.stockMap[this.form.productoId] && this.stockMap[this.form.productoId][tiendaId]) || 0;
                 },
-                verHistorialProducto(nombre) {
-                    this.productoSeleccionado = nombre;
+                async verHistorialProducto(traslado) {
+                    this.productoSeleccionado = traslado.nombre;
+                    this.historialProducto = [];
                     this.$bvModal.show('modal-historial-producto');
+
+                    try {
+                        const response = await axios.get('/api/inventario/traslados/historial-datos', {
+                            params: { traslado_id: traslado.traslado_id }
+                        });
+                        this.historialProducto = response.data.historial;
+                    } catch (error) {
+                        this.toast('Error al cargar el historial.', 'Error', 'danger');
+                    }
                 },
                 abrirVender(traslado) {
                     this.itemParaOperar = traslado;
@@ -461,10 +453,7 @@
                     this.form.cantidad = 1; // Unidades a regresar
                     this.$bvModal.show('modal-devolver');
                 },
-                confirmarRetorno(punto) {
-                    this.puntoSeleccionado = punto;
-                    this.$bvModal.show('modal-confirmacion-retorno');
-                },
+
                 procesarOperacion(tipo) {
                     if (!this.itemParaOperar) return;
 
@@ -494,10 +483,7 @@
                             this.cargando = false;
                         });
                 },
-                procesarRetorno() {
-                    this.toast('Estado revertido correctamente (Modo Demostrativo)', 'Éxito', 'success');
-                    this.$bvModal.hide('modal-historial-producto');
-                },
+
                 async fetchProductos() {
                     try {
                         const response = await axios.get('/api/inventario/traslados/datos-gestion');
