@@ -146,14 +146,33 @@
                             <div class="row mt-3">
                                 <!-- Filtros -->
                                 <div class="col-12">
-                                    <div class="row no-gutters">
-                                        <div class="col-6 pr-1">
-                                            <select class="form-control form-control-sm" name="filter_tienda">
-                                                <option value="">Todas las tiendas</option>
-                                            </select>
+                                    <div class="row no-gutters bg-light p-1 rounded border shadow-xs" style="backdrop-filter: blur(5px); background: rgba(248, 249, 250, 0.85) !important;">
+                                        <div class="col-md-4 pr-1">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-store text-muted small"></i></span>
+                                                </div>
+                                                <select class="form-control form-control-sm border-left-0" v-model="filtroTienda">
+                                                    <option value="">Todas las tiendas</option>
+                                                    <option v-for="t in tiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="col-6 pl-1">
-                                            <input type="text" class="form-control form-control-sm" placeholder="Buscar producto...">
+                                        <div class="col-md-4 px-1">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted small"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm border-left-0" placeholder="Nombre o código..." v-model="filtroProducto">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 pl-1">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
+                                                </div>
+                                                <input type="date" class="form-control form-control-sm border-left-0" v-model="filtroFecha" v-b-tooltip.hover title="Filtrar por fecha">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -174,13 +193,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="traslado in trasladosEnCurso" :key="`${traslado.id}-${traslado.tienda_id}`">
+                                    <tr v-for="traslado in trasladosFiltrados" :key="`${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
                                             <div class="font-weight-bold">@{{ traslado.nombre }}</div>
                                             <div class="small text-muted">Código: @{{ traslado.codigo || 'S/C' }}</div>
                                         </td>
                                         <td class="align-middle small">@{{ traslado.tienda_nombre }}</td>
-                                        <td class="align-middle small font-weight-bold">@{{ traslado.fecha }}</td>
+                                        <td class="align-middle small font-weight-bold">@{{ formatearFecha(traslado.fecha) }}</td>
                                         <td class="align-middle text-center">@{{ traslado.vendido }}</td>
                                         <td class="align-middle text-center text-primary font-weight-bold">@{{ traslado.disponible }}</td>
                                         <td class="align-middle text-center">
@@ -364,7 +383,12 @@
                     nuevaCantidadEdicion: 0,
                     puntoSeleccionado: {},
                     itemParaOperar: null, // Objeto de traslado para Venta/Devolución
-                    historialProducto: []
+                    historialProducto: [],
+                    
+                    // Filtros
+                    filtroTienda: '',
+                    filtroProducto: '',
+                    filtroFecha: ''
                 }
             },
             watch: {
@@ -409,6 +433,35 @@
                 },
                 hayTrasladosPendientes() {
                     return this.trasladosEnCurso.some(t => !t.confirmado);
+                },
+                trasladosFiltrados() {
+                    return this.trasladosEnCurso.filter(t => {
+                        // Filtro por Tienda
+                        const matchesTienda = !this.filtroTienda || t.tienda_id == this.filtroTienda;
+                        
+                        // Filtro por Producto (Nombre o Código)
+                        const search = this.filtroProducto.toLowerCase().trim();
+                        const matchesProducto = !search || 
+                            t.nombre.toLowerCase().includes(search) ||
+                            (t.codigo && t.codigo.toLowerCase().includes(search));
+                        
+                        // Filtro por Fecha (Solo Día)
+                        let matchesFecha = true;
+                        if (this.filtroFecha) {
+                            let itemFechaStr = "";
+                            if (t.confirmado) {
+                                itemFechaStr = t.fecha.split(' ')[0]; // Suponiendo "YYYY-MM-DD HH:mm:ss"
+                            } else {
+                                const d = new Date(t.fecha);
+                                if (!isNaN(d.getTime())) {
+                                    itemFechaStr = d.toISOString().split('T')[0];
+                                }
+                            }
+                            matchesFecha = itemFechaStr === this.filtroFecha;
+                        }
+                        
+                        return matchesTienda && matchesProducto && matchesFecha;
+                    });
                 }
             },
             methods: {
@@ -482,6 +535,19 @@
                         .finally(() => {
                             this.cargando = false;
                         });
+                },
+                formatearFecha(fechaStr) {
+                    if (!fechaStr) return '---';
+                    const d = new Date(fechaStr);
+                    if (isNaN(d.getTime())) return fechaStr; 
+                    
+                    const dia = String(d.getDate()).padStart(2, '0');
+                    const mes = String(d.getMonth() + 1).padStart(2, '0');
+                    const anio = d.getFullYear();
+                    const hora = String(d.getHours()).padStart(2, '0');
+                    const min = String(d.getMinutes()).padStart(2, '0');
+                    
+                    return `${dia}/${mes}/${anio} ${hora}:${min}`;
                 },
 
                 async fetchProductos() {
@@ -566,7 +632,7 @@
                             codigo: prod.codigo,
                             tienda_id: this.form.tiendaId,
                             tienda_nombre: tienda ? tienda.nombre : 'Sin Tienda',
-                            fecha: new Date().toLocaleString(),
+                            fecha: new Date().toISOString(),
                             vendido: 0,
                             devuelto: 0,
                             disponible: this.form.cantidad,
