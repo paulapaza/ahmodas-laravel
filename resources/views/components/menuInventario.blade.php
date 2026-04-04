@@ -29,6 +29,7 @@
     <ul aria-labelledby="dropdownTransacciones" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
         <li><a href="{{route('inventario.kardex.index')}}" class="dropdown-item">Movimientos (Kardex)</a></li>
         <li><a href="{{route('inventario.transacciones.index')}}" class="dropdown-item">Gestión de Stock</a></li>
+        <li><a href="{{route('inventario.traslados_almacen.index')}}" class="dropdown-item">Traslados desde Almacén</a></li>
     </ul>
 </li>
 
