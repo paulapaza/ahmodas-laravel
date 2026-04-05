@@ -25,6 +25,7 @@ class TiendaRequest extends FormRequest
       'uid' => 'required|ulid|unique:tiendas,uid',
       'nombre' => 'required|string|max:100',
       'mostrar_en_visor' => 'nullable|boolean',
+      'es_almacen' => 'nullable|boolean',
     ];
   }
 }

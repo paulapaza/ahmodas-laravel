@@ -33,7 +33,13 @@ class TiendaController extends Controller
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
         $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
+        $tienda->es_almacen = $request->input('es_almacen', 0);
         $tienda->save();
+
+        if ($tienda->es_almacen == 1) {
+            Tienda::where('id', '!=', $tienda->id)->update(['es_almacen' => 0]);
+        }
+
         return response()->json(
             [
                 'success' => true,
@@ -54,7 +60,13 @@ class TiendaController extends Controller
         $tienda->ruta_api_facturacion = $request->ruta_api_facturacion;
         $tienda->token_facturacion = $request->token_facturacion;
         $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
+        $tienda->es_almacen = $request->input('es_almacen', 0);
         $tienda->save();
+
+        if ($tienda->es_almacen == 1) {
+            Tienda::where('id', '!=', $tienda->id)->update(['es_almacen' => 0]);
+        }
+
         return response()->json(
             [
                 'success' => true,

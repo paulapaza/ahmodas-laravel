@@ -17,6 +17,7 @@ class Tienda extends Model
         'telefono',
         'estado',
         'mostrar_en_visor',
+        'es_almacen',
     ];
 
     public function productos()

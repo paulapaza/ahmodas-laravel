@@ -12,6 +12,7 @@
         
         <th>Estado</th>
         <th>Visor</th>
+        <th>Almacén</th>
 
     </x-table>
 
@@ -79,6 +80,16 @@
                     </select>
                 </div>
             </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="es_almacen">¿Es Almacén Principal?</label>
+                    <select class="form-control" id="es_almacen" name="es_almacen" required>
+                        <option value="0" selected>No</option>
+                        <option value="1">Sí</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
     </x-mymodal>
@@ -122,6 +133,12 @@
                     data: 'mostrar_en_visor',
                     render: function(data) {
                         return (data == 1) ? '<span class="badge bg-xinfo">Sí</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
+                    }
+                },
+                {
+                    data: 'es_almacen',
+                    render: function(data) {
+                        return (data == 1) ? '<span class="badge bg-xprimary text-white">SÍ</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
                     }
                 },
                
