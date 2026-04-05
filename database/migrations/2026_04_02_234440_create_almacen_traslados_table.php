@@ -30,10 +30,14 @@ return new class extends Migration
             // Información del Traslado
             $table->integer('stock_vendido')->default(0);
             $table->integer('stock_disponible')->comment('Stock que aún no se ha vendido');
+            
+            // Auditoría de Usuarios
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+
             $table->unique(['tienda_id', 'producto_id']);
 
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

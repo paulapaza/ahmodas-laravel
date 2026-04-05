@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-      //   Schema::table('productos', function (Blueprint $table) {
-      //       //add alias column
-      //       $table->string('alias')->nullable()->after('nombre')->index();
-      //   });
+        Schema::table('tiendas', function (Blueprint $table) {
+            $table->boolean('es_almacen')->default(false)->after('nombre');
+        });
     }
 
     /**
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-      //   Schema::table('productos', function (Blueprint $table) {
-      //       $table->dropColumn('alias');
-      //   });
+        Schema::table('tiendas', function (Blueprint $table) {
+            $table->dropColumn('es_almacen');
+        });
     }
 };

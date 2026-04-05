@@ -22,7 +22,9 @@ return new class extends Migration
             $table->integer('stock_disponible')->default(0);
             $table->integer('stock_almacen')->default(0);
 
-            $table->timestamps();
+            // Auditoría de Usuarios
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('created_at')->nullable();
         });
     }
 

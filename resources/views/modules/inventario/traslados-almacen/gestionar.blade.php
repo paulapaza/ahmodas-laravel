@@ -173,6 +173,7 @@
                                            class="form-control form-control-lg text-center font-weight-bold" 
                                            v-model.number="form.cantidad" 
                                            min="1"
+                                           :max="productoSeleccionadoDetalle ? productoSeleccionadoDetalle.stock : 1"
                                            :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
                                 </div>
                             </form>
@@ -355,7 +356,7 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a enviar adicional:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="nuevaCantidadEdicion" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1">
+                    <input type="number" v-model.number="nuevaCantidadEdicion" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1" :max="getStockAlmacenReal(itemParaEditar.id)">
                     <button @click="guardarEdicion" class="btn btn-success" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
                     </button>
@@ -379,7 +380,7 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a marcar como vendida:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="form.cantidad" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="0">
+                    <input type="number" v-model.number="cantidadVenta" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="0" :max="itemParaOperar.vendido + itemParaOperar.disponible">
                     <button @click="procesarOperacion('Venta')" class="btn btn-success" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
                     </button>
@@ -396,7 +397,7 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a regresar al almacén:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="form.cantidad" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1" :max="itemParaOperar.disponible">
+                    <input type="number" v-model.number="cantidadDevolucion" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1" :max="itemParaOperar.disponible">
                     <button @click="procesarOperacion('Devolución')" class="btn btn-danger" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-undo-alt'"></i>
                     </button>
@@ -413,6 +414,7 @@
             el: '#traslados-almacen-app',
             data() {
                 return {
+                    userId: {{ auth()->id() }},
                     // Estado del Formulario Principal
                     form: {
                         productoId: '',
@@ -434,6 +436,8 @@
                     nuevaCantidadEdicion: 0,
                     puntoSeleccionado: {},
                     itemParaOperar: null, // Objeto de traslado para Venta/Devolución
+                    cantidadVenta: 0,
+                    cantidadDevolucion: 0,
                     historialProducto: [],
                     
                     // Filtros
@@ -640,12 +644,12 @@
                 },
                 abrirVender(traslado) {
                     this.itemParaOperar = traslado;
-                    this.form.cantidad = traslado.vendido; // Cargamos el total actual
+                    this.cantidadVenta = traslado.vendido; // Cargamos el total actual
                     this.$bvModal.show('modal-vender');
                 },
                 abrirDevolver(traslado) {
                     this.itemParaOperar = traslado;
-                    this.form.cantidad = 1; // Unidades a regresar
+                    this.cantidadDevolucion = 1; // Unidades a regresar
                     this.$bvModal.show('modal-devolver');
                 },
 
@@ -656,10 +660,28 @@
                         ? '/api/inventario/traslados/actualizar-venta' 
                         : '/api/inventario/traslados/actualizar-devolucion';
 
+                    // Usamos la variable independiente según el tipo de operación
+                    const cantidadOperacion = tipo === 'Venta' ? this.cantidadVenta : this.cantidadDevolucion;
+
                     const payload = {
                         traslado_id: this.itemParaOperar.traslado_id,
-                        [tipo === 'Venta' ? 'nueva_venta' : 'cantidad_a_regresar']: this.form.cantidad
+                        user_id: this.userId,
+                        [tipo === 'Venta' ? 'nueva_venta' : 'cantidad_a_regresar']: cantidadOperacion
                     };
+
+                    // Validación de límite en Frontend
+                    if (tipo === 'Venta') {
+                        const maxPermitido = this.itemParaOperar.vendido + this.itemParaOperar.disponible;
+                        if (cantidadOperacion > maxPermitido) {
+                            this.toast(`Límite excedido. El máximo es ${maxPermitido} (Vendido + Disponible).`, 'Error', 'warning');
+                            return;
+                        }
+                    } else if (tipo === 'Devolución') {
+                        if (cantidadOperacion > this.itemParaOperar.disponible) {
+                            this.toast(`El máximo a regresar es ${this.itemParaOperar.disponible}.`, 'Error', 'warning');
+                            return;
+                        }
+                    }
 
                     this.cargando = true;
                     axios.post(url, payload)
@@ -732,7 +754,7 @@
                         }
                     } catch (error) {
                         console.error('Error al cargar productos:', error);
-                        this.toast('Error al cargar el listado de productos', 'Error API', 'danger');
+                        this.toast(error.response?.data?.message || 'Error al cargar el listado de productos', 'Error API', 'danger');
                     } finally {
                         this.cargando = false;
                     }
@@ -825,7 +847,10 @@
 
                     // --- ENVÍO REAL AL ENDPOINT ---
                     this.cargando = true;
-                    axios.post('/api/inventario/traslados/guardar', { traslados: datosParaEnviar })
+                    axios.post('/api/inventario/traslados/guardar', { 
+                        traslados: datosParaEnviar,
+                        user_id: this.userId
+                    })
                         .then(response => {
                             if (response.data.success) {
                                 // Marcamos como confirmados localmente
@@ -863,11 +888,18 @@
                     this.$bvModal.show('modal-editar-traslado');
                 },
                 guardarEdicion() {
+                    const maxAlmacen = this.getStockAlmacenReal(this.itemParaEditar.id);
+                    if (this.nuevaCantidadEdicion > maxAlmacen) {
+                        this.toast(`Solo hay ${maxAlmacen} unidades disponibles en almacén.`, 'Error', 'warning');
+                        return;
+                    }
+
                     // --- ACTUALIZACIÓN REAL EN BD (AGREGAR) ---
                     this.cargando = true;
                     axios.post('/api/inventario/traslados/actualizar-stock', {
                         traslado_id: this.itemParaEditar.traslado_id,
-                        cantidad_agregada: this.nuevaCantidadEdicion
+                        cantidad_agregada: this.nuevaCantidadEdicion,
+                        user_id: this.userId
                     })
                     .then(response => {
                         if (response.data.success) {
@@ -890,7 +922,8 @@
                         if (this.itemParaEditar.confirmado) {
                             this.cargando = true;
                             axios.post('/api/inventario/traslados/eliminar', {
-                                traslado_id: this.itemParaEditar.traslado_id
+                                traslado_id: this.itemParaEditar.traslado_id,
+                                user_id: this.userId
                             })
                             .then(response => {
                                 if (response.data.success) {
