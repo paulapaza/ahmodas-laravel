@@ -111,21 +111,7 @@
                         <div class="card-body">
                             <form action="#" @submit.prevent>
                                 <div class="form-group mb-4">
-                                    <label class="small font-weight-bold mb-2 d-block text-xprimary">1. TIENDA DESTINO:</label>
-                                    <div class="store-grid">
-                                        <div v-for="tienda in tiendas" :key="tienda.id" 
-                                             class="store-box" 
-                                             :class="{ 'active': form.tiendaId === tienda.id }"
-                                             @click="form.tiendaId = tienda.id">
-                                            <div class="store-name">@{{ tienda.nombre }}</div>
-                                            <div v-if="form.productoId && form.tiendaId === tienda.id" class="small text-muted font-weight-bold mt-1">
-                                                Stock: @{{ getStockEnTienda(tienda.id) }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group mb-4">
-                                    <label class="small font-weight-bold text-xprimary">2. PRODUCTO EN ALMACÉN:</label>
+                                    <label class="small font-weight-bold text-xprimary">1. PRODUCTO EN ALMACÉN:</label>
                                     <div class="position-relative">
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -167,6 +153,20 @@
                                         <span v-if="productoSeleccionadoDetalle.stock <= 0"> [AGOTADO EN ALMACÉN]</span>
                                     </div>
                                 </div>
+                                <div class="form-group mb-4">
+                                    <label class="small font-weight-bold mb-2 d-block text-xprimary">2. TIENDA DESTINO:</label>
+                                    <div class="store-grid">
+                                        <div v-for="tienda in tiendas" :key="tienda.id" 
+                                             class="store-box" 
+                                             :class="{ 'active': form.tiendaId === tienda.id }"
+                                             @click="form.tiendaId = tienda.id">
+                                            <div class="store-name">@{{ tienda.nombre }}</div>
+                                            <div v-if="form.productoId && form.tiendaId === tienda.id" class="small text-muted font-weight-bold mt-1">
+                                                Stock: @{{ getStockEnTienda(tienda.id) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold text-xprimary">3. CANTIDAD A TRASLADAR:</label>
                                     <input type="number" 
@@ -202,7 +202,7 @@
                                 <!-- Filtros -->
                                 <div class="col-12">
                                     <div class="row no-gutters bg-light p-1 rounded border shadow-xs" style="backdrop-filter: blur(5px); background: rgba(248, 249, 250, 0.85) !important;">
-                                        <div class="col-md-4 pr-1">
+                                        <div class="col-md-6 pr-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-store text-muted small"></i></span>
@@ -213,20 +213,12 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 px-1">
+                                        <div class="col-md-6 pl-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted small"></i></span>
                                                 </div>
-                                                <input type="text" class="form-control form-control-sm border-left-0" placeholder="Nombre o código..." v-model="filtroProducto">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 pl-1">
-                                            <div class="input-group input-group-sm">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
-                                                </div>
-                                                <input type="date" class="form-control form-control-sm border-left-0" v-model="filtroFecha" v-b-tooltip.hover title="Filtrar por fecha">
+                                                <input type="text" class="form-control form-control-sm border-left-0" placeholder="Buscar por nombre o código..." v-model="filtroProducto">
                                             </div>
                                         </div>
                                     </div>
@@ -443,7 +435,6 @@
                     // Filtros
                     filtroTienda: '',
                     filtroProducto: '',
-                    filtroFecha: '',
 
                     // Scanner
                     scannerBarcode: '',
@@ -540,22 +531,7 @@
                             t.nombre.toLowerCase().includes(search) ||
                             (t.codigo && t.codigo.toLowerCase().includes(search));
                         
-                        // Filtro por Fecha (Solo Día)
-                        let matchesFecha = true;
-                        if (this.filtroFecha) {
-                            let itemFechaStr = "";
-                            if (t.confirmado) {
-                                itemFechaStr = t.fecha.split(' ')[0]; // Suponiendo "YYYY-MM-DD HH:mm:ss"
-                            } else {
-                                const d = new Date(t.fecha);
-                                if (!isNaN(d.getTime())) {
-                                    itemFechaStr = d.toISOString().split('T')[0];
-                                }
-                            }
-                            matchesFecha = itemFechaStr === this.filtroFecha;
-                        }
-                        
-                        return matchesTienda && matchesProducto && matchesFecha;
+                        return matchesTienda && matchesProducto;
                     });
                 },
                 listaSugerencias() {
@@ -745,8 +721,8 @@
                             return false;
                         });
 
-                        // Unimos: Primero confirmados, luego borradores
-                        this.trasladosEnCurso = [...confirmados, ...borradoresSinDuplicados];
+                        // Unimos: Primero borradores (nuevos), luego confirmados
+                        this.trasladosEnCurso = [...borradoresSinDuplicados, ...confirmados];
                         // -------------------------------------
 
                         if (this.tiendas.length > 0 && !this.form.tiendaId) {
@@ -803,7 +779,7 @@
                         }
                         this.trasladosEnCurso[index].alias = prod.alias; // Actualizar por si era un borrador viejo
                     } else {
-                        this.trasladosEnCurso.push({
+                        this.trasladosEnCurso.unshift({
                             id: prod.id,
                             nombre: prod.nombre,
                             alias: prod.alias,

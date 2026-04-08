@@ -58,7 +58,7 @@ class TrasladoAlmacenController extends Controller
       $confirmadosHoy = DB::table('almacen_traslados')
          ->join('productos', 'almacen_traslados.producto_id', '=', 'productos.id')
          ->join('tiendas', 'almacen_traslados.tienda_id', '=', 'tiendas.id')
-         ->whereDate('almacen_traslados.created_at', now()->toDateString())
+         ->where('almacen_traslados.fecha', now()->toDateString())
          ->select(
             'almacen_traslados.id as traslado_id',
             'almacen_traslados.producto_id as id',
@@ -71,6 +71,7 @@ class TrasladoAlmacenController extends Controller
             'almacen_traslados.stock_disponible as disponible',
             'almacen_traslados.created_at as fecha'
          )
+         ->orderByDesc('almacen_traslados.id')
          ->get()
          ->map(function ($t) {
             $t->confirmado = true;
@@ -166,6 +167,7 @@ class TrasladoAlmacenController extends Controller
             $trasladoExistente = DB::table('almacen_traslados')
                ->where('producto_id', $t['producto_id'])
                ->where('tienda_id', $t['tienda_id'])
+               ->where('fecha', $hoy->toDateString())
                ->first();
 
             if ($trasladoExistente) {
@@ -195,6 +197,7 @@ class TrasladoAlmacenController extends Controller
                   'almacen_stock_posterior' => $almacenStock->stock - $t['stock_disponible'],
                   'tienda_stock_posterior' => $stockTiendaAnterior + $t['stock_disponible'],
                   'stock_disponible' => $t['stock_disponible'],
+                  'fecha' => $hoy->toDateString(),
                   'created_at' => $hoy,
                   'updated_at' => $hoy,
                ]);
@@ -555,9 +558,9 @@ class TrasladoAlmacenController extends Controller
          });
       }
       if ($fechaInicio)
-         $query->whereDate('almacen_traslados.created_at', '>=', $fechaInicio);
+         $query->where('almacen_traslados.fecha', '>=', $fechaInicio);
       if ($fechaFin)
-         $query->whereDate('almacen_traslados.created_at', '<=', $fechaFin);
+         $query->where('almacen_traslados.fecha', '<=', $fechaFin);
 
       $traslados = $query->orderByDesc('almacen_traslados.updated_at')->get()->map(function ($t) {
          $t->created_fmt = date('d/m/Y H:i', strtotime($t->created_at));
