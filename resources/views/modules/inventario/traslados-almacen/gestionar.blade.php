@@ -191,8 +191,11 @@
                                         <i class="fas fa-store mr-2"></i> Productos en Tiendas
                                     </h6>
                                 </div>
-                                <!-- Botón Historial -->
+                                <!-- Botón Historial e Importar -->
                                 <div class="col-md-6 text-right">
+                                    <button @click="abrirModalImportar" class="btn btn-outline-success btn-sm shadow-xs mr-2">
+                                        <i class="fas fa-file-excel mr-1"></i> Importar Stock
+                                    </button>
                                     <a href="{{ route('inventario.traslados_almacen.historial') }}" class="btn btn-outline-primary btn-sm shadow-xs">
                                         <i class="fas fa-history mr-1"></i> Historial de Traslados
                                     </a>
@@ -396,6 +399,49 @@
                 </div>
             </div>
         </b-modal>
+
+        <!-- Modal Importar Excel -->
+        <b-modal id="modal-importar-excel" title="Importar Stock desde Excel" hide-footer centered size="md">
+            <div class="p-3">
+                <p class="small text-muted mb-4">
+                    Sube un archivo Excel (.xlsx, .xls o .csv) con las columnas <b>productid</b> (Código de Barras) y <b>count</b> (Cantidad a sumar).
+                </p>
+                
+                <div class="form-group border p-4 rounded bg-light text-center">
+                    <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
+                    <div class="custom-file">
+                        <input type="file" ref="archivoExcel" class="custom-file-input" accept=".xlsx,.xls,.csv" :disabled="cargandoImportacion" @change="actualizarNombreArchivo">
+                        <label class="custom-file-label text-left">@{{ nombreArchivoSeleccionado || 'Elegir archivo...' }}</label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button class="btn btn-light mr-2 btn-sm" @click="$bvModal.hide('modal-importar-excel')" :disabled="cargandoImportacion">Cancelar</button>
+                    <button class="btn btn-success btn-sm" @click="procesarImportacion" :disabled="cargandoImportacion">
+                        <span v-if="cargandoImportacion"><i class="fas fa-spinner fa-spin mr-1"></i> Procesando...</span>
+                        <span v-else><i class="fas fa-upload mr-1"></i> Iniciar Importación</span>
+                    </button>
+                </div>
+                
+                <div v-if="importacionResultados.errores.length > 0" class="mt-4">
+                    <h6 class="small font-weight-bold text-danger border-bottom pb-1">Observaciones (@{{ importacionResultados.errores.length }}):</h6>
+                    
+                    <div v-if="importacionResultados.codigosFaltantes.length > 0" class="mb-3">
+                        <p class="x-small text-muted mb-1">Copia estos códigos para crearlos:</p>
+                        <textarea class="form-control form-control-sm text-monospace x-small" rows="3" readonly @click="$event.target.select()">@{{ importacionResultados.codigosFaltantes.join(', ') }}</textarea>
+                    </div>
+
+                    <div class="p-2 border rounded bg-white" style="max-height: 120px; overflow-y: auto;">
+                        <ul class="list-unstyled mb-0">
+                            <li v-for="err in importacionResultados.errores" class="small text-muted border-bottom py-1">
+                                <i class="fas fa-exclamation-circle text-warning mr-1"></i> @{{ err }}
+                            </li>
+                        </ul>
+                    </div>
+                    <p class="x-small text-muted mt-2">Nota: Los productos válidos ya fueron procesados.</p>
+                </div>
+            </div>
+        </b-modal>
     </div>
 
     @push('scripts')
@@ -441,7 +487,10 @@
 
                     // Buscador Dinámico
                     busquedaSelector: '',
-                    dropdownAbierto: false
+                    dropdownAbierto: false,
+                    cargandoImportacion: false,
+                    nombreArchivoSeleccionado: '',
+                    importacionResultados: { success: false, message: '', errores: [], codigosFaltantes: [] }
                 }
             },
             watch: {
@@ -922,9 +971,56 @@
                 getStockAlmacenReal(productoId) {
                     const prod = this.listaProductos.find(p => p.id === productoId);
                     return prod ? prod.stock : 0;
+                },
+                abrirModalImportar() {
+                    this.importacionResultados = { success: false, message: '', errores: [] };
+                    this.nombreArchivoSeleccionado = '';
+                    this.$bvModal.show('modal-importar-excel');
+                    if (this.$refs.archivoExcel) this.$refs.archivoExcel.value = '';
+                },
+                actualizarNombreArchivo(event) {
+                    const file = event.target.files[0];
+                    this.nombreArchivoSeleccionado = file ? file.name : '';
+                },
+                procesarImportacion() {
+                    const fileInput = this.$refs.archivoExcel;
+                    if (!fileInput.files.length) {
+                        this.toast('Por favor selecciona un archivo.', 'Error', 'danger');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('archivo', fileInput.files[0]);
+
+                    this.cargandoImportacion = true;
+                    axios.post('/api/inventario/traslados/importar-excel', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    })
+                    .then(response => {
+                        const data = response.data;
+                        if (data.success) {
+                            this.toast(data.message, 'Éxito', 'success');
+                            this.importacionResultados.errores = data.errors || [];
+                            this.importacionResultados.codigosFaltantes = data.codigos_faltantes || [];
+                            if (this.importacionResultados.errores.length === 0) {
+                                this.$bvModal.hide('modal-importar-excel');
+                            }
+                            this.fetchProductos();
+                        }
+                    })
+                    .catch(error => {
+                        const msg = error.response?.data?.message || 'Error al procesar el archivo.';
+                        this.toast(msg, 'Error de Importación', 'danger');
+                    })
+                    .finally(() => {
+                        this.cargandoImportacion = false;
+                        // Opcional: no limpiar el fileInput si hubo errores para que el usuario sepa que subió
+                    });
                 }
             }
         });
     </script>
+
+
     @endpush
 </x-admin-layout>
