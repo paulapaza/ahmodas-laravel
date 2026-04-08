@@ -588,7 +588,7 @@ class TrasladoAlmacenController extends Controller
    public function importarStockExcel(Request $request)
    {
       $request->validate([
-         'archivo' => 'required|mimes:xlsx,xls,csv|max:10240',
+         'archivo' => 'required|max:10240', // Validamos tamaño, el formato lo manejará el lector
       ]);
 
       try {
