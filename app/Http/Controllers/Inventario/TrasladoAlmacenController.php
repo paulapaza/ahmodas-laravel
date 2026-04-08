@@ -26,8 +26,9 @@ class TrasladoAlmacenController extends Controller
       return $id;
    }
 
-   public function getDataGestionApi()
+   public function getDataGestionApi(Request $request)
    {
+      $fechaFiltro = $request->input('fecha') ?: now()->toDateString();
       $almacenId = $this->getAlmacenId();
 
       // Tiendas destino (excluyendo la principal)
@@ -55,11 +56,11 @@ class TrasladoAlmacenController extends Controller
             return $items->keyBy('tienda_id')->map->stock;
          });
 
-      // Traslados ya confirmados hoy (desde BD usando created_at)
+      // Traslados ya confirmados según la fecha (desde BD usando columna fecha)
       $confirmadosHoy = DB::table('almacen_traslados')
          ->join('productos', 'almacen_traslados.producto_id', '=', 'productos.id')
          ->join('tiendas', 'almacen_traslados.tienda_id', '=', 'tiendas.id')
-         ->where('almacen_traslados.fecha', now()->toDateString())
+         ->where('almacen_traslados.fecha', $fechaFiltro)
          ->select(
             'almacen_traslados.id as traslado_id',
             'almacen_traslados.producto_id as id',

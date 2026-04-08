@@ -205,7 +205,7 @@
                                 <!-- Filtros -->
                                 <div class="col-12">
                                     <div class="row no-gutters bg-light p-1 rounded border shadow-xs" style="backdrop-filter: blur(5px); background: rgba(248, 249, 250, 0.85) !important;">
-                                        <div class="col-md-6 pr-1">
+                                        <div class="col-md-4 pr-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-store text-muted small"></i></span>
@@ -216,12 +216,20 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 pl-1">
+                                        <div class="col-md-4 px-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted small"></i></span>
                                                 </div>
-                                                <input type="text" class="form-control form-control-sm border-left-0" placeholder="Buscar por nombre o código..." v-model="filtroProducto">
+                                                <input type="text" class="form-control form-control-sm border-left-0" placeholder="Buscar producto..." v-model="filtroProducto">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 pl-1">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
+                                                </div>
+                                                <input type="date" class="form-control form-control-sm border-left-0" v-model="filtroFecha">
                                             </div>
                                         </div>
                                     </div>
@@ -466,7 +474,7 @@
                     cargando: true,
                     
                     // Estado de la Tabla y Traslados
-                    trasladosEnCurso: [],
+                    trasladosEnCurso: [], // Lista maestra (mezcla local + BD)
                     
                     // Estado de Modales y Edición
                     productoSeleccionado: '', // Nombre para modales informativos
@@ -481,6 +489,13 @@
                     // Filtros
                     filtroTienda: '',
                     filtroProducto: '',
+                    filtroFecha: (() => {
+                        const d = new Date();
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    })(),
 
                     // Scanner
                     scannerBarcode: '',
@@ -520,6 +535,9 @@
                         const pendientes = newVal.filter(t => !t.confirmado);
                         localStorage.setItem('traslados_pendientes', JSON.stringify(pendientes));
                     }
+                },
+                filtroFecha() {
+                    this.fetchProductos();
                 }
             },
             mounted() {
@@ -741,14 +759,25 @@
 
                 async fetchProductos() {
                     try {
-                        const response = await axios.get('/api/inventario/traslados/datos-gestion');
+                        this.cargando = true;
+                        const response = await axios.get('/api/inventario/traslados/datos-gestion', {
+                            params: { fecha: this.filtroFecha }
+                        });
                         this.listaProductos = response.data.productos;
                         this.stockMap = response.data.stockMap;
                         this.tiendas = response.data.tiendas;
 
                         // --- FUSIÓN DE DATOS (BD + LOCAL) ---
                         const confirmados = response.data.confirmados || [];
-                        const pendientesLocal = this.trasladosEnCurso.filter(t => !t.confirmado);
+                        
+                        const hoyStr = (() => {
+                            const d = new Date();
+                            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        })();
+
+                        const pendientesLocal = (this.filtroFecha === hoyStr) 
+                            ? this.trasladosEnCurso.filter(t => !t.confirmado)
+                            : [];
                         
                         // Evitamos duplicidad si un (ID, TIENDA) ya se guardó en BD
                         // Usamos llaves compuestas para comparar de forma precisa
