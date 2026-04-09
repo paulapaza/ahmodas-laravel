@@ -56,15 +56,17 @@
           @endcan
           @can('ver-inventario')
           <li class="nav-item">
-            
-            <a href="{{ route('inventario.main') }}" class="nav-link text-light">
-             <i class="nav-icon  fa-solid fa-warehouse"></i> 
-       
-              <p>
-                Inventario
-               
-              </p>
+            @if(auth()->user()->hasRole('cajero'))
+            <a href="{{ route('inventario.traslados_almacen.historial') }}" class="nav-link text-light">
+              <i class="nav-icon fa-solid fa-truck-ramp-box"></i>
+              <p>Traslados desde Almacén</p>
             </a>
+            @else
+            <a href="{{ route('inventario.main') }}" class="nav-link text-light">
+              <i class="nav-icon fa-solid fa-warehouse"></i>
+              <p>Inventario</p>
+            </a>
+            @endif
           </li>
           @endcan
           @can('ver-facturacion')
