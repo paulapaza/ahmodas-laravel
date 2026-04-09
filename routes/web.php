@@ -102,7 +102,7 @@ Route::middleware([
     Route::get('/inventario/producto/stock/{producto_id}/{tienda_id}', [\App\Http\Controllers\Inventario\MovimientoController::class, 'getStock'])->name('inventario.producto.stock');
     Route::post('/inventario/transacciones/traslado-masivo', [\App\Http\Controllers\Inventario\MovimientoController::class, 'storeTrasladoMasivo'])->name('inventario.transacciones.traslado_masivo');
     Route::get('/inventario/traslados/imprimir/{id}', [\App\Http\Controllers\Inventario\MovimientoController::class, 'imprimirTraslado'])->name('inventario.traslados.imprimir');
-    Route::get('/inventario/traslados-desde-almacen', [TrasladoAlmacenController::class, 'index'])->name('inventario.traslados_almacen.index');
+    Route::get('/inventario/traslados-desde-almacen', [TrasladoAlmacenController::class, 'index'])->name('inventario.traslados_almacen.index')->middleware('check.cajero.traslados');
     Route::get('/inventario/traslados-desde-almacen/historial', [TrasladoAlmacenController::class, 'historial'])->name('inventario.traslados_almacen.historial');
 
     // vistas

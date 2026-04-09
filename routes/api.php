@@ -24,14 +24,18 @@ use App\Http\Controllers\Pos\PrintController;
 
 Route::get('/print/order/{id}', [PrintController::class, 'getOrderTicket'])->name('print.order');
 
-// Traslados desde Almacén (API libres)
-Route::get('/inventario/traslados/datos-gestion', [TrasladoAlmacenController::class, 'getDataGestionApi']);
-Route::post('/inventario/traslados/guardar', [TrasladoAlmacenController::class, 'store']);
-Route::post('/inventario/traslados/actualizar-stock', [TrasladoAlmacenController::class, 'actualizarStock']);
-Route::post('/inventario/traslados/actualizar-venta', [TrasladoAlmacenController::class, 'actualizarVenta']);
-Route::post('/inventario/traslados/actualizar-devolucion', [TrasladoAlmacenController::class, 'actualizarDevolucion']);
-Route::post('/inventario/traslados/eliminar', [TrasladoAlmacenController::class, 'eliminarTraslado']);
+// Traslados desde Almacén (Gestión Protegida)
+Route::middleware('check.cajero.traslados')->group(function () {
+    Route::get('/inventario/traslados/datos-gestion', [TrasladoAlmacenController::class, 'getDataGestionApi']);
+    Route::post('/inventario/traslados/guardar', [TrasladoAlmacenController::class, 'store']);
+    Route::post('/inventario/traslados/actualizar-stock', [TrasladoAlmacenController::class, 'actualizarStock']);
+    Route::post('/inventario/traslados/actualizar-venta', [TrasladoAlmacenController::class, 'actualizarVenta']);
+    Route::post('/inventario/traslados/actualizar-devolucion', [TrasladoAlmacenController::class, 'actualizarDevolucion']);
+    Route::post('/inventario/traslados/eliminar', [TrasladoAlmacenController::class, 'eliminarTraslado']);
+    Route::post('/inventario/traslados/importar-excel', [TrasladoAlmacenController::class, 'importarStockExcel']);
+});
+
+// Rutas de Historial (Acceso para todos)
 Route::get('/inventario/traslados/historial-datos', [TrasladoAlmacenController::class, 'getHistorial']);
 Route::get('/inventario/traslados/historial-global', [TrasladoAlmacenController::class, 'getHistorialGlobal']);
-Route::post('/inventario/traslados/importar-excel', [TrasladoAlmacenController::class, 'importarStockExcel']);
 

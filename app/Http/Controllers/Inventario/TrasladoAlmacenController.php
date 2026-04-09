@@ -525,8 +525,7 @@ class TrasladoAlmacenController extends Controller
    {
       $almacenId = $this->getAlmacenId();
       $tiendaId = $request->get('tienda_id');
-      $fechaInicio = $request->get('fecha_inicio');
-      $fechaFin = $request->get('fecha_fin');
+      $fecha = $request->get('fecha');
       $search = $request->get('search');
 
       $query = DB::table('almacen_traslados')
@@ -559,10 +558,8 @@ class TrasladoAlmacenController extends Controller
                ->orWhere('productos.codigo_barras', 'like', "%{$search}%");
          });
       }
-      if ($fechaInicio)
-         $query->where('almacen_traslados.fecha', '>=', $fechaInicio);
-      if ($fechaFin)
-         $query->where('almacen_traslados.fecha', '<=', $fechaFin);
+      if ($fecha)
+         $query->where('almacen_traslados.fecha', $fecha);
 
       $traslados = $query->orderByDesc('almacen_traslados.updated_at')->get()->map(function ($t) {
          $t->created_fmt = date('d/m/Y H:i', strtotime($t->created_at));

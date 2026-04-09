@@ -17,10 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-        'role' => RoleMiddleware::class,
-        'permission' => PermissionMiddleware::class,
-        'role_or_permission' => RoleOrPermissionMiddleware::class,
-    ]);
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'check.cajero.traslados' => \App\Http\Middleware\RedirectCajeroTraslados::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

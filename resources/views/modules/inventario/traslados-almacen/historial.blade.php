@@ -40,15 +40,18 @@
 
     <div id="historial-traslados-app" v-cloak>
         <div class="container-fluid py-4">
+
             <!-- Header con Botón de Regreso -->
             <div class="row mb-4">
                 <div class="col-12 d-flex justify-content-between align-items-center">
                     <h4 class="mb-0 font-weight-bold text-dark">
                         <i class="fas fa-history mr-2 text-primary"></i> HISTORIAL DE TRASLADOS
                     </h4>
+                    @unless(auth()->user()->hasRole('cajero'))
                     <a href="{{ route('inventario.traslados_almacen.index') }}" class="btn btn-primary shadow-sm px-4">
                         <i class="fas fa-arrow-left mr-2"></i> Volver a Gestión
                     </a>
+                    @endunless
                 </div>
             </div>
 
@@ -64,15 +67,11 @@
                                     <option v-for="t in tiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
-                                <label class="small font-weight-bold text-muted uppercase">Desde:</label>
-                                <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.desde" @change="fetchHistorial">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="small font-weight-bold text-muted uppercase">Hasta:</label>
-                                <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.hasta" @change="fetchHistorial">
-                            </div>
                             <div class="col-md-3">
+                                <label class="small font-weight-bold text-muted uppercase">Filtrar por Fecha:</label>
+                                <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.fecha" @change="fetchHistorial">
+                            </div>
+                            <div class="col-md-4">
                                 <label class="small font-weight-bold text-muted uppercase">Producto:</label>
                                 <div class="input-group input-group-sm">
                                     <div class="input-group-prepend">
@@ -123,7 +122,9 @@
                                         <div class="small text-muted font-weight-bold">Código: @{{ t.codigo || 'S/C' }}</div>
                                     </td>
                                     <td class="align-middle">
-                                        <span class="badge badge-light border px-2 py-1">@{{ t.tienda_nombre }}</span>
+                                        <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark" style="font-size: 0.85rem;">
+                                            @{{ t.tienda_nombre }}
+                                        </span>
                                     </td>
                                     <td class="text-center align-middle font-weight-bold">@{{ t.vendido }}</td>
                                     <td class="text-center align-middle text-primary font-weight-bold">@{{ t.disponible }}</td>
@@ -172,8 +173,7 @@
                     traslados: [],
                     filtros: {
                         tienda_id: '',
-                        desde: '',
-                        hasta: '',
+                        fecha: '{{ date('Y-m-d') }}',
                         search: ''
                     },
                     cargando: false,
@@ -190,8 +190,7 @@
                         const response = await axios.get('/api/inventario/traslados/historial-global', {
                             params: {
                                 tienda_id: this.filtros.tienda_id,
-                                fecha_inicio: this.filtros.desde,
-                                fecha_fin: this.filtros.hasta,
+                                fecha: this.filtros.fecha,
                                 search: this.filtros.search
                             }
                         });
@@ -215,8 +214,7 @@
                 resetFiltros() {
                     this.filtros = {
                         tienda_id: '',
-                        desde: '',
-                        hasta: '',
+                        fecha: '',
                         search: ''
                     };
                     this.fetchHistorial();
