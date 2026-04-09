@@ -531,6 +531,7 @@ class TrasladoAlmacenController extends Controller
       $query = DB::table('almacen_traslados')
          ->join('productos', 'almacen_traslados.producto_id', '=', 'productos.id')
          ->join('tiendas', 'almacen_traslados.tienda_id', '=', 'tiendas.id')
+         ->leftJoin('users', 'almacen_traslados.created_by', '=', 'users.id')
          ->leftJoin('producto_tienda as pt_almacen', function ($join) use ($almacenId) {
             $join->on('almacen_traslados.producto_id', '=', 'pt_almacen.producto_id')
                ->where('pt_almacen.tienda_id', '=', $almacenId);
@@ -546,7 +547,9 @@ class TrasladoAlmacenController extends Controller
             'almacen_traslados.stock_disponible as disponible',
             'almacen_traslados.created_at',
             'almacen_traslados.updated_at',
-            DB::raw('COALESCE(pt_almacen.stock, 0) as stock_almacen')
+            DB::raw('COALESCE(pt_almacen.stock, 0) as stock_almacen'),
+            'users.name as user_name',
+            'users.email as user_email'
          );
 
       if ($tiendaId)

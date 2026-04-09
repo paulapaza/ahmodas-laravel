@@ -106,7 +106,7 @@
                                     <th class="text-center py-3 border-top-0">Disponible</th>
                                     <th class="text-center py-3 border-top-0">En Almacén</th>
                                     <th class="py-3 border-top-0">Fecha Registro</th>
-                                    <th class="py-3 border-top-0 pr-4">Última Actividad</th>
+                                    <th class="py-3 border-top-0 pr-4">Registrado por</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -138,8 +138,8 @@
                                         <div class="small text-muted">@{{ t.created_fmt.split(' ')[1] }}</div>
                                     </td>
                                     <td class="align-middle pr-4">
-                                        <div class="font-weight-bold text-primary">@{{ t.updated_fmt.split(' ')[0] }}</div>
-                                        <div class="small text-muted">@{{ t.updated_fmt.split(' ')[1] }}</div>
+                                        <div class="font-weight-bold text-dark">@{{ t.user_name || 'No disponible' }}</div>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">@{{ t.user_email || '-' }}</div>
                                     </td>
                                 </tr>
                                 <tr v-if="!cargando && traslados.length === 0">
