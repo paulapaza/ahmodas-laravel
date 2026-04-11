@@ -71,9 +71,10 @@ class TrasladoAlmacenController extends Controller
             'tiendas.nombre as tienda_nombre',
             'almacen_traslados.stock_vendido as vendido',
             'almacen_traslados.stock_disponible as disponible',
-            'almacen_traslados.created_at as fecha'
+            'almacen_traslados.created_at as fecha',
+            'almacen_traslados.updated_at'
          )
-         ->orderByDesc('almacen_traslados.id')
+         ->orderByDesc('almacen_traslados.updated_at')
          ->get()
          ->map(function ($t) {
             $t->confirmado = true;

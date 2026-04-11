@@ -265,7 +265,7 @@
                                             </template>
                                             <template v-else>
                                                 <div v-if="getStockConfirmado(traslado.id, traslado.tienda_id) > 0">
-                                                    <span class="text-muted small">@{{ getStockConfirmado(traslado.id, traslado.tienda_id) }}</span>
+                                                    <span class="text-muted" style="font-size: 1.1rem;">@{{ getStockConfirmado(traslado.id, traslado.tienda_id) }}</span>
                                                     <span class="text-success ml-1" style="font-size: 1.1rem;">+@{{ traslado.disponible }}</span>
                                                 </div>
                                                 <div v-else>
@@ -297,7 +297,7 @@
 
                                             <!-- Grupo 2: Gestión (Historial / Editar) -->
                                             <div class="btn-group btn-group-sm ml-2" v-if="traslado.confirmado">
-                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar más stock">
+                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar o eliminar stock">
                                                    <i class="fas fa-truck-loading"></i>
                                                 </button>
                                                 <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
@@ -612,6 +612,10 @@
                             (t.codigo && t.codigo.toLowerCase().includes(search));
                         
                         return matchesTienda && matchesProducto;
+                    }).sort((a, b) => {
+                        const dateA = new Date(a.updated_at || a.fecha);
+                        const dateB = new Date(b.updated_at || b.fecha);
+                        return dateB - dateA;
                     });
                 },
                 listaSugerencias() {
@@ -834,16 +838,19 @@
 
                         if (esUpdateExplicit) {
                             this.trasladosEnCurso[index].disponible = this.form.cantidad;
+                            this.trasladosEnCurso[index].updated_at = new Date().toISOString();
                         } else {
                             if (this.trasladosEnCurso[index].disponible + 1 <= validation.stock) {
                                 this.trasladosEnCurso[index].disponible += 1;
                                 this.form.cantidad = this.trasladosEnCurso[index].disponible;
+                                this.trasladosEnCurso[index].updated_at = new Date().toISOString();
                             } else {
                                 this.toast('Límite de stock alcanzado.', 'Límite', 'warning');
                             }
                         }
                         this.trasladosEnCurso[index].alias = prod.alias; // Actualizar por si era un borrador viejo
                     } else {
+                        const ahora = new Date().toISOString();
                         this.trasladosEnCurso.unshift({
                             id: prod.id,
                             nombre: prod.nombre,
@@ -851,7 +858,8 @@
                             codigo: prod.codigo,
                             tienda_id: this.form.tiendaId,
                             tienda_nombre: tienda ? tienda.nombre : 'Sin Tienda',
-                            fecha: new Date().toISOString(),
+                            fecha: ahora,
+                            updated_at: ahora,
                             vendido: 0,
                             devuelto: 0,
                             disponible: this.form.cantidad,
