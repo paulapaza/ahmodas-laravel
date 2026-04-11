@@ -251,7 +251,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="traslado in trasladosFiltrados" :key="`${traslado.id}-${traslado.tienda_id}`">
+                                    <tr v-for="traslado in trasladosFiltrados" :key="`${traslado.id}-${traslado.tienda_id}-${traslado.confirmado}`">
                                         <td class="pl-3 align-middle">
                                             <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
                                             <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
@@ -779,28 +779,8 @@
                             ? this.trasladosEnCurso.filter(t => !t.confirmado)
                             : [];
                         
-                        // Evitamos duplicidad si un (ID, TIENDA) ya se guardó en BD
-                        // Usamos llaves compuestas para comparar de forma precisa
-                        const keysConfirmados = confirmados.map(c => `${c.id}-${c.tienda_id}`);
-                        const borradoresSinDuplicados = pendientesLocal.filter(p => {
-                            const keyP = `${p.id}-${p.tienda_id}`;
-                            const isNewInDB = keysConfirmados.includes(keyP);
-                            
-                            if (!isNewInDB) {
-                                // Aprovechamos para actualizar alias/nombres de borradores antiguos en localStorage
-                                const prodMaster = this.listaProductos.find(lp => lp.id === p.id);
-                                if (prodMaster) {
-                                    p.alias = prodMaster.alias;
-                                    p.nombre = prodMaster.nombre;
-                                    p.codigo = prodMaster.codigo;
-                                }
-                                return true;
-                            }
-                            return false;
-                        });
-
                         // Unimos: Primero borradores (nuevos), luego confirmados
-                        this.trasladosEnCurso = [...borradoresSinDuplicados, ...confirmados];
+                        this.trasladosEnCurso = [...pendientesLocal, ...confirmados];
                         // -------------------------------------
 
                         if (this.tiendas.length > 0 && !this.form.tiendaId) {
@@ -834,16 +814,10 @@
 
                     const prod = this.productoSeleccionadoDetalle;
                     // Buscamos si ya existe para ESTA tienda específica
-                    const index = this.trasladosEnCurso.findIndex(t => t.id === prod.id && t.tienda_id === this.form.tiendaId);
+                    const index = this.trasladosEnCurso.findIndex(t => t.id === prod.id && t.tienda_id === this.form.tiendaId && !t.confirmado);
                     const tienda = this.tiendas.find(t => t.id === this.form.tiendaId);
 
                     if (index !== -1) {
-                        if (this.trasladosEnCurso[index].confirmado) {
-                            this.toast(`El producto ${prod.alias || prod.nombre} ya fue enviado. Usa 'Editar' para ajustar.`, 'Aviso', 'info');
-                            this.form.productoId = '';
-                            this.form.cantidad = 1;
-                            return;
-                        }
 
                         if (esUpdateExplicit) {
                             this.trasladosEnCurso[index].disponible = this.form.cantidad;
