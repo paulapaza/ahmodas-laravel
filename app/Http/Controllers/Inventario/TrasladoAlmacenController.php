@@ -36,6 +36,7 @@ class TrasladoAlmacenController extends Controller
          ->where('id', '!=', $almacenId)
          ->where('estado', 1)
          ->select('id', 'nombre')
+         ->orderBy('nombre')
          ->get();
       // Productos con su stock en el Almacén Principal
       $productos = DB::table('productos')
@@ -551,7 +552,12 @@ class TrasladoAlmacenController extends Controller
       });
 
       // También necesitamos las tiendas para el filtro
-      $tiendas = DB::table('tiendas')->where('id', '!=', $almacenId)->where('estado', 1)->select('id', 'nombre')->get();
+      $tiendas = DB::table('tiendas')
+         ->where('id', '!=', $almacenId)
+         ->where('estado', 1)
+         ->select('id', 'nombre')
+         ->orderBy('nombre')
+         ->get();
 
       return response()->json([
          'success' => true,

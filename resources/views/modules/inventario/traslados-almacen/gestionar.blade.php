@@ -205,7 +205,7 @@
                                 <!-- Filtros -->
                                 <div class="col-12">
                                     <div class="row no-gutters bg-light p-1 rounded border shadow-xs" style="backdrop-filter: blur(5px); background: rgba(248, 249, 250, 0.85) !important;">
-                                        <div class="col-md-4 pr-1">
+                                        <div class="col pr-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-store text-muted small"></i></span>
@@ -216,7 +216,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 px-1">
+                                        <div class="col px-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted small"></i></span>
@@ -224,13 +224,22 @@
                                                 <input type="text" class="form-control form-control-sm border-left-0" placeholder="Buscar producto..." v-model="filtroProducto">
                                             </div>
                                         </div>
-                                        <div class="col-md-4 pl-1">
+                                        <div class="col pl-1">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
                                                 </div>
                                                 <input type="date" class="form-control form-control-sm border-left-0" v-model="filtroFecha">
                                             </div>
+                                        </div>
+                                        <div class="col-auto pl-1" v-if="hayTrasladosPendientes">
+                                            <button @click="confirmarTodo" 
+                                                    class="btn btn-success btn-sm shadow-sm"
+                                                    style="height: 31px; width: 40px;"
+                                                    v-b-tooltip.hover 
+                                                    title="Confirmar todos los traslados">
+                                                <i class="fas fa-check-double"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -297,7 +306,7 @@
 
                                             <!-- Grupo 2: Gestión (Historial / Editar) -->
                                             <div class="btn-group btn-group-sm ml-2" v-if="traslado.confirmado">
-                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar o eliminar stock">
+                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar o devolver todo">
                                                    <i class="fas fa-truck-loading"></i>
                                                 </button>
                                                 <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
@@ -382,7 +391,7 @@
 
                 <!-- Opción de Eliminación -->
                 <button @click="eliminarTrasladoConfirmado" class="btn btn-link btn-sm text-danger btn-block p-0">
-                   <i class="fas fa-trash-alt mr-1"></i> Eliminar y regresar todo al almacén
+                   <i class="fas fa-trash-alt mr-1"></i> Devolver todo al almacén
                 </button>
             </div>
         </b-modal>
