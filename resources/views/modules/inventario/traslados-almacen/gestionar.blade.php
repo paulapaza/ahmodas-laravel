@@ -259,7 +259,20 @@
                                         <td class="align-middle small">@{{ traslado.tienda_nombre }}</td>
                                         <td class="align-middle small font-weight-bold">@{{ formatearFecha(traslado.fecha) }}</td>
                                         <td class="align-middle text-center">@{{ traslado.vendido }}</td>
-                                        <td class="align-middle text-center text-primary font-weight-bold">@{{ traslado.disponible }}</td>
+                                        <td class="align-middle text-center text-primary font-weight-bold">
+                                            <template v-if="traslado.confirmado">
+                                                @{{ traslado.disponible }}
+                                            </template>
+                                            <template v-else>
+                                                <div v-if="getStockConfirmado(traslado.id, traslado.tienda_id) > 0">
+                                                    <span class="text-muted small">@{{ getStockConfirmado(traslado.id, traslado.tienda_id) }}</span>
+                                                    <span class="text-success ml-1" style="font-size: 1.1rem;">+@{{ traslado.disponible }}</span>
+                                                </div>
+                                                <div v-else>
+                                                    @{{ traslado.disponible }}
+                                                </div>
+                                            </template>
+                                        </td>
                                         <td class="align-middle text-center">
                                             <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.85rem;">
                                                 @{{ getStockAlmacenReal(traslado.id) }} 
@@ -974,6 +987,10 @@
                 getStockAlmacenReal(productoId) {
                     const prod = this.listaProductos.find(p => p.id === productoId);
                     return prod ? prod.stock : 0;
+                },
+                getStockConfirmado(productoId, tiendaId) {
+                    const conf = this.trasladosEnCurso.find(t => t.id === productoId && t.tienda_id === tiendaId && t.confirmado);
+                    return conf ? conf.disponible : 0;
                 },
                 abrirModalImportar() {
                     this.importacionResultados = { success: false, message: '', errores: [] };
