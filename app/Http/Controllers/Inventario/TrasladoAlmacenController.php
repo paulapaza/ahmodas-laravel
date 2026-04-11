@@ -168,8 +168,8 @@ class TrasladoAlmacenController extends Controller
             // 3. LÓGICA DE PERSISTENCIA (UPSERT)
             // Buscamos si ya existe un traslado para este producto hacia esta tienda
             $trasladoExistente = DB::table('almacen_traslados')
-               ->where('producto_id', $t['producto_id'])
-               ->where('tienda_id', $t['tienda_id'])
+               ->where('producto_id', (int)$t['producto_id'])
+               ->where('tienda_id', (int)$t['tienda_id'])
                ->where('fecha', $hoy->toDateString())
                ->first();
 

@@ -796,8 +796,12 @@
                             ? this.trasladosEnCurso.filter(t => !t.confirmado)
                             : [];
                         
+                        // Evitamos duplicidad si un (ID, TIENDA) ya se guardó en BD (por ejemplo, después de confirmar)
+                        const keysConfirmados = confirmados.map(c => `${c.id}-${c.tienda_id}`);
+                        const borradoresSinDuplicados = pendientesLocal.filter(p => !keysConfirmados.includes(`${p.id}-${p.tienda_id}`));
+
                         // Unimos: Primero borradores (nuevos), luego confirmados
-                        this.trasladosEnCurso = [...pendientesLocal, ...confirmados];
+                        this.trasladosEnCurso = [...borradoresSinDuplicados, ...confirmados];
                         // -------------------------------------
 
                         if (this.tiendas.length > 0 && !this.form.tiendaId) {
@@ -831,8 +835,8 @@
 
                     const prod = this.productoSeleccionadoDetalle;
                     // Buscamos si ya existe para ESTA tienda específica
-                    const index = this.trasladosEnCurso.findIndex(t => t.id === prod.id && t.tienda_id === this.form.tiendaId && !t.confirmado);
-                    const tienda = this.tiendas.find(t => t.id === this.form.tiendaId);
+                    const index = this.trasladosEnCurso.findIndex(t => t.id == prod.id && t.tienda_id == this.form.tiendaId && !t.confirmado);
+                    const tienda = this.tiendas.find(t => t.id == this.form.tiendaId);
 
                     if (index !== -1) {
 
@@ -997,7 +1001,7 @@
                     return prod ? prod.stock : 0;
                 },
                 getStockConfirmado(productoId, tiendaId) {
-                    const conf = this.trasladosEnCurso.find(t => t.id === productoId && t.tienda_id === tiendaId && t.confirmado);
+                    const conf = this.trasladosEnCurso.find(t => t.id == productoId && t.tienda_id == tiendaId && t.confirmado);
                     return conf ? conf.disponible : 0;
                 },
                 abrirModalImportar() {
