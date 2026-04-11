@@ -251,7 +251,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="traslado in trasladosFiltrados" :key="`${traslado.id}-${traslado.tienda_id}-${traslado.confirmado}`">
+                                    <tr v-for="traslado in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
                                             <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
                                             <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
@@ -1001,8 +1001,10 @@
                     return prod ? prod.stock : 0;
                 },
                 getStockConfirmado(productoId, tiendaId) {
-                    const conf = this.trasladosEnCurso.find(t => t.id == productoId && t.tienda_id == tiendaId && t.confirmado);
-                    return conf ? conf.disponible : 0;
+                    // Sumamos todas las cantidades confirmadas para ese producto y tienda hoy
+                    return this.trasladosEnCurso
+                        .filter(t => t.id == productoId && t.tienda_id == tiendaId && t.confirmado)
+                        .reduce((sum, t) => sum + parseInt(t.disponible || 0), 0);
                 },
                 abrirModalImportar() {
                     this.importacionResultados = { success: false, message: '', errores: [] };

@@ -165,57 +165,36 @@ class TrasladoAlmacenController extends Controller
                ]);
             }
 
-            // 3. LÓGICA DE PERSISTENCIA (UPSERT)
-            // Buscamos si ya existe un traslado para este producto hacia esta tienda
-            $trasladoExistente = DB::table('almacen_traslados')
-               ->where('producto_id', (int)$t['producto_id'])
-               ->where('tienda_id', (int)$t['tienda_id'])
-               ->where('fecha', $hoy->toDateString())
-               ->first();
-
-            if ($trasladoExistente) {
-               // ACTUALIZAR EXISTENTE (Acumular en disponible)
-               $trasladoId = $trasladoExistente->id;
-               DB::table('almacen_traslados')
-                  ->where('id', $trasladoId)
-                  ->update([
-                     'almacen_stock_anterior' => $almacenStock->stock,
-                     'tienda_stock_anterior' => $stockTiendaAnterior,
-                     'almacen_stock_posterior' => $almacenStock->stock - $t['stock_disponible'],
-                     'tienda_stock_posterior' => $stockTiendaAnterior + $t['stock_disponible'],
-                     'stock_disponible' => $trasladoExistente->stock_disponible + $t['stock_disponible'],
-                     'updated_by' => $userId,
-                     'updated_at' => $hoy,
-                  ]);
-            } else {
-               // INSERTAR NUEVO
-               $trasladoId = DB::table('almacen_traslados')->insertGetId([
-                  'created_by' => $userId,
-                  'updated_by' => $userId,
-                  'almacen_id' => $almacenId,
-                  'tienda_id' => $t['tienda_id'],
-                  'producto_id' => $t['producto_id'],
-                  'almacen_stock_anterior' => $almacenStock->stock,
-                  'tienda_stock_anterior' => $stockTiendaAnterior,
-                  'almacen_stock_posterior' => $almacenStock->stock - $t['stock_disponible'],
-                  'tienda_stock_posterior' => $stockTiendaAnterior + $t['stock_disponible'],
-                  'stock_disponible' => $t['stock_disponible'],
-                  'fecha' => $hoy->toDateString(),
-                  'created_at' => $hoy,
-                  'updated_at' => $hoy,
-               ]);
-            }
+            // 3. LÓGICA DE PERSISTENCIA (SIEMPRE INSERTAR)
+            $trasladoId = DB::table('almacen_traslados')->insertGetId([
+               'created_by' => $userId,
+               'updated_by' => $userId,
+               'almacen_id' => $almacenId,
+               'tienda_id' => $t['tienda_id'],
+               'producto_id' => (int)$t['producto_id'],
+               'almacen_stock_anterior' => $almacenStock->stock,
+               'tienda_stock_anterior' => $stockTiendaAnterior,
+               'almacen_stock_posterior' => $almacenStock->stock - $t['stock_disponible'],
+               'tienda_stock_posterior' => $stockTiendaAnterior + $t['stock_disponible'],
+               'stock_disponible' => $t['stock_disponible'],
+               'fecha' => $hoy->toDateString(),
+               'created_at' => $hoy,
+               'updated_at' => $hoy,
+            ]);
 
             // Registrar Historial (Fotografía del stock en este momento)
-            $stockDisponibleTotal = $trasladoExistente
-               ? ($trasladoExistente->stock_disponible + $t['stock_disponible'])
-               : $t['stock_disponible'];
+            // Nota: Aquí sumamos lo que hay en el registro actual a lo que ya existe en la tienda hoy
+            $stockYaConfirmado = DB::table('almacen_traslados')
+                ->where('producto_id', (int)$t['producto_id'])
+                ->where('tienda_id', $t['tienda_id'])
+                ->where('fecha', $hoy->toDateString())
+                ->sum('stock_disponible');
 
             DB::table('almacen_traslados_historial')->insert([
                'almacen_traslado_id' => $trasladoId,
                'created_by' => $userId,
-               'stock_disponible' => $stockDisponibleTotal,
-               'stock_vendido' => $trasladoExistente ? $trasladoExistente->stock_vendido : 0,
+               'stock_disponible' => $stockYaConfirmado,
+               'stock_vendido' => 0,
                'stock_almacen' => $almacenStock->stock - $t['stock_disponible'],
                'created_at' => $hoy,
             ]);
