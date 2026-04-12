@@ -197,19 +197,31 @@ class PosOrderController extends Controller
             ], 500);
         }
 
-        // Despachar el envío de CPE a la cola con un retraso de 1 hora
+        // Lógica de facturación condicional (Inmediata vs Diferida)
+        $cpe_response = null;
+        $retraso = 0;
         try {
             if (in_array($pos_order->tipo_comprobante, ['01', '03'])) {
                 $tipo_venta = $request->input('tipo_venta', 'local');
-                
-                // Despachar el Job con retraso de 2 minutos para pruebas
-                SendCepToSunatJob::dispatch($pos_order, $cpeSerie, $cliente, $tipo_venta)
-                    ->delay(now()->addMinutes(2));
+                $retraso = $tienda->minutos_retraso_facturacion;
 
-                Log::info("Envío de CPE programado para 1 hora: Orden {$pos_order->id}");
+                if ($retraso == 0) {
+                    // FACTURACIÓN INMEDIATA (Código antiguo/síncrono)
+                    $cpeServices = new CpeServices();
+                    $cpe_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+                    Log::info("Facturación inmediata procesada para Orden {$pos_order->id}");
+                } else {
+                    // FACTURACIÓN DIFERIDA (Jobs con retraso)
+                    SendCepToSunatJob::dispatch($pos_order, $cpeSerie, $cliente, $tipo_venta)
+                        ->delay(now()->addMinutes($retraso));
+                    
+                    $cpe_response = "Envío programado a SUNAT (Espera: {$retraso} min)";
+                    Log::info("Envío de CPE programado para dentro de {$retraso} min: Orden {$pos_order->id}");
+                }
             }
         } catch (\Throwable $e) {
-            Log::error('Fallo al programar envío CPE en cola: ' . $e->getMessage());
+            Log::error('Error en el proceso de facturación: ' . $e->getMessage());
+            $cpe_response = 'Error en el envío/programación: ' . $e->getMessage();
         }
 
         $print_id = null;
@@ -236,7 +248,8 @@ class PosOrderController extends Controller
             'success' => true,
             'message' => 'Venta registrada correctamente',
             'pos_order' => $pos_order,
-            'cpe_response' => in_array($pos_order->tipo_comprobante, ['01', '03']) ? 'Programado para envío a SUNAT' : null,
+            'retraso' => $retraso == 0 ? 'inmediato' : 'programado ' . $retraso . ' minutos',
+            'cpe_response' => $cpe_response,
             'print_type' => $user->print_type,
             'print_id' => $print_id,
             'tipo_comprobante' => $pos_order->tipo_comprobante,

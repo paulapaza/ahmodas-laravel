@@ -13,6 +13,7 @@
         <th>Estado</th>
         <th>Visor</th>
         <th>Almacén</th>
+        <th>Retraso (min)</th>
 
     </x-table>
 
@@ -68,6 +69,14 @@
                 <div class="form-group">
                     <label for="token_facturacion">Token Facturación</label>
                     <input type="text" class="form-control" id="token_facturacion" name="token_facturacion" required>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="minutos_retraso_facturacion">Retraso en Facturación (Minutos)</label>
+                    <input type="number" class="form-control" id="minutos_retraso_facturacion" name="minutos_retraso_facturacion" min="0" value="0" required>
+                    <small class="text-muted">0 = Inmediato. Ingrese minutos para retrasar el envío a SUNAT (ej. 60).</small>
                 </div>
             </div>
 
@@ -139,6 +148,12 @@
                     data: 'es_almacen',
                     render: function(data) {
                         return (data == 1) ? '<span class="badge bg-xprimary text-white">SÍ</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
+                    }
+                },
+                {
+                    data: 'minutos_retraso_facturacion',
+                    render: function(data) {
+                        return (data == 0) ? '<span class="badge bg-xsuccess">Inmediato</span>' : '<span class="badge bg-xwarning text-dark">' + data + ' min</span>'
                     }
                 },
                

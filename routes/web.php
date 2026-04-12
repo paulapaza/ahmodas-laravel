@@ -145,6 +145,12 @@ Route::middleware([
     Route::view('/facturacion/cpe-series', 'modules.facturacion.CpeSeries')->name('facturacion.configuracion.cpe.serie.list');
     Route::resource('/facturacion/cpe-serie', CpeSerieController::class);
 
+    // Monitoreo SUNAT
+    Route::get('/facturacion/sunat/cpes', [\App\Http\Controllers\Facturacion\SunatController::class, 'indexCpes'])->name('facturacion.sunat.cpes');
+    Route::get('/facturacion/sunat/jobs', [\App\Http\Controllers\Facturacion\SunatController::class, 'indexJobs'])->name('facturacion.sunat.jobs');
+    Route::get('/facturacion/sunat/failed-jobs', [\App\Http\Controllers\Facturacion\SunatController::class, 'indexFailedJobs'])->name('facturacion.sunat.failed_jobs');
+    Route::post('/facturacion/sunat/jobs/{id}/send-now', [\App\Http\Controllers\Facturacion\SunatController::class, 'sendNow'])->name('facturacion.sunat.jobs.send_now');
+
 
     /*************************
      MODULO DE CONFIGURACION

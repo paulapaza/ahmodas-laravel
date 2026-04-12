@@ -18,6 +18,7 @@ class Tienda extends Model
         'estado',
         'mostrar_en_visor',
         'es_almacen',
+        'minutos_retraso_facturacion',
     ];
 
     public function productos()

@@ -54,16 +54,16 @@ class SendCepToSunatJob implements ShouldQueue
 
             Log::info("Enviando CPE a SUNAT desde Job. Orden: {$this->posOrder->id}, Serie: {$this->cpeSerie->serie}, Numero: {$this->cpeSerie->correlativo}");
             
-            // $api_response = $cpeServices->SendCep(
-            //     $this->cpeSerie, 
-            //     $this->cliente, 
-            //     $this->posOrder, 
-            //     null, 
-            //     null, 
-            //     $this->tipoVenta
-            // );
+            $api_response = $cpeServices->SendCep(
+                $this->cpeSerie,
+                $this->cliente,
+                $this->posOrder,
+                null,
+                null,
+                $this->tipoVenta
+            );
 
-            Log::info("Respuesta de SUNAT para Orden {$this->posOrder->id}: " /*. json_encode($api_response)*/);
+            Log::info("Respuesta de SUNAT para Orden {$this->posOrder->id}: " . json_encode($api_response));
 
         } catch (\Throwable $e) {
             Log::error("Fallo envío CPE en Job para Orden {$this->posOrder->id}: " . $e->getMessage());
