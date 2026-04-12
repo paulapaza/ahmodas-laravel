@@ -23,6 +23,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 //log
 use Illuminate\Support\Facades\Log;
+use App\Jobs\SendCepToSunatJob;
+
 
 class PosOrderController extends Controller
 {
@@ -39,7 +41,7 @@ class PosOrderController extends Controller
     public function index()
     {
         // traer orden con relacion con tienda
-        $orders = PosOrder::with('tienda', 'user')
+        $orders = PosOrder::with('tienda', 'user', 'cpe')
             ->whereDate('order_date', now()->format('Y-m-d'))
             ->orderBy('order_date', 'desc')
             ->get();
@@ -48,7 +50,7 @@ class PosOrderController extends Controller
     }
     public function indexByDate($fecha_inicio = null, $fecha_fin = null)
     {
-        return PosOrder::with(['tienda', 'user'])
+        return PosOrder::with(['tienda', 'user', 'cpe'])
 
             ->whereDate('order_date', '>=', $fecha_inicio ? Carbon::parse($fecha_inicio)->format('Y-m-d') : now()->format('Y-m-d'))
             ->whereDate('order_date', '<=', $fecha_fin ? Carbon::parse($fecha_fin)->endOfDay()->format('Y-m-d H:i:s') : now()->endOfDay()->format('Y-m-d H:i:s'))
@@ -195,16 +197,19 @@ class PosOrderController extends Controller
             ], 500);
         }
 
-        // Enviar CPE y otros efectos secundarios fuera de la transacción
-        $api_response = null;
+        // Despachar el envío de CPE a la cola con un retraso de 1 hora
         try {
             if (in_array($pos_order->tipo_comprobante, ['01', '03'])) {
-                $cpeServices = new CpeServices();
                 $tipo_venta = $request->input('tipo_venta', 'local');
-                $api_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+                
+                // Despachar el Job con retraso de 2 minutos para pruebas
+                SendCepToSunatJob::dispatch($pos_order, $cpeSerie, $cliente, $tipo_venta)
+                    ->delay(now()->addMinutes(2));
+
+                Log::info("Envío de CPE programado para 1 hora: Orden {$pos_order->id}");
             }
         } catch (\Throwable $e) {
-            Log::warning('Fallo envío CPE post-commit: ' . $e->getMessage());
+            Log::error('Fallo al programar envío CPE en cola: ' . $e->getMessage());
         }
 
         $print_id = null;
@@ -231,7 +236,7 @@ class PosOrderController extends Controller
             'success' => true,
             'message' => 'Venta registrada correctamente',
             'pos_order' => $pos_order,
-            'cpe_response' => $api_response,
+            'cpe_response' => in_array($pos_order->tipo_comprobante, ['01', '03']) ? 'Programado para envío a SUNAT' : null,
             'print_type' => $user->print_type,
             'print_id' => $print_id,
             'tipo_comprobante' => $pos_order->tipo_comprobante,
@@ -360,8 +365,9 @@ class PosOrderController extends Controller
         DB::beginTransaction();
 
         try {
-            //1. poner la orden en estado anulado
-            $posOrder = PosOrder::findOrFail($id);
+            // 1. Obtener la orden con bloqueo (lockForUpdate) para evitar colisiones con el Job de SUNAT
+            $posOrder = PosOrder::lockForUpdate()->findOrFail($id);
+
             if ($posOrder->estado === 'anulado') {
                 return response()->json([
                     'success' => false,
@@ -369,11 +375,12 @@ class PosOrderController extends Controller
                 ], 400);
             }
 
-            //SOLO SE PUEDE ANULLA ORDERN CON $tipo_comprobante 12
-            if ($posOrder->tipo_comprobante != 12) {
+            // SOLO SE PUEDE ANULAR SI NO SE HA ENVIADO A SUNAT
+            // Si es Boleta (03) o Factura (01) y ya tiene registro en la tabla CPE, se debe usar Nota de Crédito/Baja
+            if (in_array($posOrder->tipo_comprobante, ['01', '03']) && $posOrder->cpe) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'las boletas y facturas se anulan con notas de crédito o débito.',
+                    'message' => 'Este documento ya fue enviado a SUNAT y solo puede anularse con una Nota de Crédito o Comunicación de Baja.',
                 ], 400);
             }
 
@@ -415,6 +422,7 @@ class PosOrderController extends Controller
             });
 
             DB::commit();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Orden anulada correctamente.',
@@ -471,11 +479,14 @@ class PosOrderController extends Controller
                             $paymentQuery->select('id', 'pos_order_id', 'payment_method', 'amount');
                             // Esto reduce la cantidad de datos transferidos desde la BD
                         },
+                        'cpe' => function ($cpeQuery) {
+                            $cpeQuery->select('id', 'pos_order_id', 'aceptada_por_sunat');
+                        }
                     ]
                 )
 
                 // 2.3 SOLO SELECCIONA LOS CAMPOS QUE NECESITAS DE posOrders
-                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado', 'user_id')
+                ->select('id', 'tienda_id', 'serie', 'order_number', 'order_date', 'total_amount', 'estado', 'user_id', 'tipo_comprobante')
                 // Esto evita traer campos innecesarios como created_at, updated_at, etc.
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE

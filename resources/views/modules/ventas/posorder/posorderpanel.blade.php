@@ -143,10 +143,13 @@
                                                 $totalGeneral += $order->total_amount;
                                             @endphp
                                             <tr>
-                                                <td>{{ $numeracion++ }}</td>
-
-                                                <td><a
-                                                        href="{{ route('posorder.show', $order->id) }}">{{ $order->serie }}-{{ $order->order_number }}</a>
+                                                <td>
+                                                    {{ $numeracion++ }}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('posorder.show', $order->id) }}">
+                                                        {{ $order->serie }}-{{ $order->order_number }}
+                                                    </a>
                                                 </td>
                                                 <td>{{ \Carbon\Carbon::parse($order->order_date)->format('H:i') }}</td>
                                                 <td class="text-right">
@@ -383,6 +386,5 @@
     function cargarTabla(fechaInicio = "", fechaFin = "", userId = "") {
         window.location.href = `/ventas/visor/posorder/${fechaInicio}/${fechaFin}/${userId}`;
     }
-     
 </script>
 

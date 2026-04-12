@@ -332,7 +332,7 @@
         // Función para comunicar baja del CPE
         $('#comunicarBajaCpe').on('click', function(e) {
             e.preventDefault();
-            cpe_id = $(this).attr('cpe_id');
+            var cpe_id = $(this).attr('cpe_id');
             Swal.fire({
                 title: 'Motivo de la baja',
                 input: 'text',
@@ -373,6 +373,49 @@
                                 text: xhr.responseJSON.message || 'Ocurrió un error al comunicar la baja.',
                                 icon: 'error'
                             });
+                        }
+                    });
+                }
+            });
+        });
+
+        // NUEVO: Manejo de Anulación Preventiva
+        $('#btnAnulacionPreventiva').on('click', function(e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+
+            Swal.fire({
+                title: '¿Confirmar Anulación?',
+                text: "Esta venta aún no ha sido enviada a SUNAT. Se cancelará el envío y los productos regresarán al stock inmediatamente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, anular venta',
+                cancelButtonText: 'No, mantener'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "/ventas/posorder/cancel/" + id,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire(
+                                    '¡Anulado!',
+                                    'La venta ha sido anulada y el envío a SUNAT cancelado.',
+                                    'success'
+                                ).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', 'No se pudo procesar la anulación.', 'error');
                         }
                     });
                 }

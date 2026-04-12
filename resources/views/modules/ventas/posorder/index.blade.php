@@ -119,7 +119,7 @@
             },
             newRecordTopButton: false,
             columns: [{
-                    data: 'id'
+                    data: 'id',
                 },
                 {
                     data: 'tienda.nombre',
