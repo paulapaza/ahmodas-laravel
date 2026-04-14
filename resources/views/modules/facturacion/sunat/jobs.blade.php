@@ -73,7 +73,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
                                     <p class="mb-0">No hay envíos pendientes en la cola.</p>
                                 </td>

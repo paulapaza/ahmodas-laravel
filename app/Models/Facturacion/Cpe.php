@@ -10,8 +10,8 @@ class Cpe extends Model
     use HasFactory;
     protected $table = "cpes";
 
-    //no usar timestamps ni create ni update
-    public $timestamps = false;
+    //timestamps activados
+    public $timestamps = true;
   
     //relacion con PosOrder
     public function posOrder()

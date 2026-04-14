@@ -21,6 +21,7 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>ID</th>
+                                <th>Fecha Emisión</th>
                                 <th>Venta</th>
                                 <th>Tipo</th>
                                 <th>Serie-Número</th>
@@ -34,8 +35,13 @@
                             @foreach($cpes as $cpe)
                             <tr>
                                 <td>{{ $cpe->id }}</td>
+                                <td>{{ $cpe->created_at ? $cpe->created_at->format('d/m/Y H:i') : ($cpe->posOrder && $cpe->posOrder->created_at ? $cpe->posOrder->created_at->format('d/m/Y H:i') : '--') }}</td>
                                 <td>
-                                    <span class="badge badge-info">#{{ $cpe->posOrder->id ?? '?' }}</span>
+                                    @if($cpe->posOrder)
+                                        <a href="{{ url('/ventas/posorder/' . $cpe->posOrder->id) }}" class="badge badge-info text-white" target="_blank">#{{ $cpe->posOrder->id }}</a>
+                                    @else
+                                        <span class="badge badge-info">#?</span>
+                                    @endif
                                 </td>
                                 <td>{{ $cpe->tipo_comprobante }}</td>
                                 <td><strong>{{ $cpe->serie }}-{{ $cpe->numero }}</strong></td>
