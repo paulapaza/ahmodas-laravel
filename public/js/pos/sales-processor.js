@@ -157,22 +157,34 @@ class SalesProcessor {
         if (response.pos_order.tipo_comprobante != POSConfig.DOCUMENT_TYPES.TICKET) {
             const nombreComprobante = this.getDocumentTypeName(response.pos_order.tipo_comprobante);
 
-            mensaje = `
-                <div class="text-center">
-                    <h5>Comprobante: ${nombreComprobante}</h5>
-                    <a href="${response.cpe_response.enlace_del_pdf}" target="_blank" class="btn btn-primary">
-                        Imprimir Comprobante
-                    </a>
-                </div>
-            `;
+            if (response.cpe_response) {
+                mensaje = `
+                    <div class="text-center">
+                        <h5>Comprobante: ${nombreComprobante}</h5>
+                        <a href="${response.cpe_response.enlace_del_pdf}" target="_blank" class="btn btn-primary">
+                            Imprimir Comprobante
+                        </a>
+                    </div>
+                `;
 
-            footer = `
-                <div class="text-center">
-                    <a href="${response.cpe_response.enlace}" target="_blank">
-                        ver opciones del Comprobante
-                    </a>
-                </div>
-            `;
+                footer = `
+                    <div class="text-center">
+                        <a href="${response.cpe_response.enlace}" target="_blank">
+                            ver opciones del Comprobante
+                        </a>
+                    </div>
+                `;
+            } else {
+                mensaje = `
+                    <div class="text-center">
+                        <h5>Comprobante: ${nombreComprobante}</h5>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-clock mr-2"></i> ${response.cpe_message || 'En espera de ser enviado a SUNAT'}
+                        </div>
+                    </div>
+                `;
+                footer = '';
+            }
         }
 
         POSUtils.showSuccess(mensaje, footer);

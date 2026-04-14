@@ -199,6 +199,7 @@ class PosOrderController extends Controller
 
         // Lógica de facturación condicional (Inmediata vs Diferida)
         $cpe_response = null;
+        $cpe_message = null;
         $retraso = 0;
         try {
             if (in_array($pos_order->tipo_comprobante, ['01', '03'])) {
@@ -209,19 +210,20 @@ class PosOrderController extends Controller
                     // FACTURACIÓN INMEDIATA (Código antiguo/síncrono)
                     $cpeServices = new CpeServices();
                     $cpe_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
+                    $cpe_message = "Documento enviado a SUNAT.";
                     Log::info("Facturación inmediata procesada para Orden {$pos_order->id}");
                 } else {
                     // FACTURACIÓN DIFERIDA (Jobs con retraso)
                     SendCepToSunatJob::dispatch($pos_order, $cpeSerie, $cliente, $tipo_venta)
                         ->delay(now()->addMinutes($retraso));
                     
-                    $cpe_response = "Envío programado a SUNAT (Espera: {$retraso} min)";
+                    $cpe_message = "Envío programado a SUNAT (Espera: {$retraso} min)";
                     Log::info("Envío de CPE programado para dentro de {$retraso} min: Orden {$pos_order->id}");
                 }
             }
         } catch (\Throwable $e) {
             Log::error('Error en el proceso de facturación: ' . $e->getMessage());
-            $cpe_response = 'Error en el envío/programación: ' . $e->getMessage();
+            $cpe_message = 'Error en el envío/programación: ' . $e->getMessage();
         }
 
         $print_id = null;
@@ -250,6 +252,7 @@ class PosOrderController extends Controller
             'pos_order' => $pos_order,
             'retraso' => $retraso == 0 ? 'inmediato' : 'programado ' . $retraso . ' minutos',
             'cpe_response' => $cpe_response,
+            'cpe_message' => $cpe_message,
             'print_type' => $user->print_type,
             'print_id' => $print_id,
             'tipo_comprobante' => $pos_order->tipo_comprobante,
