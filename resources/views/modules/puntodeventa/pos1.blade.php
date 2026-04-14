@@ -225,5 +225,5 @@
 {{-- <script src="{{ asset('js/pos/product-search.js') }}"></script> --}}
 <script src="{{ asset('js/pos/product-search.js') }}?v={{ filemtime(public_path('js/pos/product-search.js')) }}"></script>
 <script src="{{ asset('js/pos/customer-service.js') }}"></script>
-<script src="{{ asset('js/pos/sales-processor.js') }}"></script>
+<script src="{{ asset('js/pos/sales-processor.js') }}?v={{ filemtime(public_path('js/pos/sales-processor.js')) }}"></script>
 <script src="{{ asset('js/pos/pos-main.js') }}"></script>
