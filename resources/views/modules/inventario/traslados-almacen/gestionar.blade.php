@@ -391,8 +391,14 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a enviar adicional:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="nuevaCantidadEdicion" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1" :max="getStockAlmacenReal(itemParaEditar.id)">
-                    <button @click="guardarEdicion" class="btn btn-success" :disabled="cargando">
+                    <button @click="nuevaCantidadEdicion = Math.max(1, nuevaCantidadEdicion - 1)" class="btn btn-outline-secondary btn-sm" :disabled="nuevaCantidadEdicion <= 1">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" v-model.number="nuevaCantidadEdicion" class="form-control mx-2 text-center font-weight-bold" style="width: 100px" min="1" :max="getStockAlmacenReal(itemParaEditar.id)">
+                    <button @click="nuevaCantidadEdicion = Math.min(getStockAlmacenReal(itemParaEditar.id), nuevaCantidadEdicion + 1)" class="btn btn-outline-secondary btn-sm" :disabled="nuevaCantidadEdicion >= getStockAlmacenReal(itemParaEditar.id)">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button @click="guardarEdicion" class="btn btn-success ml-4" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
                     </button>
                 </div>
@@ -415,8 +421,14 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a marcar como vendida:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="cantidadVenta" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="0" :max="itemParaOperar.vendido + itemParaOperar.disponible">
-                    <button @click="procesarOperacion('Venta')" class="btn btn-success" :disabled="cargando">
+                    <button @click="cantidadVenta = Math.max(0, cantidadVenta - 1)" class="btn btn-outline-secondary btn-sm" :disabled="cantidadVenta <= 0">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" v-model.number="cantidadVenta" class="form-control mx-2 text-center font-weight-bold" style="width: 100px" min="0" :max="itemParaOperar.vendido + itemParaOperar.disponible">
+                    <button @click="cantidadVenta = Math.min(itemParaOperar.vendido + itemParaOperar.disponible, cantidadVenta + 1)" class="btn btn-outline-secondary btn-sm" :disabled="cantidadVenta >= itemParaOperar.vendido + itemParaOperar.disponible">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button @click="procesarOperacion('Venta')" class="btn btn-success ml-4" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-check'"></i>
                     </button>
                 </div>
@@ -432,8 +444,14 @@
                 </div>
                 <div class="small text-muted mb-1">Cantidad a regresar al almacén:</div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <input type="number" v-model.number="cantidadDevolucion" class="form-control mr-1 text-center font-weight-bold" style="width: 100px" min="1" :max="itemParaOperar.disponible">
-                    <button @click="procesarOperacion('Devolución')" class="btn btn-danger" :disabled="cargando">
+                    <button @click="cantidadDevolucion = Math.max(1, cantidadDevolucion - 1)" class="btn btn-outline-secondary btn-sm" :disabled="cantidadDevolucion <= 1">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" v-model.number="cantidadDevolucion" class="form-control mx-2 text-center font-weight-bold" style="width: 100px" min="1" :max="itemParaOperar.disponible">
+                    <button @click="cantidadDevolucion = Math.min(itemParaOperar.disponible, cantidadDevolucion + 1)" class="btn btn-outline-secondary btn-sm" :disabled="cantidadDevolucion >= itemParaOperar.disponible">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button @click="procesarOperacion('Devolución')" class="btn btn-danger ml-4" :disabled="cargando">
                         <i class="fas" :class="cargando ? 'fa-spinner fa-spin' : 'fa-undo-alt'"></i>
                     </button>
                 </div>
