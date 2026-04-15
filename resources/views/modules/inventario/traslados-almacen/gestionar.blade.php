@@ -167,7 +167,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group mb-4">
                                     <label class="small font-weight-bold text-xprimary">3. CANTIDAD A TRASLADAR:</label>
                                     <input type="number" 
                                            class="form-control form-control-lg text-center font-weight-bold" 
@@ -175,6 +175,16 @@
                                            min="1"
                                            :max="productoSeleccionadoDetalle ? productoSeleccionadoDetalle.stock : 1"
                                            :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
+                                </div>
+
+                                <div class="form-group mb-4">
+                                  <div v-if="hayTrasladosPendientes">
+                                    <button @click="confirmarTodo" class="btn btn-primary btn-lg shadow-sm w-100" :disabled="cargando">
+                                        <i v-if="cargando" class="fas fa-spinner fa-spin mr-1"></i>
+                                        <i v-else class="fas fa-check-double mr-1"></i>
+                                        @{{ cargando ? 'Procesando...' : 'Confirmar Todos los Traslados' }}
+                                    </button>
+                                  </div>
                                 </div>
                             </form>
                         </div>
@@ -232,7 +242,7 @@
                                                 <input type="date" class="form-control form-control-sm border-left-0" v-model="filtroFecha">
                                             </div>
                                         </div>
-                                        <div class="col-auto pl-1" v-if="hayTrasladosPendientes">
+                                        {{-- <div class="col-auto pl-1" v-if="hayTrasladosPendientes">
                                             <button @click="confirmarTodo" 
                                                     class="btn btn-success btn-sm shadow-sm"
                                                     style="height: 31px; width: 40px;"
@@ -240,7 +250,7 @@
                                                     title="Confirmar todos los traslados">
                                                 <i class="fas fa-check-double"></i>
                                             </button>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
@@ -290,26 +300,26 @@
                                         </td>
                                         <td class="text-right align-middle">
                                             <!-- Grupo 1: Operaciones (Confirmar/Borrar o Venta/Devolución) -->
-                                            <div class="btn-group btn-group-sm ml-2" v-if="!traslado.confirmado">
-                                                <button @click="quitarTraslado(traslado)" type="button" class="btn btn-outline-danger btn-sm" v-b-tooltip.hover title="Quitar de la lista">
+                                            <div class="btn-group btn-group-lg" v-if="!traslado.confirmado">
+                                                <button @click="quitarTraslado(traslado)" type="button" class="btn btn-outline-danger btn-lg" v-b-tooltip.hover title="Quitar de la lista">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
-                                            <div class="btn-group btn-group-sm ml-2" v-else>
-                                                <button @click="abrirVender(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Marcar como vendido">
+                                            <div class="btn-group btn-group-lg ml-2 my-1" v-else>
+                                                <button @click="abrirVender(traslado)" type="button" class="btn btn-outline-success btn-lg" v-b-tooltip.hover title="Marcar como vendido">
                                                     <i class="fas fa-shopping-cart"></i>
                                                 </button>
-                                                <button @click="abrirDevolver(traslado)" type="button" class="btn btn-outline-danger btn-sm" v-b-tooltip.hover title="Regresar stock">
+                                                <button @click="abrirDevolver(traslado)" type="button" class="btn btn-outline-danger btn-lg" v-b-tooltip.hover title="Regresar stock">
                                                     <i class="fas fa-truck-moving"></i>
                                                 </button>
                                             </div>
 
                                             <!-- Grupo 2: Gestión (Historial / Editar) -->
-                                            <div class="btn-group btn-group-sm ml-2" v-if="traslado.confirmado">
-                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-sm" v-b-tooltip.hover title="Cargar o devolver todo">
+                                            <div class="btn-group btn-group-lg ml-2 my-1" v-if="traslado.confirmado">
+                                                <button @click="abrirEditar(traslado)" type="button" class="btn btn-outline-success btn-lg" v-b-tooltip.hover title="Cargar o devolver todo">
                                                    <i class="fas fa-truck-loading"></i>
                                                 </button>
-                                                <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-sm" v-b-tooltip.hover title="Ver historial">
+                                                <button @click="verHistorialProducto(traslado)" type="button" class="btn btn-outline-info btn-lg" v-b-tooltip.hover title="Ver historial">
                                                     <i class="fas fa-list"></i>
                                                 </button>
                                             </div>
