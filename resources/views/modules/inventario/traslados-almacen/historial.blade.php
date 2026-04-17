@@ -100,7 +100,8 @@
                         <table class="table table-hover table-striped table-sm mb-0 table-sm-text">
                             <thead class="bg-light text-muted uppercase">
                                 <tr>
-                                    <th class="pl-4 py-3 border-top-0">Producto</th>
+                                    <th class="pl-4 py-3 border-top-0">ID</th>
+                                    <th class="py-3 border-top-0">Producto</th>
                                     <th class="py-3 border-top-0">Tienda</th>
                                     <th class="text-center py-3 border-top-0">Vendido</th>
                                     <th class="text-center py-3 border-top-0">Disponible</th>
@@ -111,13 +112,14 @@
                             </thead>
                             <tbody>
                                 <tr v-if="cargando">
-                                    <td colspan="7" class="text-center py-5">
+                                    <td colspan="8" class="text-center py-5">
                                         <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
                                         Cargando historial...
                                     </td>
                                 </tr>
                                 <tr v-else v-for="t in traslados" :key="t.traslado_id">
-                                    <td class="pl-4 align-middle">
+                                    <td class="pl-4 align-middle">@{{ t.traslado_id }}</td>
+                                    <td class="align-middle">
                                         <div class="font-weight-bold text-dark">@{{ t.alias || t.nombre }}</div>
                                         <div class="small text-muted font-weight-bold">Código: @{{ t.codigo || 'S/C' }}</div>
                                     </td>
@@ -143,7 +145,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="!cargando && traslados.length === 0">
-                                    <td colspan="7" class="text-center py-5 text-muted">
+                                    <td colspan="8" class="text-center py-5 text-muted">
                                         <i class="fas fa-info-circle mr-1"></i> No se encontraron registros con los filtros aplicados.
                                     </td>
                                 </tr>

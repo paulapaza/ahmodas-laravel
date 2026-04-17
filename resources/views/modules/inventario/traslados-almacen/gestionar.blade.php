@@ -273,7 +273,7 @@
                                     <tbody>
                                     <tr v-for="traslado in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
-                                            <span class="font-weight-bold">@{{ traslado.traslado_id }}</span>
+                                            @{{ traslado.traslado_id }}
                                         </td>
                                         <td class="align-middle">
                                             <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
@@ -653,10 +653,6 @@
                             (t.codigo && t.codigo.toLowerCase().includes(search));
                         
                         return matchesTienda && matchesProducto;
-                    }).sort((a, b) => {
-                        const dateA = new Date(a.updated_at || a.fecha);
-                        const dateB = new Date(b.updated_at || b.fecha);
-                        return dateB - dateA;
                     });
                 },
                 listaSugerencias() {

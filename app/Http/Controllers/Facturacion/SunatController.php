@@ -11,10 +11,10 @@ class SunatController extends Controller
 {
     public function indexCpes()
     {
-        $cpes = Cpe::with('posOrder.cliente')
+        $cpes = Cpe::with('posOrder.cliente', 'posOrder.tienda')
             ->orderBy('id', 'desc')
             ->paginate(50);
-            
+        
         return view('modules.facturacion.sunat.cpes', compact('cpes'));
     }
 

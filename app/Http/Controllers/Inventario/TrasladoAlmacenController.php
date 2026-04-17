@@ -75,7 +75,7 @@ class TrasladoAlmacenController extends Controller
             'almacen_traslados.created_at as fecha',
             'almacen_traslados.updated_at'
          )
-         ->orderByDesc('almacen_traslados.updated_at')
+         ->orderByDesc('almacen_traslados.id')
          ->get()
          ->map(function ($t) {
             $t->confirmado = true;
@@ -545,7 +545,7 @@ class TrasladoAlmacenController extends Controller
       if ($fecha)
          $query->where('almacen_traslados.fecha', $fecha);
 
-      $traslados = $query->orderByDesc('almacen_traslados.updated_at')->get()->map(function ($t) {
+      $traslados = $query->orderByDesc('almacen_traslados.id')->get()->map(function ($t) {
          $t->created_fmt = date('d/m/Y H:i', strtotime($t->created_at));
          $t->updated_fmt = date('d/m/Y H:i', strtotime($t->updated_at));
          return $t;
