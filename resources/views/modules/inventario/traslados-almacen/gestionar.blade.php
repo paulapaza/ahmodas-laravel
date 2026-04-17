@@ -260,7 +260,8 @@
                                 <table class="table table-hover table-striped table-sm mb-0 table-sm-text">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="pl-3 py-3 border-top-0">Producto</th>
+                                            <th class="pl-3 py-3 border-top-0">ID</th>
+                                            <th class="py-3 border-top-0">Producto</th>
                                             <th class="py-3 border-top-0">Tienda</th>
                                             <th class="py-3 border-top-0">Fecha y Hora</th>
                                             <th class="py-3 border-top-0 text-center">Vendido</th>
@@ -272,6 +273,9 @@
                                     <tbody>
                                     <tr v-for="traslado in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
+                                            <span class="font-weight-bold">@{{ traslado.traslado_id }}</span>
+                                        </td>
+                                        <td class="align-middle">
                                             <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
                                             <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
                                         </td>
