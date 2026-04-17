@@ -276,12 +276,16 @@
                                             @{{ traslado.traslado_id }}
                                         </td>
                                         <td class="align-middle">
-                                            <div class="font-weight-bold text-dark">@{{ traslado.alias || traslado.nombre }}</div>
+                                            <div class="font-weight-bold text-dark" style="font-size: 0.95rem;">@{{ traslado.alias || traslado.nombre }}</div>
                                             <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
                                         </td>
-                                        <td class="align-middle small">@{{ traslado.tienda_nombre }}</td>
-                                        <td class="align-middle small font-weight-bold">@{{ formatearFecha(traslado.fecha) }}</td>
-                                        <td class="align-middle text-center">@{{ traslado.vendido }}</td>
+                                        <td class="align-middle">
+                                            <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark" style="font-size: 0.95rem;">
+                                                @{{ traslado.tienda_nombre }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">@{{ formatearFecha(traslado.fecha) }}</td>
+                                        <td class="align-middle text-center font-weight-bold">@{{ traslado.vendido }}</td>
                                         <td class="align-middle text-center text-primary font-weight-bold">
                                             <template v-if="traslado.confirmado">
                                                 @{{ traslado.disponible }}
@@ -297,7 +301,7 @@
                                             </template>
                                         </td>
                                         <td class="align-middle text-center">
-                                            <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.85rem;">
+                                            <span class="badge badge-light border text-muted px-2 py-1" style="font-size: 1rem;">
                                                 @{{ getStockAlmacenReal(traslado.id) }} 
                                                 @{{ getStockAlmacenReal(traslado.id) === 1 ? 'unidad' : 'unidades' }}
                                             </span>
@@ -536,7 +540,7 @@
                     nuevaCantidadEdicion: 0,
                     puntoSeleccionado: {},
                     itemParaOperar: null, // Objeto de traslado para Venta/Devolución
-                    cantidadVenta: 0,
+                    cantidadVenta: 1,
                     cantidadDevolucion: 0,
                     historialProducto: [],
                     
@@ -741,7 +745,7 @@
                 },
                 abrirVender(traslado) {
                     this.itemParaOperar = traslado;
-                    this.cantidadVenta = traslado.vendido; // Cargamos el total actual
+                    this.cantidadVenta = 1; // Valor por defecto
                     this.$bvModal.show('modal-vender');
                 },
                 abrirDevolver(traslado) {

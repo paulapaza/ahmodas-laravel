@@ -7,6 +7,7 @@
     <x-table>
         <th>id</th>
         <th>Nombre</th>
+        <th>Alias</th>
         <th>Direccion</th>
         <th>Telefono</th>
         
@@ -25,6 +26,13 @@
                 <div class="form-group">
                     <label for="nombre">Nombre</label>
                     <input type="text" class="form-control" id="nombre" name="nombre" required>
+                </div>
+            </div>
+            
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="alias">Alias (Opcional)</label>
+                    <input type="text" class="form-control" id="alias" name="alias">
                 </div>
             </div>
             
@@ -124,6 +132,9 @@
                 {
                     data: 'nombre'
                 },
+                {
+                    data: 'alias'
+                },
                 
                 {
                     data: 'direccion'
@@ -163,7 +174,7 @@
                 edit: true,
                 destroy:true
             },
-            alingCenter: [3]
+            // alingCenter: [3]
         })
 
        

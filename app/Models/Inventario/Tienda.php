@@ -12,6 +12,7 @@ class Tienda extends Model
 
     protected $fillable = [
         'nombre',
+        'alias',
         'direccion',
         'tienda_nota',
         'telefono',

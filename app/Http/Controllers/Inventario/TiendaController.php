@@ -26,6 +26,7 @@ class TiendaController extends Controller
         $tienda = new Tienda();
         $tienda->uid = $request->uid;
         $tienda->nombre = $request->nombre;
+        $tienda->alias = $request->alias;
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
@@ -54,6 +55,7 @@ class TiendaController extends Controller
     {
         $tienda = Tienda::findOrFail($id);
         $tienda->nombre = $request->nombre;
+        $tienda->alias = $request->alias;
         $tienda->direccion = $request->direccion;
         $tienda->telefono = $request->telefono;
         $tienda->estado = $request->estado;
