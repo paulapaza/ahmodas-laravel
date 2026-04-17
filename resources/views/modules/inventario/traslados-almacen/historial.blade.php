@@ -102,7 +102,7 @@
                                 <tr>
                                     <th class="pl-4 py-3 border-top-0">ID</th>
                                     <th class="py-3 border-top-0">Producto</th>
-                                    <th class="py-3 border-top-0">Tienda</th>
+                                    <th class="text-center py-3 border-top-0">Tienda</th>
                                     <th class="text-center py-3 border-top-0">Vendido</th>
                                     <th class="text-center py-3 border-top-0">Disponible</th>
                                     <th class="text-center py-3 border-top-0">En Almacén</th>
@@ -123,9 +123,9 @@
                                         <div class="font-weight-bold text-dark">@{{ t.alias || t.nombre }}</div>
                                         <div class="small text-muted font-weight-bold">Código: @{{ t.codigo || 'S/C' }}</div>
                                     </td>
-                                    <td class="align-middle">
+                                    <td class="text-center align-middle">
                                         <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark" style="font-size: 0.85rem;">
-                                            @{{ t.tienda_nombre }}
+                                            @{{ t.tienda_alias ?? t.tienda_nombre ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="text-center align-middle font-weight-bold">@{{ t.vendido }}</td>

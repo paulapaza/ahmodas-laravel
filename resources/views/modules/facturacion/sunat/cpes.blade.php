@@ -47,7 +47,7 @@
                                 <td>{{ $cpe->tipo_comprobante }}</td>
                                 <td><strong>{{ $cpe->serie }}-{{ $cpe->numero }}</strong></td>
                                 <td>{{ $cpe->posOrder->cliente->nombre ?? 'N/A' }}</td>
-                                <td>{{ $cpe->posOrder->tienda->nombre ?? 'N/A' }}</td>
+                                <td>{{ $cpe->posOrder->tienda->alias ?? $cpe->posOrder->tienda->nombre ?? 'N/A' }}</td>
                                 <td>
                                     @if($cpe->aceptada_por_sunat)
                                         <span class="badge badge-success"><i class="fas fa-check-circle"></i> Aceptada</span>

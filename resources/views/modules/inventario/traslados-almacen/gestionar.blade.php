@@ -262,8 +262,8 @@
                                         <tr>
                                             <th class="pl-3 py-3 border-top-0">ID</th>
                                             <th class="py-3 border-top-0">Producto</th>
-                                            <th class="py-3 border-top-0">Tienda</th>
-                                            <th class="py-3 border-top-0">Fecha y Hora</th>
+                                            <th class="py-3 border-top-0 text-center">Tienda</th>
+                                            <th class="py-3 border-top-0 text-center">Fecha y Hora</th>
                                             <th class="py-3 border-top-0 text-center">Vendido</th>
                                             <th class="py-3 border-top-0 text-center">Disponible</th>
                                             <th class="py-3 border-top-0 text-center text-muted">En Almacén</th>
@@ -280,11 +280,11 @@
                                             <div class="small text-muted mt-1 font-weight-bold">Código: @{{ traslado.codigo || 'S/C' }}</div>
                                         </td>
                                         <td class="align-middle">
-                                            <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark" style="font-size: 0.95rem;">
-                                                @{{ traslado.tienda_nombre }}
+                                            <span class="badge badge-light border px-3 py-2 font-weight-bold text-dark text-center" style="font-size: 0.95rem;">
+                                                @{{ traslado.tienda_alias ?? traslado.tienda_nombre ?? 'N/A' }}
                                             </span>
                                         </td>
-                                        <td class="align-middle">@{{ formatearFecha(traslado.fecha) }}</td>
+                                        <td class="align-middle text-center">@{{ formatearFecha(traslado.fecha) }}</td>
                                         <td class="align-middle text-center font-weight-bold">@{{ traslado.vendido }}</td>
                                         <td class="align-middle text-center text-primary font-weight-bold">
                                             <template v-if="traslado.confirmado">
