@@ -273,7 +273,7 @@
                                     <tbody>
                                     <tr v-for="(traslado, index) in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
-                                            @{{ index + 1 }}
+                                            @{{ trasladosFiltrados.length - index }}
                                         </td>
                                         <td class="align-middle">
                                             <div class="font-weight-bold text-dark" style="font-size: 0.95rem;">@{{ traslado.alias || traslado.nombre }}</div>
