@@ -117,7 +117,7 @@
                                         Cargando historial...
                                     </td>
                                 </tr>
-                                <tr v-else v-for="t in traslados" :key="t.traslado_id">
+                                <tr v-else v-for="t in trasladosPaginados" :key="t.traslado_id">
                                     <td class="pl-4 align-middle">@{{ t.traslado_id }}</td>
                                     <td class="align-middle">
                                         <div class="font-weight-bold text-dark">@{{ t.alias || t.nombre }}</div>
@@ -154,8 +154,23 @@
                     </div>
                 </div>
                 <div class="card-footer bg-white border-0 py-3">
-                    <div class="small text-muted">
-                        Se muestran <strong>@{{ traslados.length }}</strong> registros históricos encontrados.
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">
+                            Mostrando <strong>@{{ startIndex + 1 }}</strong> - <strong>@{{ endIndex }}</strong> de <strong>@{{ traslados.length }}</strong> registros.
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                                    <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">Anterior</a>
+                                </li>
+                                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+                                    <a class="page-link" href="#" @click.prevent="changePage(page)">@{{ page }}</a>
+                                </li>
+                                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                                    <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">Siguiente</a>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
@@ -173,6 +188,8 @@
                 return {
                     tiendas: [],
                     traslados: [],
+                    currentPage: 1,
+                    itemsPerPage: 100,
                     filtros: {
                         tienda_id: '',
                         fecha: '{{ date('Y-m-d') }}',
@@ -185,7 +202,29 @@
             mounted() {
                 this.fetchHistorial();
             },
+            computed: {
+                trasladosPaginados() {
+                    const start = (this.currentPage - 1) * this.itemsPerPage;
+                    const end = start + this.itemsPerPage;
+                    return this.traslados.slice(start, end);
+                },
+                totalPages() {
+                    return Math.ceil(this.traslados.length / this.itemsPerPage);
+                },
+                startIndex() {
+                    return (this.currentPage - 1) * this.itemsPerPage;
+                },
+                endIndex() {
+                    const end = this.startIndex + this.itemsPerPage;
+                    return end > this.traslados.length ? this.traslados.length : end;
+                }
+            },
             methods: {
+                changePage(page) {
+                    if (page >= 1 && page <= this.totalPages) {
+                        this.currentPage = page;
+                    }
+                },
                 async fetchHistorial() {
                     this.cargando = true;
                     try {
@@ -219,6 +258,7 @@
                         fecha: '',
                         search: ''
                     };
+                    this.currentPage = 1;
                     this.fetchHistorial();
                 }
             }
