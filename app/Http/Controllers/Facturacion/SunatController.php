@@ -99,4 +99,48 @@ class SunatController extends Controller
             return back()->with('error', 'El envío falló. El trabajo se ha movido a la pestaña de "Envíos Fallidos" con el siguiente error: ' . $e->getMessage());
         }
     }
+
+    public function actualizarEstadosPendientes(Request $request, \App\Services\CpeServices $cpeServices)
+    {
+        \Illuminate\Support\Facades\Log::channel('sunat')->info('Actualización manual de estados de CPEs iniciada desde interfaz web');
+        
+        $fechaInicio = $request->input('fecha_inicio') ? \Carbon\Carbon::parse($request->input('fecha_inicio'))->startOfDay() : now()->subDay()->startOfDay();
+        $fechaFin = $request->input('fecha_fin') ? \Carbon\Carbon::parse($request->input('fecha_fin'))->endOfDay() : now()->subDay()->endOfDay();
+
+        \Illuminate\Support\Facades\Log::channel('sunat')->info("Rango de fechas: {$fechaInicio->format('Y-m-d')} a {$fechaFin->format('Y-m-d')}");
+
+        // Obtener CPEs pendientes en el rango de fechas
+        $cpes = Cpe::whereBetween('created_at', [$fechaInicio, $fechaFin])
+                   ->where('aceptada_por_sunat', 0)
+                   ->with(['posOrder.tienda', 'posOrder.user'])
+                   ->get();
+
+        \Illuminate\Support\Facades\Log::channel('sunat')->info("Encontrados {$cpes->count()} CPEs pendientes");
+
+        $actualizados = 0;
+        $errores = 0;
+
+        foreach ($cpes as $cpe) {
+            try {
+                $estado = $cpeServices->consultarEstadoCpe($cpe->id);
+                
+                if ($estado && isset($estado['aceptada_por_sunat'])) {
+                    $cpe->aceptada_por_sunat = $estado['aceptada_por_sunat'];
+                    $cpe->sunat_description = $estado['sunat_description'] ?? '';
+                    $cpe->save();
+                    $actualizados++;
+                    $message = "CPE {$cpe->id}: {$cpe->serie}-{$cpe->numero} actualizado (manual)";
+                    \Illuminate\Support\Facades\Log::channel('sunat')->info($message);
+                }
+            } catch (\Exception $e) {
+                $errores++;
+                $error_message = "Error actualizando CPE {$cpe->id}: " . $e->getMessage();
+                \Illuminate\Support\Facades\Log::channel('sunat')->error($error_message);
+            }
+        }
+
+        \Illuminate\Support\Facades\Log::channel('sunat')->info("Actualización manual completada. Actualizados: $actualizados, Errores: $errores");
+
+        return back()->with('success', "Actualización completada. Actualizados: $actualizados, Errores: $errores");
+    }
 }

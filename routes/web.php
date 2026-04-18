@@ -150,6 +150,7 @@ Route::middleware([
     Route::get('/facturacion/sunat/jobs', [\App\Http\Controllers\Facturacion\SunatController::class, 'indexJobs'])->name('facturacion.sunat.jobs');
     Route::get('/facturacion/sunat/failed-jobs', [\App\Http\Controllers\Facturacion\SunatController::class, 'indexFailedJobs'])->name('facturacion.sunat.failed_jobs');
     Route::post('/facturacion/sunat/jobs/{id}/send-now', [\App\Http\Controllers\Facturacion\SunatController::class, 'sendNow'])->name('facturacion.sunat.jobs.send_now');
+    Route::post('/facturacion/sunat/actualizar-estados', [\App\Http\Controllers\Facturacion\SunatController::class, 'actualizarEstadosPendientes'])->name('facturacion.sunat.actualizar_estados');
 
 
     /*************************

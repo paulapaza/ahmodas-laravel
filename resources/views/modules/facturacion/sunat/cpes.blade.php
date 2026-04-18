@@ -8,7 +8,16 @@
     <div class="container-fluid">
         <div class="card card-outline card-primary">
             <div class="card-header">
-                <h3 class="card-title">Listado de Comprobantes Electrónicos</h3>
+                <form action="{{ route('facturacion.sunat.actualizar_estados') }}" method="POST" class="form-inline float-left" onsubmit="disableButton(this)">
+                    @csrf
+                    <label class="mr-2 mb-0">Desde:</label>
+                    <input type="date" name="fecha_inicio" value="{{ now()->subDay()->format('Y-m-d') }}" class="form-control form-control-sm mr-2">
+                    <label class="mr-2 mb-0">Hasta:</label>
+                    <input type="date" name="fecha_fin" value="{{ now()->subDay()->format('Y-m-d') }}" class="form-control form-control-sm mr-2">
+                    <button type="submit" class="btn btn-sm btn-primary mr-2" id="btn-actualizar" onclick="return confirm('¿Actualizar estados de CPEs en el rango de fechas seleccionado?')">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </form>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                         <i class="fas fa-minus"></i>
@@ -90,4 +99,12 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function disableButton(form) {
+            const button = document.getElementById('btn-actualizar');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        }
+    </script>
 </x-admin-layout>
