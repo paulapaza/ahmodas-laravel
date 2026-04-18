@@ -31,6 +31,7 @@ class SendCepToSunatJob implements ShouldQueue
         $this->cpeSerie = $cpeSerie;
         $this->cliente = $cliente;
         $this->tipoVenta = $tipoVenta;
+        $this->posOrder->load('tienda');
     }
 
     /**
