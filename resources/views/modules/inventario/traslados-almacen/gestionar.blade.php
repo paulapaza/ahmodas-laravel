@@ -271,9 +271,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <tr v-for="traslado in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
+                                    <tr v-for="(traslado, index) in trasladosFiltrados" :key="traslado.traslado_id || `pend-${traslado.id}-${traslado.tienda_id}`">
                                         <td class="pl-3 align-middle">
-                                            @{{ traslado.traslado_id }}
+                                            @{{ index + 1 }}
                                         </td>
                                         <td class="align-middle">
                                             <div class="font-weight-bold text-dark" style="font-size: 0.95rem;">@{{ traslado.alias || traslado.nombre }}</div>
