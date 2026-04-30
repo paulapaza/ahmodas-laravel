@@ -246,10 +246,13 @@ class PosOrderController extends Controller
             Log::warning('Fallo impresión ticket: ' . $e->getMessage());
         }
 
+        $sync_data = $this->getSyncOrderData($pos_order->id);
+
         return response()->json([
             'success' => true,
             'message' => 'Venta registrada correctamente',
             'pos_order' => $pos_order,
+            'sync_data' => $sync_data,
             'retraso' => $retraso == 0 ? 'inmediato' : 'programado ' . $retraso . ' minutos',
             'cpe_response' => $cpe_response,
             'cpe_message' => $cpe_message,
@@ -949,5 +952,88 @@ class PosOrderController extends Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
+    }
+
+    public function getSyncOrderData($id)
+    {
+        $posOrder = PosOrder::with([
+            'orderLines.producto',
+            'payments',
+            'cliente',
+            'user',
+            'tienda'
+        ])->findOrFail($id);
+
+        return [
+            // TRANSACTIONAL DATA (STRICT)
+            'order' => [
+                'id' => $posOrder->id,
+                'sale_token' => $posOrder->sale_token,
+                'order_date' => $posOrder->order_date,
+                'tipo_comprobante' => $posOrder->tipo_comprobante,
+                'serie' => $posOrder->serie,
+                'order_number' => $posOrder->order_number,
+                'total_amount' => $posOrder->total_amount,
+                'moneda' => (int)$posOrder->moneda,
+                'estado' => $posOrder->estado,
+                'created_at' => $posOrder->created_at,
+                'updated_at' => $posOrder->updated_at,
+            ],
+            'lines' => $posOrder->orderLines->map(function ($line) {
+                return [
+                    'producto_id' => $line->producto_id,
+                    'quantity' => $line->quantity,
+                    'price' => $line->price,
+                    'subtotal' => $line->subtotal,
+                    'created_at' => $line->created_at,
+                    'updated_at' => $line->updated_at,
+                ];
+            })->toArray(),
+            'payments' => $posOrder->payments->map(function ($payment) {
+                return [
+                    'payment_method' => $payment->payment_method,
+                    'amount' => $payment->amount,
+                    'created_at' => $payment->created_at,
+                    'updated_at' => $payment->updated_at,
+                ];
+            })->toArray(),
+
+            // MASTER DATA (FLEXIBLE)
+            'client' => [
+                'id' => $posOrder->cliente->id,
+                'nombre' => $posOrder->cliente->nombre,
+                'tipo_documento_identidad' => $posOrder->cliente->tipo_documento_identidad,
+                'numero_documento_identidad' => $posOrder->cliente->numero_documento_identidad,
+                'estado' => $posOrder->cliente->estado,
+                'created_at' => $posOrder->cliente->created_at,
+                'updated_at' => $posOrder->cliente->updated_at,
+            ],
+            'user' => [
+                'id' => $posOrder->user->id,
+                'name' => $posOrder->user->name,
+                'email' => $posOrder->user->email,
+                'estado' => $posOrder->user->estado,
+                'created_at' => $posOrder->user->created_at,
+                'updated_at' => $posOrder->user->updated_at,
+            ],
+            'store' => [
+                'id' => $posOrder->tienda->id,
+                'nombre' => $posOrder->tienda->nombre,
+                'estado' => $posOrder->tienda->estado,
+                'created_at' => $posOrder->tienda->created_at,
+                'updated_at' => $posOrder->tienda->updated_at,
+            ],
+            'products' => $posOrder->orderLines->map(function ($line) {
+                return [
+                    'id' => $line->producto->id,
+                    'nombre' => $line->producto->nombre,
+                    'precio_unitario' => $line->producto->precio_unitario,
+                    'alias' => $line->producto->alias ?? $line->producto->nombre,
+                    'estado' => $line->producto->estado,
+                    'created_at' => $line->producto->created_at,
+                    'updated_at' => $line->producto->updated_at,
+                ];
+            })->unique('id')->values()->toArray(),
+        ];
     }
 }

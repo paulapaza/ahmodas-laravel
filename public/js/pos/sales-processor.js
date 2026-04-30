@@ -136,7 +136,7 @@ class SalesProcessor {
                 $('.procesar_venta').prop('disabled', false);
             }
 
-            this.registrarVentaOnline(saleData);
+            this.registrarVentaOnline(response);
         } catch (error) {
             console.error('Error al procesar venta:', error);
             POSUtils.showError(
@@ -236,15 +236,11 @@ class SalesProcessor {
     }
 
     async registrarVentaOnline(saleData) {
-        const data = {
-            ...saleData,
-            tienda_id: window.idTiendaUsuario,
-            user_id: window.AuthUser.id,
-        };
+        const data = saleData.sync_data;
         console.log('data-libre:', data);
         // descomentar en produccion
         // await POSUtils.makeAjaxRequest(
-        //     'https://ahmodas.com/v1/api/punto-de-venta/venta/libre',
+        //     'http://127.0.0.1:8001/api/v1/sync/orders',
         //     data
         // )
         // .then(res => console.log('respuesta', res))
