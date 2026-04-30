@@ -33,6 +33,7 @@ Route::middleware('check.cajero.traslados')->group(function () {
     Route::post('/inventario/traslados/actualizar-devolucion', [TrasladoAlmacenController::class, 'actualizarDevolucion']);
     Route::post('/inventario/traslados/eliminar', [TrasladoAlmacenController::class, 'eliminarTraslado']);
     Route::post('/inventario/traslados/importar-excel', [TrasladoAlmacenController::class, 'importarStockExcel']);
+    Route::post('/inventario/traslados/importar-excel-chancar', [TrasladoAlmacenController::class, 'importarStockExcelChancar']);
 });
 
 // Rutas de Historial (Acceso para todos)

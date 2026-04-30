@@ -664,4 +664,99 @@ class TrasladoAlmacenController extends Controller
          ], 422);
       }
    }
+
+   public function importarStockExcelChancar(Request $request)
+   {
+      $request->validate([
+         'archivo' => 'required|max:10240',
+      ]);
+
+      try {
+         $archivo = $request->file('archivo');
+         
+         $spreadsheet = IOFactory::load($archivo->getRealPath());
+         $worksheet = $spreadsheet->getActiveSheet();
+         $rows = $worksheet->toArray();
+
+         if (count($rows) < 2) {
+            throw new \Exception("El archivo está vacío o no tiene el formato correcto.");
+         }
+
+         $header = array_map('trim', array_shift($rows));
+         $colProductId = array_search('productid', $header);
+         $colCount = array_search('count', $header);
+
+         if ($colProductId === false || $colCount === false) {
+            throw new \Exception("No se encontraron las columnas obligatorias 'productid' (Código de Barras) o 'count' (Cantidad).");
+         }
+
+         $warehouseId = DB::table('tiendas')->where('es_almacen', 1)->value('id');
+         if (!$warehouseId) {
+            throw new \Exception("No se ha configurado ninguna tienda como Almacén Principal.");
+         }
+
+         $successCount = 0;
+         $errors = [];
+         $codigosFaltantes = [];
+         $hoy = now();
+
+         DB::beginTransaction();
+         foreach ($rows as $index => $row) {
+            $barcode = isset($row[$colProductId]) ? trim($row[$colProductId]) : null;
+            $count = isset($row[$colCount]) ? (int)$row[$colCount] : 0;
+
+            if (empty($barcode)) continue;
+            if ($count <= 0) continue;
+
+            $producto = DB::table('productos')->where('codigo_barras', $barcode)->first();
+
+            if (!$producto) {
+               $errors[] = "Línea " . ($index + 2) . ": Código '$barcode' no existe.";
+               if (!in_array($barcode, $codigosFaltantes)) {
+                  $codigosFaltantes[] = $barcode;
+               }
+               continue;
+            }
+
+            // Upsert stock en el almacén (chancar: reemplazar)
+            $pt = DB::table('producto_tienda')
+               ->where('producto_id', $producto->id)
+               ->where('tienda_id', $warehouseId)
+               ->first();
+
+            if ($pt) {
+               // Chancar: reemplazar stock existente
+               DB::table('producto_tienda')
+                  ->where('id', $pt->id)
+                  ->update(['stock' => $count, 'updated_at' => $hoy]);
+            } else {
+               // No existe: crear con el stock del Excel
+               DB::table('producto_tienda')->insert([
+                  'producto_id' => $producto->id,
+                  'tienda_id' => $warehouseId,
+                  'stock' => $count,
+                  'created_at' => $hoy,
+                  'updated_at' => $hoy
+               ]);
+            }
+
+            $successCount++;
+         }
+         DB::commit();
+
+         return response()->json([
+            'success' => true,
+            'message' => "Se importaron $successCount productos con éxito. Stock reemplazado.",
+            'errors' => $errors,
+            'codigos_faltantes' => $codigosFaltantes
+         ]);
+
+      } catch (\Exception $e) {
+         if (DB::transactionLevel() > 0) DB::rollBack();
+         return response()->json([
+            'success' => false,
+            'message' => "Error al procesar el Excel: " . $e->getMessage()
+         ], 422);
+      }
+   }
 }

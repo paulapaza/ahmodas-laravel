@@ -481,6 +481,14 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="chancarStock" v-model="chancarStock" :disabled="cargandoImportacion">
+                        <label class="custom-control-label" for="chancarStock">Chancar más no sumar (reemplazar stock existente)</label>
+                    </div>
+                    <small class="text-muted">Si está marcado, reemplaza el stock actual. Si no está marcado, suma al stock existente.</small>
+                </div>
+
                 <div class="d-flex justify-content-end mt-4">
                     <button class="btn btn-light mr-2 btn-sm" @click="$bvModal.hide('modal-importar-excel')" :disabled="cargandoImportacion">Cancelar</button>
                     <button class="btn btn-success btn-sm" @click="procesarImportacion" :disabled="cargandoImportacion">
@@ -563,6 +571,7 @@
                     dropdownAbierto: false,
                     cargandoImportacion: false,
                     nombreArchivoSeleccionado: '',
+                    chancarStock: true,
                     importacionResultados: { success: false, message: '', errores: [], codigosFaltantes: [] }
                 }
             },
@@ -1068,7 +1077,8 @@
                     formData.append('archivo', fileInput.files[0]);
 
                     this.cargandoImportacion = true;
-                    axios.post('/api/inventario/traslados/importar-excel', formData, {
+                    const endpoint = this.chancarStock ? '/api/inventario/traslados/importar-excel-chancar' : '/api/inventario/traslados/importar-excel';
+                    axios.post(endpoint, formData, {
                         headers: { 'Content-Type': 'multipart/form-data' }
                     })
                     .then(response => {
