@@ -239,12 +239,12 @@ class SalesProcessor {
         const data = saleData.sync_data;
         console.log('data-libre:', data);
         // descomentar en produccion
-        // await POSUtils.makeAjaxRequest(
-        //     'http://127.0.0.1:8001/api/v1/sync/orders',
-        //     data
-        // )
-        // .then(res => console.log('respuesta', res))
-        // .catch(err => console.error('error', err));
+        await POSUtils.makeAjaxRequest(
+          'https://ahmodas.com/v2/api/sync/orders',
+          data
+        )
+        .then(res => console.log('respuesta', res))
+        .catch(err => console.error('error', err));
     }
 }
 

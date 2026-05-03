@@ -1028,6 +1028,7 @@ class PosOrderController extends Controller
                     'id' => $line->producto->id,
                     'nombre' => $line->producto->nombre,
                     'precio_unitario' => $line->producto->precio_unitario,
+                    'costo_unitario' => $line->producto->costo_unitario,
                     'alias' => $line->producto->alias ?? $line->producto->nombre,
                     'estado' => $line->producto->estado,
                     'created_at' => $line->producto->created_at,
