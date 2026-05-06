@@ -21,6 +21,10 @@ class RedirectCajeroTraslados
                 return redirect()->route('inventario.traslados_almacen.historial');
             }
 
+            if ($request->routeIs('inventario.traslados_tiendas.index')) {
+                return redirect()->route('inventario.traslados_tiendas.historial');
+            }
+
             // Si es una petición API o una acción de gestión
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([

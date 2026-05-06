@@ -34,9 +34,17 @@ Route::middleware('check.cajero.traslados')->group(function () {
     Route::post('/inventario/traslados/eliminar', [TrasladoAlmacenController::class, 'eliminarTraslado']);
     Route::post('/inventario/traslados/importar-excel', [TrasladoAlmacenController::class, 'importarStockExcel']);
     Route::post('/inventario/traslados/importar-excel-chancar', [TrasladoAlmacenController::class, 'importarStockExcelChancar']);
+
+    // Traslados desde Tiendas (Gestión Protegida)
+    Route::get('/inventario/traslados-tiendas/datos-gestion', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getDataGestionApi']);
+    Route::get('/inventario/traslados-tiendas/productos/{tiendaId}', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getProductsByTienda']);
+    Route::post('/inventario/traslados-tiendas/guardar', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'store']);
 });
 
 // Rutas de Historial (Acceso para todos)
 Route::get('/inventario/traslados/historial-datos', [TrasladoAlmacenController::class, 'getHistorial']);
 Route::get('/inventario/traslados/historial-global', [TrasladoAlmacenController::class, 'getHistorialGlobal']);
+
+// Historial Tiendas
+Route::get('/inventario/traslados-tiendas/historial-global', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getHistorialGlobal']);
 
