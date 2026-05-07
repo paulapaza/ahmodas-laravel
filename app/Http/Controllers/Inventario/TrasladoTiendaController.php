@@ -179,16 +179,8 @@ class TrasladoTiendaController extends Controller
                'updated_at' => $hoy,
             ]);
 
-            // 5. Registrar Historial
-            DB::table('tiendas_traslados_historial')->insert([
-               'tienda_traslado_id' => $trasladoId,
-               'cantidad' => $t['cantidad'],
-               'stock_tienda' => $tiendaStock->stock - $t['cantidad'],
-               'stock_almacen' => $stockAlmacenAnterior + $t['cantidad'],
-               'created_by' => $userId,
-               'created_at' => $hoy,
-            ]);
          }
+
 
          DB::commit();
 
