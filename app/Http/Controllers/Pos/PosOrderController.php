@@ -975,7 +975,7 @@ class PosOrderController extends Controller
                 'order_number' => $posOrder->order_number,
                 'total_amount' => $posOrder->total_amount,
                 'moneda' => (int)$posOrder->moneda,
-                'estado' => $posOrder->estado,
+                'estado' => $posOrder->estado === 'completed' ? 'completado' : $posOrder->estado,
                 'created_at' => $posOrder->created_at,
                 'updated_at' => $posOrder->updated_at,
             ],
@@ -1027,6 +1027,7 @@ class PosOrderController extends Controller
                 return [
                     'id' => $line->producto->id,
                     'nombre' => $line->producto->nombre,
+                    'codigo_barras' => $line->producto->codigo_barras,
                     'precio_unitario' => $line->producto->precio_unitario,
                     'costo_unitario' => $line->producto->costo_unitario,
                     'alias' => $line->producto->alias ?? $line->producto->nombre,
