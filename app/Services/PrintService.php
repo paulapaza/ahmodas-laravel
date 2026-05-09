@@ -123,8 +123,6 @@ class PrintService
             $printer->text(sprintf("%-25s %-8s %8s\n", "", "Total:", number_format($pos_order->total_amount, 2)));
             $printer->setEmphasis(false);
 
-            $printer->feed(1);
-
             // Datos del vehículo
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $this->imprimirPie($printer, $pos_order);
@@ -150,7 +148,7 @@ class PrintService
             $printer->bitImage($logo);
         }
 
-        $printer->feed(2);
+        $printer->feed(1);
         //$printer->setTextSize(2, 2);
         $printer->setEmphasis(true);
         $printer->text($posOrder->tienda->nombre . "\n");
@@ -177,7 +175,7 @@ class PrintService
         $printer->setJustification(Printer::JUSTIFY_CENTER);
         $printer->feed(1);
         $printer->text($posOrder->tienda->ticket_nota ?? "Gracias por su compra\n");
-        $printer->feed(5); // Avance extra para superar el borde de corte
+        $printer->feed(2); // Avance extra para superar el borde de corte
         $printer->pulse(); // abre gabeta
         $printer->cut();
         $printer->close();
