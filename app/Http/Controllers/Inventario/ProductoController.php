@@ -177,7 +177,9 @@ class ProductoController extends Controller
       });
 
     // Filtrar estrictamente a los productos que pertenecen a la tienda actual
-    if ($tiendaId) {
+    // EXCEPTO si estamos buscando un producto para DEVOLVER (tipo_busqueda = 'devuelto')
+    $tipoBusqueda = $request->input('tipo_busqueda');
+    if ($tiendaId && $tipoBusqueda !== 'devuelto') {
         $query->whereHas('tiendas', function($q) use ($tiendaId) {
             $q->where('tienda_id', $tiendaId);
         });

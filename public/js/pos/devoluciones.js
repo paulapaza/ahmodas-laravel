@@ -64,7 +64,8 @@ $(document).ready(function() {
             data: {
                 '_token': _token,
                 "stringSearch": codigo,
-                "tienda_id": window.tiendaIdPos || window.idTiendaUsuario || 1
+                "tienda_id": window.tiendaIdPos || window.idTiendaUsuario || 1,
+                "tipo_busqueda": tipo // Puede ser 'nuevo' o 'devuelto'
             },
             dataType: 'json',
             success: function(respuesta) {
@@ -76,7 +77,8 @@ $(document).ready(function() {
                         agregarProductoListaDevolucion(prod, tipo);
                     }
                 } else if (respuesta.length > 1) {
-                    let htmlOpciones = '<div class="list-group text-left" style="max-height: 300px; overflow-y:auto;">';
+                    let htmlOpciones = `<p class="text-muted small text-center mb-2">${respuesta.length} opciones encontradas</p>`;
+                    htmlOpciones += '<div class="list-group text-left" style="max-height: 300px; overflow-y:auto;">';
                     respuesta.forEach(p => {
                         let sinStock = (tipo === 'nuevo' && p.stock_actual <= 0);
                         let claseBoton = sinStock ? 'list-group-item-secondary' : 'list-group-item-action btn-seleccionar-producto';
