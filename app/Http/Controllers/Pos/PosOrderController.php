@@ -515,7 +515,7 @@ class PosOrderController extends Controller
                 ->when($user_id, function ($q) use ($user_id) {
                     $q->where('user_id', $user_id);
                 })
-                ->with('user:id,name', 'detalles.producto:id,nombre')
+                ->with('user:id,name', 'detalles.producto:id,nombre,alias')
                 ->orderBy('created_at', 'Asc');
         }])
         ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")

@@ -15,7 +15,7 @@ class DevolucionController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            $query = PosDevolucion::with(['user:id,name', 'tienda:id,nombre,alias', 'detalles.producto:id,nombre'])
+            $query = PosDevolucion::with(['user:id,name', 'tienda:id,nombre,alias', 'detalles.producto:id,nombre,alias'])
                 ->orderBy('created_at', 'desc');
                 
             // Si es cajero y NO es administrador, solo ver sus propias devoluciones
@@ -29,7 +29,7 @@ class DevolucionController extends Controller
                 $devueltos = [];
                 $nuevos = [];
                 foreach($row->detalles as $d) {
-                    $nombre = $d->producto ? $d->producto->nombre : 'Prod. Eliminado';
+                    $nombre = $d->producto ? ($d->producto->alias ?: $d->producto->nombre) : 'Prod. Eliminado';
                     $subtotal = number_format($d->subtotal, 2);
                     $texto = "{$d->cantidad}x {$nombre} <small class='text-muted'>(S/ {$subtotal})</small>";
                     if ($d->tipo_item === 'devuelto') {

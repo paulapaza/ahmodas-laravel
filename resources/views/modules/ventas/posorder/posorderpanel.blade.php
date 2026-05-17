@@ -237,7 +237,7 @@
                                                             $devueltos = [];
                                                             $nuevos = [];
                                                             foreach($dev->detalles as $d) {
-                                                                $nombre = $d->producto ? $d->producto->nombre : 'Prod. Eliminado';
+                                                                $nombre = $d->producto ? ($d->producto->alias ?: $d->producto->nombre) : 'Prod. Eliminado';
                                                                 $subtotal = number_format($d->subtotal, 2);
                                                                 $texto = "{$d->cantidad}x {$nombre} <small class='text-muted'>(S/ {$subtotal})</small>";
                                                                 if ($d->tipo_item === 'devuelto') {
