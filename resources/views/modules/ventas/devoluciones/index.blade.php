@@ -114,11 +114,7 @@
                 modalId: '#modalDetalleDevolucion', // Este modal no es de edicion, así que deshabilitamos btn de crear
             },
             newRecordTopButton: false, // Ocultar boton "+ Nuevo"
-            actionsButtons: {
-                edit: false,
-                delete: false,
-                show: false
-            },
+            actionsButtons: false,
             columns: [
                 { data: 'id' },
                 { 
