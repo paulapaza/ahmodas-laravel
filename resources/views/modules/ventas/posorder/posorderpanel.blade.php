@@ -205,6 +205,62 @@
 
                             </div>
                         </div>
+
+                        {{-- SECCION DE DEVOLUCIONES --}}
+                        @if($tienda->devoluciones && $tienda->devoluciones->count() > 0)
+                            <div class="card-footer bg-light" style="border-top: 2px solid #ffc107;">
+                                <h6 class="text-warning text-bold mb-2"><i class="fas fa-exchange-alt"></i> Cambios y Devoluciones</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0" style="font-size: 0.8rem; background-color: #fff;">
+                                        <thead>
+                                            <tr>
+                                                <th>Hora</th>
+                                                <th>Vendedor</th>
+                                                <th>Tipo</th>
+                                                <th>Resumen</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($tienda->devoluciones as $dev)
+                                                <tr>
+                                                    <td>{{ \Carbon\Carbon::parse($dev->created_at)->format('H:i') }}</td>
+                                                    <td>{{ $dev->user ? $dev->user->name : 'N/A' }}</td>
+                                                    <td>
+                                                        @if($dev->tipo_movimiento === 'cambio')
+                                                            <span class="badge badge-warning">Cambio</span>
+                                                        @else
+                                                            <span class="badge badge-info">Solo Dev.</span>
+                                                        @endif
+                                                    </td>
+                                                    <td style="line-height: 1.2;">
+                                                        @php
+                                                            $devueltos = [];
+                                                            $nuevos = [];
+                                                            foreach($dev->detalles as $d) {
+                                                                $nombre = $d->producto ? $d->producto->nombre : 'Prod. Eliminado';
+                                                                $subtotal = number_format($d->subtotal, 2);
+                                                                $texto = "{$d->cantidad}x {$nombre} <small class='text-muted'>(S/ {$subtotal})</small>";
+                                                                if ($d->tipo_item === 'devuelto') {
+                                                                    $devueltos[] = "<span class='text-danger'>← {$texto}</span>";
+                                                                } else {
+                                                                    $nuevos[] = "<span class='text-success'>→ {$texto}</span>";
+                                                                }
+                                                            }
+                                                            $html = count($devueltos) > 0 ? implode('<br>', $devueltos) : '';
+                                                            if (count($nuevos) > 0) {
+                                                                if ($html !== '') $html .= '<hr style="margin:2px 0; border-color: #eee;">';
+                                                                $html .= implode('<br>', $nuevos);
+                                                            }
+                                                        @endphp
+                                                        {!! $html !!}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @php $numeracion = 1; @endphp

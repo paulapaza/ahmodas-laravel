@@ -510,6 +510,13 @@ class PosOrderController extends Controller
 
                 // 2.4 ORDENAR POR FECHA DESCENDENTE
                 ->orderBy('order_date', 'Asc');
+        }, 'devoluciones' => function ($query) use ($fecha_inicio, $fecha_fin, $user_id) {
+            $query->whereBetween('created_at', [$fecha_inicio, $fecha_fin])
+                ->when($user_id, function ($q) use ($user_id) {
+                    $q->where('user_id', $user_id);
+                })
+                ->with('user:id,name', 'detalles.producto:id,nombre')
+                ->orderBy('created_at', 'Asc');
         }])
         ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")
         ->get();

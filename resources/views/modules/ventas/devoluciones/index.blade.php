@@ -10,11 +10,12 @@
         <th>Tienda</th>
         <th>Usuario</th>
         <th>Tipo Mov.</th>
+        <th>Productos (Resumen)</th>
         <th>Devuelto (S/)</th>
         <th>Nuevo (S/)</th>
         <th>Diferencia (S/)</th>
         <th>Método Pago</th>
-        <th>Opciones</th>
+        <!-- <th>Opciones</th> -->
     </x-table>
 
     <!-- Modal Detalle -->
@@ -123,12 +124,26 @@
                         return new Date(data).toLocaleString();
                     }
                 },
-                { data: 'tienda.nombre' },
+                { 
+                    data: 'tienda',
+                    render: function(data) {
+                        if (!data) return 'N/A';
+                        return data.alias ? data.alias : data.nombre;
+                    }
+                },
                 { data: 'user.name' },
                 { 
                     data: 'tipo_movimiento',
                     render: function(data) {
                         return data === 'cambio' ? '<span class="badge badge-warning">Cambio</span>' : '<span class="badge badge-info">Solo Devolución</span>';
+                    }
+                },
+                {
+                    data: 'resumen_productos',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data) {
+                        return `<div style="font-size: 0.85rem; line-height: 1.2;">${data}</div>`;
                     }
                 },
                 { data: 'monto_devolucion', render: (data) => parseFloat(data).toFixed(2) },
@@ -142,8 +157,9 @@
                         return '0.00';
                     }
                 },
-                { data: 'metodo_pago' },
-                {
+                { data: 'metodo_pago' }
+                /*
+                ,{
                     data: null,
                     orderable: false,
                     searchable: false,
@@ -151,6 +167,7 @@
                         return `<button class="btn btn-sm btn-info btn-ver-detalle" data-id="${row.id}"><i class="fa-solid fa-eye"></i> Detalle</button>`;
                     }
                 }
+                */
             ],
             customTopButton: []
         });

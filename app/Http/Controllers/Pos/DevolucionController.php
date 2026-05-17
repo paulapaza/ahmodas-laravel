@@ -15,9 +15,41 @@ class DevolucionController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            $devoluciones = PosDevolucion::with(['user:id,name', 'tienda:id,nombre'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query = PosDevolucion::with(['user:id,name', 'tienda:id,nombre,alias', 'detalles.producto:id,nombre'])
+                ->orderBy('created_at', 'desc');
+                
+            // Si es cajero y NO es administrador, solo ver sus propias devoluciones
+            if (auth()->user()->hasRole('cajero') && !auth()->user()->hasAnyRole(['Administrador', 'Super'])) {
+                $query->where('user_id', auth()->id());
+            }
+
+            $devoluciones = $query->get();
+
+            $devoluciones->transform(function($row) {
+                $devueltos = [];
+                $nuevos = [];
+                foreach($row->detalles as $d) {
+                    $nombre = $d->producto ? $d->producto->nombre : 'Prod. Eliminado';
+                    $subtotal = number_format($d->subtotal, 2);
+                    $texto = "{$d->cantidad}x {$nombre} <small class='text-muted'>(S/ {$subtotal})</small>";
+                    if ($d->tipo_item === 'devuelto') {
+                        $devueltos[] = "<span class='text-danger'>← {$texto}</span>";
+                    } else {
+                        $nuevos[] = "<span class='text-success'>→ {$texto}</span>";
+                    }
+                }
+                
+                $html = '';
+                if (count($devueltos) > 0) {
+                    $html .= implode('<br>', $devueltos);
+                }
+                if (count($nuevos) > 0) {
+                    if ($html !== '') $html .= '<hr style="margin: 2px 0;">';
+                    $html .= implode('<br>', $nuevos);
+                }
+                $row->resumen_productos = $html;
+                return $row;
+            });
 
             return response()->json($devoluciones);
         }

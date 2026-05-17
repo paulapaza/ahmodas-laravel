@@ -71,6 +71,7 @@ $(document).ready(function() {
             success: function(respuesta) {
                 if (respuesta.length === 1) {
                     let prod = respuesta[0];
+                    prod.nombre = prod.alias ? prod.alias : prod.nombre;
                     if (tipo === 'nuevo' && prod.stock_actual <= 0) {
                         Swal.fire({ icon: 'error', text: 'No hay stock disponible de este producto en el almacén.' });
                     } else {
@@ -80,6 +81,7 @@ $(document).ready(function() {
                     let htmlOpciones = `<p class="text-muted small text-center mb-2">${respuesta.length} opciones encontradas</p>`;
                     htmlOpciones += '<div class="list-group text-left" style="max-height: 300px; overflow-y:auto;">';
                     respuesta.forEach(p => {
+                        let nombreMostrar = p.alias ? p.alias : p.nombre;
                         let sinStock = (tipo === 'nuevo' && p.stock_actual <= 0);
                         let claseBoton = sinStock ? 'list-group-item-secondary' : 'list-group-item-action btn-seleccionar-producto';
                         let badgeStock = sinStock ? '<span class="badge badge-danger">Sin Stock</span>' : `<span class="badge badge-success">Stock: ${p.stock_actual}</span>`;
@@ -87,8 +89,8 @@ $(document).ready(function() {
 
                         htmlOpciones += `
                             <button type="button" class="list-group-item ${claseBoton}" style="${opacidad}"
-                                data-id="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio_unitario}">
-                                <strong>${p.nombre}</strong> ${badgeStock}<br>
+                                data-id="${p.id}" data-nombre="${nombreMostrar}" data-precio="${p.precio_unitario}">
+                                <strong>${nombreMostrar}</strong> ${badgeStock}<br>
                                 <small>Precio: S/ ${parseFloat(p.precio_unitario).toFixed(2)} | Código: ${p.codigo_barras || '-'}</small>
                             </button>
                         `;

@@ -44,5 +44,10 @@ class Tienda extends Model
     {
         return $this->hasMany(PosOrder::class, 'tienda_id');
     }
+
+    public function devoluciones()
+    {
+        return $this->hasMany(\App\Models\Pos\PosDevolucion::class, 'tienda_id');
+    }
    
 }

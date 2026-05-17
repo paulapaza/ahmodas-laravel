@@ -25,7 +25,10 @@
 <li class="nav-item d-none d-sm-inline-block">
     <a href="{{route('ventas.cliente.index')}}" class="nav-link">clientes</a>
 </li>
+@endcan
+
+@if(auth()->user()->hasAnyRole(['Administrador', 'Super', 'cajero']))
 <li class="nav-item d-none d-sm-inline-block">
     <a href="{{route('ventas.devoluciones.index')}}" class="nav-link">Cambios/Devoluciones</a>
 </li>
-@endcan
+@endif
