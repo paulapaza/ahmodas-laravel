@@ -21,10 +21,18 @@
                             </div>
 
                             <!-- Botón buscar -->
-                            <div class="col-2 col-sm-3 col-md-5">
+                            <div class="col-2 col-sm-3 col-md-3">
                                 <button class="btn btn-xsecondary wrap w-100" id="search-button">
                                     <i class="fa-solid fa-barcode"></i>
-                                    <span class="d-none d-sm-inline"> Buscar Código de barras</span>
+                                    <span class="d-none d-sm-inline"> Buscar</span>
+                                </button>
+                            </div>
+
+                            <!-- Botón devoluciones -->
+                            <div class="col-2 col-sm-2 col-md-2">
+                                <button class="btn btn-warning wrap w-100" id="btn-modal-devoluciones" title="Devoluciones/Cambios" data-toggle="modal" data-target="#modalDevoluciones">
+                                    <i class="fa-solid fa-exchange-alt"></i>
+                                    <span class="d-none d-sm-inline"> Cambios</span>
                                 </button>
                             </div>
 
@@ -209,9 +217,88 @@
 
     </div>
 
+<!-- Modal Devoluciones -->
+<div class="modal fade" id="modalDevoluciones" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fa-solid fa-exchange-alt"></i> Devoluciones y Cambios | <span class="badge badge-light text-dark">{{ $tiendaDelUsuario }}</span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body bg-light text-dark">
+                <div class="row">
+                    <!-- Productos Devueltos -->
+                    <div class="col-md-6 border-right">
+                        <h4 class="text-danger">Productos a Devolver (Entran)</h4>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="search-devueltos" placeholder="Escanear producto devuelto (F3)" autocomplete="off">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="btn-search-devueltos"><i class="fa-solid fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div style="max-height: 250px; overflow-y: auto;">
+                            <table class="table table-sm table-striped" id="table-devueltos">
+                                <thead class="thead-dark">
+                                    <tr><th>Cant</th><th>Nombre</th><th>Precio</th><th>Total</th><th></th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <h5 class="text-right text-danger mt-2">Total Devuelto: S/ <span id="total-devueltos">0.00</span></h5>
+                    </div>
+                    <!-- Productos Nuevos -->
+                    <div class="col-md-6">
+                        <h4 class="text-success">Productos Nuevos (Salen)</h4>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control" id="search-nuevos" placeholder="Escanear producto nuevo (F4)" autocomplete="off">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="btn-search-nuevos"><i class="fa-solid fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div style="max-height: 250px; overflow-y: auto;">
+                            <table class="table table-sm table-striped" id="table-nuevos">
+                                <thead class="thead-dark">
+                                    <tr><th>Cant</th><th>Nombre</th><th>Precio</th><th>Total</th><th></th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <h5 class="text-right text-success mt-2">Total Nuevo: S/ <span id="total-nuevos">0.00</span></h5>
+                    </div>
+                </div>
+                <hr>
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 id="texto-diferencia" class="font-weight-bold">Diferencia: S/ 0.00</h4>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <label>Método de Pago:</label>
+                        <select id="metodo_pago_devolucion" class="form-control d-inline w-auto">
+                            <option value="Efectivo" selected>Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Yape">Yape / Plin</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                        <br>
+                        <textarea id="motivo_devolucion" class="form-control mt-2" placeholder="Motivo del cambio/devolución (opcional)" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-procesar-devolucion">Procesar Transacción</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </x-pos-layout>
 
 <script>
+    window.userIdPos = {{ Auth::user()->id ?? 1 }};
+    window.tiendaIdPos = {{ $idTiendaUsuario ?? 1 }};
     window.AuthUser = @json(Auth::user());
     window.tiendas = @json( $tiendas);
     window.idTiendaUsuario = @json( $idTiendaUsuario);
@@ -227,3 +314,4 @@
 <script src="{{ asset('js/pos/customer-service.js') }}"></script>
 <script src="{{ asset('js/pos/sales-processor.js') }}?v={{ filemtime(public_path('js/pos/sales-processor.js')) }}"></script>
 <script src="{{ asset('js/pos/pos-main.js') }}"></script>
+<script src="{{ asset('js/pos/devoluciones.js') }}?v={{ filemtime(public_path('js/pos/devoluciones.js')) }}"></script>

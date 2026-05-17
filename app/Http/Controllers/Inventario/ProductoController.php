@@ -160,11 +160,36 @@ class ProductoController extends Controller
       return response()->json([]);
     }
 
-    $productos = Producto::where('nombre', 'LIKE', "%{$search}%")
-      ->orWhere('alias', 'LIKE', "%{$search}%")
-      ->orWhere('codigo_barras', 'LIKE', "%{$search}%")
-      ->limit(20)
-      ->get();
+    // Obtener la tienda actual, pero solo usarla como filtro estricto si se solicita (ej. POS/Devoluciones)
+    // Para Kardex o Transacciones, permitimos busqueda global si no se pasa tienda_id explicitamente.
+    $tiendaId = $request->input('tienda_id');
+    
+    // Si viene del POS (product-search.js usa stringSearch) y no envia tienda_id, forzamos la tienda del usuario
+    if (!$tiendaId && $request->has('stringSearch')) {
+        $tiendaId = Auth::check() ? Auth::user()->tienda_id : null;
+    }
+
+    $query = Producto::with('tiendas')
+      ->where(function($q) use ($search) {
+          $q->where('nombre', 'LIKE', "%{$search}%")
+            ->orWhere('alias', 'LIKE', "%{$search}%")
+            ->orWhere('codigo_barras', 'LIKE', "%{$search}%");
+      });
+
+    // Filtrar estrictamente a los productos que pertenecen a la tienda actual
+    if ($tiendaId) {
+        $query->whereHas('tiendas', function($q) use ($tiendaId) {
+            $q->where('tienda_id', $tiendaId);
+        });
+    }
+
+    $productos = $query->limit(20)->get();
+
+    // Calcular el stock para la tienda actual (o 0 si no hay tienda contexto)
+    $contextTiendaId = $tiendaId ?? (Auth::check() ? Auth::user()->tienda_id : null);
+    $productos->each(function ($producto) use ($contextTiendaId) {
+        $producto->stock_actual = $contextTiendaId ? $producto->stockEnTienda($contextTiendaId) : 0;
+    });
 
     return response()->json($productos);
   }

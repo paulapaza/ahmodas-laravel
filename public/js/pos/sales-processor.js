@@ -240,7 +240,7 @@ class SalesProcessor {
         console.log('data-libre:', data);
         // descomentar en produccion
         await POSUtils.makeAjaxRequest(
-          'https://ahmodas.com/v2/api/sync/orders',
+          'http://127.0.0.1:8001/api/sync/orders',
           data
         )
         .then(res => console.log('respuesta', res))

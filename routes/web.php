@@ -14,6 +14,7 @@ use App\Http\Controllers\Inventario\TiendaController;
 use App\Http\Controllers\Inventario\TrasladoAlmacenController;
 
 use App\Http\Controllers\Pos\PosOrderController;
+use App\Http\Controllers\Pos\DevolucionController;
 use App\Models\Inventario\Tienda;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -41,9 +42,10 @@ Route::middleware([
      Punto de Venta
      ************************/
     Route::get('/punto-de-venta', function () {
-        $tiendas = Tienda::select('id', 'nombre')->get();
+        $tiendas = Tienda::select('id', 'nombre', 'alias')->get();
         $idTienda = Auth::user()->tienda_id ?? null;
-        $tiendaDelUsuario = $tiendas->firstWhere('id', $idTienda)->nombre ?? 'Sin tienda asignada';
+        $tiendaActiva = $tiendas->firstWhere('id', $idTienda);
+        $tiendaDelUsuario = $tiendaActiva ? ($tiendaActiva->alias ?: $tiendaActiva->nombre) : 'Sin tienda asignada';
 
         return view('modules.puntodeventa.pos1', [
             'tiendas' => $tiendas,
@@ -54,11 +56,17 @@ Route::middleware([
 
     //venta
     Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
+    Route::post('/punto-de-venta/devolucion', [DevolucionController::class, 'store'])->name('puntodeventa.devolucion.store');
 
     /*************************
      Ventas
      ************************/
     Route::view('/ventas', 'modules.ventas.main')->name('ventas.main');
+    
+    // devoluciones
+    Route::get('/ventas/devoluciones', [DevolucionController::class, 'index'])->name('ventas.devoluciones.index');
+    Route::get('/ventas/devoluciones/{id}', [DevolucionController::class, 'show'])->name('ventas.devoluciones.show');
+
     // ventas
     Route::view('/ventas/ventas', 'modules.ventas.posorder.index')->name('ventas.posorder.index');
     Route::resource('ventas/posorder', PosOrderController::class)->only(['index', 'show']);
