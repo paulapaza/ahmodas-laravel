@@ -198,7 +198,12 @@ class ProductoController extends Controller
         });
     }
 
-    $productos = $query->limit(20)->get();
+    $limit = 20;
+    $page = intval($request->input('page', 1));
+    if ($page < 1) $page = 1;
+    $offset = ($page - 1) * $limit;
+
+    $productos = $query->offset($offset)->limit($limit)->get();
 
     // Calcular el stock para la tienda actual (o 0 si no hay tienda contexto)
     $contextTiendaId = $tiendaId ?? (Auth::check() ? Auth::user()->tienda_id : null);

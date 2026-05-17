@@ -94,8 +94,15 @@ class PosServices
     {
         $producto = Producto::find($producto_id);
         if ($producto) {
-            $stock = $producto->stockEnTienda($tienda_id);
-            $producto->tiendas()->updateExistingPivot($tienda_id, ['stock' => $stock + $cantidad]);
+            // Verificar si el producto ya está asociado a la tienda en la tabla pivot
+            $hasPivot = $producto->tiendas()->wherePivot('tienda_id', $tienda_id)->exists();
+            if ($hasPivot) {
+                $stock = $producto->stockEnTienda($tienda_id);
+                $producto->tiendas()->updateExistingPivot($tienda_id, ['stock' => $stock + $cantidad]);
+            } else {
+                // Si no está asociado, lo asociamos directamente con el stock inicial
+                $producto->tiendas()->attach($tienda_id, ['stock' => $cantidad]);
+            }
         } else {
             throw new Exception('Producto no encontrado.');
         }
