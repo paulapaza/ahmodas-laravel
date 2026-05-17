@@ -169,11 +169,24 @@ class ProductoController extends Controller
         $tiendaId = Auth::check() ? Auth::user()->tienda_id : null;
     }
 
+    $words = array_filter(explode(' ', $search));
+
     $query = Producto::with('tiendas')
-      ->where(function($q) use ($search) {
-          $q->where('nombre', 'LIKE', "%{$search}%")
-            ->orWhere('alias', 'LIKE', "%{$search}%")
-            ->orWhere('codigo_barras', 'LIKE', "%{$search}%");
+      ->where(function($q) use ($words, $search) {
+          // Buscar por nombre (todas las palabras deben estar presentes, sin importar orden)
+          $q->where(function($qNombre) use ($words) {
+              foreach($words as $word) {
+                  $qNombre->where('nombre', 'LIKE', "%{$word}%");
+              }
+          })
+          // O buscar por alias (todas las palabras deben estar)
+          ->orWhere(function($qAlias) use ($words) {
+              foreach($words as $word) {
+                  $qAlias->where('alias', 'LIKE', "%{$word}%");
+              }
+          })
+          // O buscar por codigo de barras (exacto)
+          ->orWhere('codigo_barras', 'LIKE', "%{$search}%");
       });
 
     // Filtrar estrictamente a los productos que pertenecen a la tienda actual
