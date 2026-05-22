@@ -134,6 +134,27 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'facturacion' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/facturacion.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
+        'boletas' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/boletas.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
+        'tickets' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/tickets.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

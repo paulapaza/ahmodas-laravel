@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Facturacion\Cpe;
 use App\Models\Facturacion\CpeSerie;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class CpeServices
 {
@@ -276,8 +277,19 @@ class CpeServices
         # Content-Type = text/plain
         # - Adjuntar en el CUERPO o BODY el archivo JSON o TXT
         +++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        */
-       //dd($data_json);
+        */        //dd($data_json);
+        $tipo_comprobante = $cpeSerie->codigo_tipo_comprobante; // '01' o '03'
+        $isBoleta = ($tipo_comprobante === '03');
+        $isFactura = ($tipo_comprobante === '01');
+
+        $logMsg = "Iniciando envío de CPE a Nubefact. Orden ID: {$pos_order->id}, Serie: {$cpeSerie->serie}, Número: {$cpeSerie->correlativo}, Tipo: {$tipo_comprobante}";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($logMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($logMsg);
+        }
+
         //Invocamos el servicio de NUBEFACT
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $ruta);
@@ -293,20 +305,60 @@ class CpeServices
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Configurar timeouts para no trabar el servidor
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5 segundos para establecer conexión
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);        // 15 segundos máximo para toda la transferencia
+        
         $respuesta  = curl_exec($ch);
-        $respuesta = json_decode($respuesta, true);
+        $curl_error = curl_error($ch);
         curl_close($ch);
         
-        if (isset($respuesta['errors'])) {
-            throw new Exception("Error al enviar el CPE: " . $respuesta['errors']
-                        . " - Mensaje: ");
+        if ($respuesta === false) {
+            $errorMsg = "Error de cURL al enviar CPE (Orden ID: {$pos_order->id}): " . $curl_error;
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error en la conexión a internet o de red: " . $curl_error);
         }
-        //dd($respuesta);
-        if ($respuesta === null){
-            throw new Exception("Error en la conexion de internet.</BR> VERIFIQUE SU CONEXION A INTERNET. </BR>(las boletas y facturas necesitan internet para poder emitirse");
+
+        $respuesta_decoded = json_decode($respuesta, true);
+        
+        if ($respuesta_decoded === null) {
+            $errorMsg = "Respuesta de Nubefact no es un JSON válido (Orden ID: {$pos_order->id}): " . substr($respuesta, 0, 500);
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error en la conexión de internet o formato de respuesta inválido.");
         }
-        $this->storeCpeResponseData($respuesta, $pos_order->id, $nota);
-        return $respuesta;
+        
+        if (isset($respuesta_decoded['errors'])) {
+            $errorMsg = "Nubefact retornó errores (Orden ID: {$pos_order->id}): " . $respuesta_decoded['errors'];
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error al enviar el CPE: " . $respuesta_decoded['errors']);
+        }
+        
+        $successMsg = "CPE enviado con éxito (Orden ID: {$pos_order->id}). Serie: {$respuesta_decoded['serie']}, Número: {$respuesta_decoded['numero']}";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($successMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($successMsg);
+        }
+
+        $this->storeCpeResponseData($respuesta_decoded, $pos_order->id, $nota);
+        return $respuesta_decoded;
     }
 
     private function storeCpeResponseData($respuesta,$pos_order_id, $nota = null){
@@ -370,6 +422,19 @@ class CpeServices
             "numero" => $cpe->numero
         );
         $data_json = json_encode($data);
+
+        $tipo_comprobante = $cpe->tipo_comprobante; // '1' = Factura, '2' = Boleta en formato Nubefact
+        $isBoleta = ($tipo_comprobante == 2);
+        $isFactura = ($tipo_comprobante == 1);
+
+        $logMsg = "Iniciando consulta de estado de CPE ID: {$cpe_id}. Serie: {$cpe->serie}, Número: {$cpe->numero}, Tipo: {$tipo_comprobante}";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($logMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($logMsg);
+        }
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $ruta);
         curl_setopt(
@@ -384,11 +449,48 @@ class CpeServices
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Timeout de conexión y transferencia
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
         $respuesta  = curl_exec($ch);
-        $respuesta = json_decode($respuesta, true);
+        $curl_error = curl_error($ch);
         curl_close($ch);
 
-        return $respuesta;
+        if ($respuesta === false) {
+            $errorMsg = "Error de cURL al consultar estado de CPE ID {$cpe_id}: " . $curl_error;
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error en la conexión a internet al consultar CPE: " . $curl_error);
+        }
+
+        $respuesta_decoded = json_decode($respuesta, true);
+
+        if ($respuesta_decoded === null) {
+            $errorMsg = "Respuesta de consulta de CPE ID {$cpe_id} no es JSON válido.";
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Respuesta inválida al consultar CPE.");
+        }
+
+        $successMsg = "Consulta de CPE ID {$cpe_id} completada.";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($successMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($successMsg);
+        }
+
+        return $respuesta_decoded;
     }
 
     // anulacion de CPE- comunicar baja
@@ -424,7 +526,19 @@ class CpeServices
             "codigo_unico" => ""
         );
         $data_json = json_encode($data);
-       $data_json = json_encode($data);
+
+        $tipo_comprobante = $cpe->tipo_comprobante; // '1' = Factura, '2' = Boleta en formato Nubefact
+        $isBoleta = ($tipo_comprobante == 2);
+        $isFactura = ($tipo_comprobante == 1);
+
+        $logMsg = "Iniciando comunicación de baja de CPE ID: {$cpe_id}. Serie: {$cpe->serie}, Número: {$cpe->numero}, Tipo: {$tipo_comprobante}, Motivo: {$motivo}";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($logMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($logMsg);
+        }
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $ruta);
         curl_setopt(
@@ -439,11 +553,48 @@ class CpeServices
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Timeout de conexión y transferencia
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
         $respuesta  = curl_exec($ch);
-        $respuesta = json_decode($respuesta, true);
+        $curl_error = curl_error($ch);
         curl_close($ch);
 
-        return $respuesta;
+        if ($respuesta === false) {
+            $errorMsg = "Error de cURL al comunicar baja de CPE ID {$cpe_id}: " . $curl_error;
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error en la conexión a internet al comunicar baja: " . $curl_error);
+        }
+
+        $respuesta_decoded = json_decode($respuesta, true);
+
+        if ($respuesta_decoded === null) {
+            $errorMsg = "Respuesta de comunicación de baja de CPE ID {$cpe_id} no es JSON válido.";
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Respuesta inválida al comunicar baja.");
+        }
+
+        $successMsg = "Comunicación de baja de CPE ID {$cpe_id} enviada. Respuesta: " . json_encode($respuesta_decoded);
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($successMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($successMsg);
+        }
+
+        return $respuesta_decoded;
     }
     // Consultar el estado de comunicacaion de baja
     public function consultarEstadoBaja($cpe_id)
@@ -470,6 +621,18 @@ class CpeServices
             "numero" => $cpe->numero
         );
         $data_json = json_encode($data);
+
+        $tipo_comprobante = $cpe->tipo_comprobante; // '1' = Factura, '2' = Boleta en formato Nubefact
+        $isBoleta = ($tipo_comprobante == 2);
+        $isFactura = ($tipo_comprobante == 1);
+
+        $logMsg = "Iniciando consulta de estado de baja de CPE ID: {$cpe_id}. Serie: {$cpe->serie}, Número: {$cpe->numero}, Tipo: {$tipo_comprobante}";
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($logMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($logMsg);
+        }
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $ruta);
@@ -485,10 +648,47 @@ class CpeServices
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Timeout de conexión y transferencia
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+
         $respuesta  = curl_exec($ch);
-        $respuesta = json_decode($respuesta, true);
+        $curl_error = curl_error($ch);
         curl_close($ch);
 
-        return $respuesta;
+        if ($respuesta === false) {
+            $errorMsg = "Error de cURL al consultar estado de baja de CPE ID {$cpe_id}: " . $curl_error;
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Error en la conexión a internet al consultar estado de baja: " . $curl_error);
+        }
+
+        $respuesta_decoded = json_decode($respuesta, true);
+
+        if ($respuesta_decoded === null) {
+            $errorMsg = "Respuesta de consulta de estado de baja de CPE ID {$cpe_id} no es JSON válido.";
+            if ($isFactura || $isBoleta) {
+                Log::channel('facturacion')->error($errorMsg);
+            }
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
+            throw new Exception("Respuesta inválida al consultar estado de baja.");
+        }
+
+        $successMsg = "Consulta de estado de baja de CPE ID {$cpe_id} completada. Respuesta: " . json_encode($respuesta_decoded);
+        if ($isFactura || $isBoleta) {
+            Log::channel('facturacion')->info($successMsg);
+        }
+        if ($isBoleta) {
+            Log::channel('boletas')->info($successMsg);
+        }
+
+        return $respuesta_decoded;
     }
 }

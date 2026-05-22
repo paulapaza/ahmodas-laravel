@@ -47,7 +47,7 @@ class CustomerService {
                 dataType: "json",
             });
 
-            if (response.success) {
+            if (response.success && response.data) {
                 $("#nombre_cliente").val(response.data.full_name || "");
                 $("#direccion_cliente").val("S/D");
                 $("#resultado_busqueda").html(
@@ -55,9 +55,9 @@ class CustomerService {
                 );
             } else {
                 this.handleSearchError(
-                    "DNI no encontrado: " + response.message
+                    "DNI no encontrado: " + (response.message || "")
                 );
-                $("#razon_social_cliente").val("");
+                $("#nombre_cliente").val("");
             }
         } catch (error) {
             this.handleAjaxError(error, "DNI");
@@ -87,10 +87,12 @@ class CustomerService {
                 $("#nombre_cliente").val("");
             } else {
                 $("#razon_social_cliente").val("");
+                $("#direccion_cliente").val("");
             }
         } else {
+            const errorMsg = error.responseJSON?.message || "Intente nuevamente.";
             this.handleSearchError(
-                `Error al consultar ${type}. Intente nuevamente.`
+                `Error al consultar ${type}: ${errorMsg}`
             );
         }
     }
@@ -206,26 +208,32 @@ class CustomerService {
                 dataType: "json",
             });
 
-            if (response.success) {
+            if (response.success && response.data) {
                 $("#razon_social_cliente").val(
                     response.data.razon_social || ""
                 );
+                
+                const direccionParts = [];
+                if (response.data.direccion) direccionParts.push(response.data.direccion);
+                if (response.data.distrito) direccionParts.push(response.data.distrito);
+                if (response.data.provincia) direccionParts.push(response.data.provincia);
+                if (response.data.departamento) direccionParts.push(response.data.departamento);
+                
                 $("#direccion_cliente").val(
-                    `${response.data.direccion} - ${response.data.distrito} - ${response.data.provincia} - ${response.data.departamento}`
+                    direccionParts.length > 0 ? direccionParts.join(" - ") : "S/D"
                 );
                 $("#resultado_busqueda").html(
-                    '<span class="text-success">RUC encontrado:</span>'
+                    '<span class="text-success">RUC encontrado.</span>'
                 );
             } else {
-                $("#resultado_busqueda").html(
-                    '<span class="text-danger">RUC no encontrado</span>'
+                this.handleSearchError(
+                    "RUC no encontrado: " + (response.message || "")
                 );
+                $("#razon_social_cliente").val("");
+                $("#direccion_cliente").val("");
             }
         } catch (error) {
-            console.error("Error al buscar RUC:", error);
-            $("#resultado_busqueda").html(
-                '<span class="text-danger">Error al buscar RUC</span>'
-            );
+            this.handleAjaxError(error, "RUC");
         }
     }
 }

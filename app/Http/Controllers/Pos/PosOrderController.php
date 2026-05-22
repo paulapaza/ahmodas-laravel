@@ -201,8 +201,12 @@ class PosOrderController extends Controller
         $cpe_response = null;
         $cpe_message = null;
         $retraso = 0;
+        $tipo_comprobante = $pos_order->tipo_comprobante;
+        $isBoleta = ($tipo_comprobante === '03');
+        $isFactura = ($tipo_comprobante === '01');
+
         try {
-            if (in_array($pos_order->tipo_comprobante, ['01', '03'])) {
+            if (in_array($tipo_comprobante, ['01', '03'])) {
                 $tipo_venta = $request->input('tipo_venta', 'local');
                 $retraso = $tienda->minutos_retraso_facturacion;
 
@@ -211,39 +215,54 @@ class PosOrderController extends Controller
                     $cpeServices = new CpeServices();
                     $cpe_response = $cpeServices->SendCep($cpeSerie, $cliente, $pos_order, null, null, $tipo_venta);
                     $cpe_message = "Documento enviado a SUNAT.";
-                    Log::info("Facturación inmediata procesada para Orden {$pos_order->id}");
+                    
+                    $logMsg = "Facturación inmediata procesada para Orden {$pos_order->id}";
+                    Log::channel('facturacion')->info($logMsg);
+                    if ($isBoleta) {
+                        Log::channel('boletas')->info($logMsg);
+                    }
                 } else {
                     // FACTURACIÓN DIFERIDA (Jobs con retraso)
                     SendCepToSunatJob::dispatch($pos_order, $cpeSerie, $cliente, $tipo_venta)
                         ->delay(now()->addMinutes($retraso));
                     
                     $cpe_message = "Envío programado a SUNAT (Espera: {$retraso} min)";
-                    Log::info("Envío de CPE programado para dentro de {$retraso} min: Orden {$pos_order->id}");
+                    
+                    $logMsg = "Envío de CPE programado para dentro de {$retraso} min: Orden {$pos_order->id}";
+                    Log::channel('facturacion')->info($logMsg);
+                    if ($isBoleta) {
+                        Log::channel('boletas')->info($logMsg);
+                    }
                 }
             }
         } catch (\Throwable $e) {
-            Log::error('Error en el proceso de facturación: ' . $e->getMessage());
+            $errorMsg = "Error en el proceso de facturación para Orden {$pos_order->id}: " . $e->getMessage();
+            Log::channel('facturacion')->error($errorMsg);
+            if ($isBoleta) {
+                Log::channel('boletas')->error($errorMsg);
+            }
             $cpe_message = 'Error en el envío/programación: ' . $e->getMessage();
         }
 
         $print_id = null;
         try {
-            if ($pos_order->tipo_comprobante == 12) {
+            if ($tipo_comprobante == 12) {
+                Log::channel('tickets')->info("Registrando venta de Ticket (Orden ID: {$pos_order->id}). Total: {$pos_order->total_amount}");
                 // Si la IP es la registrada para esta PC, forzamos impresión remota
                 if ($user->device_ip && $user->device_ip == request()->ip()) {
                     $print_id = $pos_order->id;
-                    Log::info('Impresión remota forzada: ' . $print_id);
+                    Log::channel('tickets')->info('Impresión remota forzada: ' . $print_id);
                 } else if ($user->print_type == 'red' || $user->print_type == 'local') {
                     // Si no, intentamos la tradicional (Red o Local del Servidor)
                     $printService = new \App\Services\PrintService();
                     $printService->imprimirTicket($pos_order);
-                    Log::info('Impresión tradicional: ' . $pos_order->id);
+                    Log::channel('tickets')->info('Impresión tradicional completada para Orden: ' . $pos_order->id);
                 } else {
-                    Log::info('Impresión no realizada: ' . $pos_order->id);
+                    Log::channel('tickets')->info('Impresión tradicional omitida (tipo de impresión no configurado) para Orden: ' . $pos_order->id);
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('Fallo impresión ticket: ' . $e->getMessage());
+            Log::channel('tickets')->error("Fallo al imprimir ticket para Orden {$pos_order->id}: " . $e->getMessage());
         }
 
         $sync_data = $this->getSyncOrderData($pos_order->id);
@@ -1044,5 +1063,134 @@ class PosOrderController extends Controller
                 ];
             })->unique('id')->values()->toArray(),
         ];
+    }
+
+    /**
+     * Sincronización masiva de órdenes por rango de fechas.
+     * GET /api/pos-orders/sync-by-date?fecha_inicio=YYYY-MM-DD&fecha_fin=YYYY-MM-DD
+     */
+    public function getSyncOrdersByDateRange(Request $request)
+    {
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin    = $request->input('fecha_fin');
+
+        if (!$fechaInicio || !$fechaFin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Los parámetros fecha_inicio y fecha_fin son obligatorios.',
+            ], 422);
+        }
+
+        try {
+            $desde = Carbon::parse($fechaInicio)->startOfDay();
+            $hasta = Carbon::parse($fechaFin)->endOfDay();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Formato de fecha inválido. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
+        if ($desde->gt($hasta)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La fecha_inicio no puede ser mayor que fecha_fin.',
+            ], 422);
+        }
+
+        $orders = PosOrder::with([
+            'orderLines.producto',
+            'payments',
+            'cliente',
+            'user',
+            'tienda',
+        ])
+        ->whereBetween('order_date', [$desde, $hasta])
+        ->orderBy('order_date', 'asc')
+        ->get();
+
+        $data = $orders->map(function ($posOrder) {
+            return [
+                // TRANSACTIONAL DATA (STRICT)
+                'order' => [
+                    'id'               => $posOrder->id,
+                    'sale_token'       => $posOrder->sale_token,
+                    'order_date'       => $posOrder->order_date,
+                    'tipo_comprobante' => $posOrder->tipo_comprobante,
+                    'serie'            => $posOrder->serie,
+                    'order_number'     => $posOrder->order_number,
+                    'total_amount'     => $posOrder->total_amount,
+                    'moneda'           => (int) $posOrder->moneda,
+                    'estado'           => $posOrder->estado === 'completed' ? 'completado' : $posOrder->estado,
+                    'created_at'       => $posOrder->created_at,
+                    'updated_at'       => $posOrder->updated_at,
+                ],
+                'lines' => $posOrder->orderLines->map(function ($line) {
+                    return [
+                        'producto_id' => $line->producto_id,
+                        'quantity'    => $line->quantity,
+                        'price'       => $line->price,
+                        'subtotal'    => $line->subtotal,
+                        'created_at'  => $line->created_at,
+                        'updated_at'  => $line->updated_at,
+                    ];
+                })->toArray(),
+                'payments' => $posOrder->payments->map(function ($payment) {
+                    return [
+                        'payment_method' => $payment->payment_method,
+                        'amount'         => $payment->amount,
+                        'created_at'     => $payment->created_at,
+                        'updated_at'     => $payment->updated_at,
+                    ];
+                })->toArray(),
+
+                // MASTER DATA (FLEXIBLE)
+                'client' => [
+                    'id'                        => $posOrder->cliente->id,
+                    'nombre'                    => $posOrder->cliente->nombre,
+                    'tipo_documento_identidad'  => $posOrder->cliente->tipo_documento_identidad,
+                    'numero_documento_identidad'=> $posOrder->cliente->numero_documento_identidad,
+                    'estado'                    => $posOrder->cliente->estado,
+                    'created_at'                => $posOrder->cliente->created_at,
+                    'updated_at'                => $posOrder->cliente->updated_at,
+                ],
+                'user' => [
+                    'id'         => $posOrder->user->id,
+                    'name'       => $posOrder->user->name,
+                    'email'      => $posOrder->user->email,
+                    'estado'     => $posOrder->user->estado,
+                    'created_at' => $posOrder->user->created_at,
+                    'updated_at' => $posOrder->user->updated_at,
+                ],
+                'store' => [
+                    'id'         => $posOrder->tienda->id,
+                    'nombre'     => $posOrder->tienda->nombre,
+                    'estado'     => $posOrder->tienda->estado,
+                    'created_at' => $posOrder->tienda->created_at,
+                    'updated_at' => $posOrder->tienda->updated_at,
+                ],
+                'products' => $posOrder->orderLines->map(function ($line) {
+                    return [
+                        'id'              => $line->producto->id,
+                        'nombre'          => $line->producto->nombre,
+                        'codigo_barras'   => $line->producto->codigo_barras,
+                        'precio_unitario' => $line->producto->precio_unitario,
+                        'costo_unitario'  => $line->producto->costo_unitario,
+                        'alias'           => $line->producto->alias ?? $line->producto->nombre,
+                        'estado'          => $line->producto->estado,
+                        'created_at'      => $line->producto->created_at,
+                        'updated_at'      => $line->producto->updated_at,
+                    ];
+                })->unique('id')->values()->toArray(),
+            ];
+        });
+
+        return response()->json([
+            'success'      => true,
+            'fecha_inicio' => $desde->toDateString(),
+            'fecha_fin'    => $hasta->toDateString(),
+            'total'        => $orders->count(),
+            'data'         => $data,
+        ]);
     }
 }

@@ -14,6 +14,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/inventario/tiendas/cambiar-tienda', [TiendaController::class, 'cambiarTienda']);
 Route::post('/punto-de-venta/venta/libre', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store.libre');
+Route::get('/punto-de-venta/sync-by-date', [PosOrderController::class, 'getSyncOrdersByDateRange'])->name('puntodeventa.sync.bydate');
 
 Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])
   ->name('users.resetPassword');
