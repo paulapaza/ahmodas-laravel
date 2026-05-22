@@ -31,4 +31,7 @@
 <li class="nav-item d-none d-sm-inline-block">
     <a href="{{route('ventas.devoluciones.index')}}" class="nav-link">Cambios/Devoluciones</a>
 </li>
+<li class="nav-item d-none d-sm-inline-block">
+    <a href="{{route('ventas.sincronizaciones.index')}}" class="nav-link">Sincronizaciones</a>
+</li>
 @endif

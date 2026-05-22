@@ -15,6 +15,7 @@ use App\Http\Controllers\Inventario\TrasladoAlmacenController;
 
 use App\Http\Controllers\Pos\PosOrderController;
 use App\Http\Controllers\Pos\DevolucionController;
+use App\Http\Controllers\Pos\SincronizacionController;
 use App\Models\Inventario\Tienda;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +88,14 @@ Route::middleware([
     Route::get('/consultar-estado-cpe/{cpe_id}', [PosOrderController::class, 'consultarEstadoCpe'])->name('ventas.posorder.consultarEstadoCpe');
     Route::POST('/comunicar-baja', [PosOrderController::class, 'comunicarBajaCpe'])->name('comunicarBajaCpe');
     Route::get('/consultar-cumunicacion-de-baja/{cpe_id}', [PosOrderController::class, 'consultarComunicacionBaja'])->name('consultarComunicacionBaja');
+
+    // Sincronizaciones
+    Route::get('/ventas/sincronizaciones', [SincronizacionController::class, 'index'])->name('ventas.sincronizaciones.index');
+    Route::get('/ventas/sincronizaciones/stats', [SincronizacionController::class, 'getStatsByDateRange'])->name('ventas.sincronizaciones.stats');
+    Route::post('/ventas/sincronizaciones/sincronizar', [SincronizacionController::class, 'syncDateRange'])->name('ventas.sincronizaciones.sync');
+    Route::post('/ventas/sincronizaciones/sync-single/{orderId}', [SincronizacionController::class, 'syncSingle'])->name('ventas.sincronizaciones.sync_single');
+    Route::post('/ventas/sincronizaciones/retry/{id}', [SincronizacionController::class, 'retryFailedSync'])->name('ventas.sincronizaciones.retry');
+    Route::post('/ventas/sincronizaciones/retry-all', [SincronizacionController::class, 'retryAllFailed'])->name('ventas.sincronizaciones.retry_all');
     /*************************
      MODULO DE INVENTARIO
      ************************/
