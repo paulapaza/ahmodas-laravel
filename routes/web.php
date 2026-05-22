@@ -96,6 +96,7 @@ Route::middleware([
     Route::post('/ventas/sincronizaciones/sync-single/{orderId}', [SincronizacionController::class, 'syncSingle'])->name('ventas.sincronizaciones.sync_single');
     Route::post('/ventas/sincronizaciones/retry/{id}', [SincronizacionController::class, 'retryFailedSync'])->name('ventas.sincronizaciones.retry');
     Route::post('/ventas/sincronizaciones/retry-all', [SincronizacionController::class, 'retryAllFailed'])->name('ventas.sincronizaciones.retry_all');
+    Route::post('/ventas/sincronizaciones/mark-status/{orderId}', [SincronizacionController::class, 'markSyncStatus'])->name('ventas.sincronizaciones.mark_status');
     /*************************
      MODULO DE INVENTARIO
      ************************/

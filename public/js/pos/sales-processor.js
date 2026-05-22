@@ -236,15 +236,39 @@ class SalesProcessor {
     }
 
     async registrarVentaOnline(saleData) {
+        if (!saleData || !saleData.success || !saleData.pos_order || !saleData.pos_order.id) {
+            return;
+        }
+
         const data = saleData.sync_data;
+        const orderId = saleData.pos_order.id;
         console.log('data-libre:', data);
-        // descomentar en produccion
+
+        // Realiza el envío original del navegador a la nube
         await POSUtils.makeAjaxRequest(
           'https://ahmodas.com/v2/api/sync/orders',
           data
         )
-        .then(res => console.log('respuesta', res))
-        .catch(err => console.error('error', err));
+        .then(async (res) => {
+            console.log('respuesta', res);
+            // Notificar éxito al servidor local en segundo plano
+            await POSUtils.makeAjaxRequest(`/ventas/sincronizaciones/mark-status/${orderId}`, {
+                status: 'success'
+            }).catch(e => console.error('Error al registrar éxito local:', e));
+        })
+        .catch(async (err) => {
+            console.error('error', err);
+            // Notificar fallo al servidor local en segundo plano
+            const errorMsg = err.responseJSON?.message || err.statusText || 'Error de conexión';
+            await POSUtils.makeAjaxRequest(`/ventas/sincronizaciones/mark-status/${orderId}`, {
+                status: 'failed',
+                error_message: errorMsg,
+                error_details: {
+                    status: err.status,
+                    statusText: err.statusText
+                }
+            }).catch(e => console.error('Error al registrar fallo local:', e));
+        });
     }
 }
 

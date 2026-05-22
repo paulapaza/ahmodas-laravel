@@ -215,6 +215,7 @@ class SincronizacionController extends Controller
      */
     protected function syncOrder($orderId)
     {
+        Log::channel('sincronizaciones')->info("Iniciando sincronización manual/servidor para orden ID: {$orderId}");
         try {
             $order = PosOrder::findOrFail($orderId);
             
@@ -239,6 +240,7 @@ class SincronizacionController extends Controller
                     ]
                 );
 
+                Log::channel('sincronizaciones')->info("Orden ID: {$orderId} sincronizada con éxito en la nube.");
                 return ['success' => true, 'message' => "Orden {$orderId} sincronizada con éxito."];
             } else {
                 // Error de respuesta HTTP (ej: 400, 500, etc.)
@@ -248,6 +250,7 @@ class SincronizacionController extends Controller
                     'body' => $response->body(),
                 ]);
 
+                Log::channel('sincronizaciones')->error("Error en sincronización manual de orden ID: {$orderId}. Detalle: {$errorMessage}");
                 return ['success' => false, 'message' => $errorMessage];
             }
         } catch (\Throwable $e) {
@@ -259,7 +262,55 @@ class SincronizacionController extends Controller
                 'line' => $e->getLine(),
             ]);
 
+            Log::channel('sincronizaciones')->critical("Excepción/Conexión fallida en sincronización de orden ID: {$orderId}. Mensaje: {$errorMessage}");
             return ['success' => false, 'message' => $errorMessage];
+        }
+    }
+
+    /**
+     * Registra el resultado del intento de sincronización realizado en el frontend.
+     */
+    public function markSyncStatus(Request $request, $orderId)
+    {
+        $request->validate([
+            'status' => 'required|in:success,failed',
+            'error_message' => 'nullable|string',
+            'error_details' => 'nullable',
+        ]);
+
+        Log::channel('sincronizaciones')->info("Notificación desde caja recibida para orden ID: {$orderId}. Estado reportado: {$request->status}");
+
+        try {
+            $order = PosOrder::findOrFail($orderId);
+            
+            // Resolver el controlador de órdenes para obtener el payload exacto
+            $posOrderController = app(PosOrderController::class);
+            $payload = $posOrderController->getSyncOrderData($orderId);
+
+            if ($request->status === 'success') {
+                PosOrderSync::updateOrCreate(
+                    ['pos_order_id' => $orderId],
+                    [
+                        'payload' => $payload,
+                        'status' => SyncStatus::SUCCESS,
+                        'error_message' => null,
+                        'error_details' => null,
+                    ]
+                );
+                Log::channel('sincronizaciones')->info("Notificación de éxito procesada localmente para orden ID: {$orderId}");
+            } else {
+                $errorMessage = $request->input('error_message') ?? 'Fallo al sincronizar desde el navegador';
+                $errorDetails = $request->input('error_details');
+                
+                $this->registerFailedSync($orderId, $payload, $errorMessage, $errorDetails);
+                Log::channel('sincronizaciones')->warning("Notificación de fallo procesada localmente para orden ID: {$orderId}. Error: {$errorMessage}");
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Throwable $e) {
+            Log::channel('sincronizaciones')->error("Excepción en markSyncStatus para orden {$orderId}: " . $e->getMessage());
+            Log::error("Error en markSyncStatus para orden {$orderId}: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 

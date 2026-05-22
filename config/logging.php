@@ -155,6 +155,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'sincronizaciones' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/sincronizaciones.log'),
+            'level' => 'debug',
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];
