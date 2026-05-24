@@ -126,6 +126,8 @@ Route::middleware([
     Route::get('/inventario/traslados-desde-tiendas', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'index'])->name('inventario.traslados_tiendas.index')->middleware('check.cajero.traslados');
     Route::get('/inventario/traslados-desde-tiendas/historial', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'historial'])->name('inventario.traslados_tiendas.historial');
 
+    Route::get('/inventario/traslados-entre-tiendas', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'index'])->name('inventario.traslados_inter_tiendas.index')->middleware('check.cajero.traslados');
+    Route::get('/inventario/traslados-entre-tiendas/historial', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'historial'])->name('inventario.traslados_inter_tiendas.historial');
     // vistas
     Route::get('/inventario/salidas/{any?}', function () {
         return view('modules.inventario.salidas.index');

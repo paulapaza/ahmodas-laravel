@@ -35,6 +35,7 @@
         @endunless
         <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_almacen.historial') : route('inventario.traslados_almacen.index') }}" class="dropdown-item">Traslados desde Almacén</a></li>
         <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_tiendas.historial') : route('inventario.traslados_tiendas.index') }}" class="dropdown-item">Traslados hacia Almacén</a></li>
+        <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_inter_tiendas.historial') : route('inventario.traslados_inter_tiendas.index') }}" class="dropdown-item">Traslados entre Tiendas</a></li>
     </ul>
 </li>
 

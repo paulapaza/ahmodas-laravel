@@ -40,6 +40,11 @@ Route::middleware('check.cajero.traslados')->group(function () {
     Route::get('/inventario/traslados-tiendas/datos-gestion', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getDataGestionApi']);
     Route::get('/inventario/traslados-tiendas/productos/{tiendaId}', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getProductsByTienda']);
     Route::post('/inventario/traslados-tiendas/guardar', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'store']);
+
+    // Traslados Entre Tiendas (Gestión Protegida)
+    Route::get('/inventario/traslados-entre-tiendas/datos-gestion', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'getDataGestionApi']);
+    Route::get('/inventario/traslados-entre-tiendas/productos/{tiendaId}', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'getProductsByTienda']);
+    Route::post('/inventario/traslados-entre-tiendas/guardar', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'store']);
 });
 
 // Rutas de Historial (Acceso para todos)
@@ -49,3 +54,5 @@ Route::get('/inventario/traslados/historial-global', [TrasladoAlmacenController:
 // Historial Tiendas
 Route::get('/inventario/traslados-tiendas/historial-global', [\App\Http\Controllers\Inventario\TrasladoTiendaController::class, 'getHistorialGlobal']);
 
+// Historial Entre Tiendas
+Route::get('/inventario/traslados-entre-tiendas/historial-global', [\App\Http\Controllers\Inventario\TrasladoInterTiendasController::class, 'getHistorialGlobal']);
