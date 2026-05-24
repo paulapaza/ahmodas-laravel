@@ -122,13 +122,13 @@
                                     
                                     <select v-if="!modoGridTiendas" class="form-control" v-model="form.tiendaOrigenId" @change="seleccionarTiendaOrigen">
                                         <option value="">-- Seleccione Origen --</option>
-                                        <option v-for="tienda in tiendas" :key="tienda.id" :value="tienda.id" :disabled="tienda.id === form.tiendaDestinoId">
+                                        <option v-for="tienda in tiendasOrigen" :key="tienda.id" :value="tienda.id" :disabled="tienda.id === form.tiendaDestinoId">
                                             @{{ tienda.alias || tienda.nombre }}
                                         </option>
                                     </select>
 
                                     <div class="store-grid" v-else>
-                                        <div v-for="tienda in tiendas" 
+                                        <div v-for="tienda in tiendasOrigen" 
                                              :key="'orig-'+tienda.id"
                                              class="store-box"
                                              :class="{ 'active': form.tiendaOrigenId === tienda.id, 'opacity-50': tienda.id === form.tiendaDestinoId }"
@@ -141,32 +141,35 @@
                                 </div>
 
                                 <!-- 2. Seleccionar Tienda Destino -->
-                                <div class="form-group mb-4">
+                                <div class="form-group mb-4" v-show="userRole !== 'cajero'">
                                     <label class="small font-weight-bold text-xprimary">2. TIENDA DESTINO:</label>
                                     
-                                    <select v-if="!modoGridTiendas" class="form-control" v-model="form.tiendaDestinoId" @change="seleccionarTiendaDestino">
+                                    <select v-if="!modoGridTiendas" class="form-control" v-model="form.tiendaDestinoId" @change="seleccionarTiendaDestino" :disabled="userRole === 'cajero'">
                                         <option value="">-- Seleccione Destino --</option>
-                                        <option v-for="tienda in tiendas" :key="tienda.id" :value="tienda.id" :disabled="tienda.id === form.tiendaOrigenId">
+                                        <option v-for="tienda in tiendasDestino" :key="tienda.id" :value="tienda.id" :disabled="tienda.id === form.tiendaOrigenId">
                                             @{{ tienda.alias || tienda.nombre }}
                                         </option>
                                     </select>
 
                                     <div class="store-grid" v-else>
-                                        <div v-for="tienda in tiendas" 
+                                        <div v-for="tienda in tiendasDestino" 
                                              :key="'dest-'+tienda.id"
                                              class="store-box"
                                              :class="{ 'active': form.tiendaDestinoId === tienda.id, 'opacity-50': tienda.id === form.tiendaOrigenId }"
-                                             @click="if (tienda.id !== form.tiendaOrigenId) { form.tiendaDestinoId = tienda.id; seleccionarTiendaDestino(); }"
-                                             :style="tienda.id === form.tiendaOrigenId ? 'cursor: not-allowed;' : ''">
+                                             @click="if (userRole !== 'cajero' && tienda.id !== form.tiendaOrigenId) { form.tiendaDestinoId = tienda.id; seleccionarTiendaDestino(); }"
+                                             :style="(tienda.id === form.tiendaOrigenId || userRole === 'cajero') ? 'cursor: not-allowed;' : ''">
                                             <i class="fas fa-check-circle check-icon"></i>
                                             <div class="store-name">@{{ tienda.alias || tienda.nombre }}</div>
+                                            <div v-if="userRole === 'cajero'" class="badge badge-primary mt-1" style="font-size: 0.65rem;">Tu Tienda</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- 3. Buscar Producto -->
                                 <div class="form-group mb-4" v-if="form.tiendaOrigenId && form.tiendaDestinoId">
-                                    <label class="small font-weight-bold text-xprimary">3. PRODUCTO EN TIENDA ORIGEN:</label>
+                                    <label class="small font-weight-bold text-xprimary">
+                                        @{{ userRole === 'cajero' ? '2.' : '3.' }} PRODUCTO TRASLADADO:
+                                    </label>
                                     <div class="position-relative">
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -215,7 +218,9 @@
 
                                 <!-- 4. Cantidad -->
                                 <div class="form-group mb-4" v-if="form.productoId">
-                                    <label class="small font-weight-bold text-xprimary">4. CANTIDAD A TRASLADAR:</label>
+                                    <label class="small font-weight-bold text-xprimary">
+                                        @{{ userRole === 'cajero' ? '3.' : '4.' }} CANTIDAD A TRASLADAR:
+                                    </label>
                                     <div class="input-group input-group-lg shadow-sm">
                                         <div class="input-group-prepend">
                                             <button class="btn btn-outline-secondary" type="button" @click="cambiarCantidad(-1)">
@@ -254,7 +259,7 @@
                             <div class="row align-items-center">
                                 <div class="col-md-6">
                                     <h6 class="card-title mb-0 text-primary uppercase">
-                                        <i class="fas fa-list-alt mr-2"></i> Traslados Realizados
+                                        <i class="fas fa-list-alt mr-2"></i> Traslados Realizados <span v-if="userRole === 'cajero' && userTiendaId">A @{{ getTiendaName(userTiendaId) }}</span>
                                     </h6>
                                 </div>
                                 <div class="col-md-6 text-right">
@@ -278,7 +283,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-3 px-1">
+                                        <div class="col-3 px-1" v-if="userRole !== 'cajero'">
                                             <div class="input-group input-group-sm">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text bg-white border-right-0"><i class="fas fa-store text-muted small"></i></span>
@@ -316,7 +321,7 @@
                                         <tr>
                                             <th class="pl-3 py-3 border-top-0">#</th>
                                             <th class="py-3 border-top-0">Origen</th>
-                                            <th class="py-3 border-top-0">Destino</th>
+                                            <th class="py-3 border-top-0" v-if="userRole !== 'cajero'">Destino</th>
                                             <th class="py-3 border-top-0">Producto</th>
                                             <th class="py-3 border-top-0 text-center">Fecha</th>
                                             <th class="py-3 border-top-0 text-center">Stock Origen</th>
@@ -330,7 +335,7 @@
                                             <td class="align-middle font-weight-bold text-dark">
                                                 <span class="badge badge-light border store-badge">@{{ getTiendaName(t.tienda_origen_id) }}</span>
                                             </td>
-                                            <td class="align-middle font-weight-bold text-dark">
+                                            <td class="align-middle font-weight-bold text-dark" v-if="userRole !== 'cajero'">
                                                 <span class="badge badge-light border store-badge">@{{ getTiendaName(t.tienda_destino_id) }}</span>
                                             </td>
                                             <td class="align-middle">
@@ -420,10 +425,24 @@
                         return `${year}-${month}-${day}`;
                     })(),
                     
-                    modoGridTiendas: true
+                    modoGridTiendas: true,
+                    userRole: '{{ auth()->user()->hasRole("cajero") ? "cajero" : "administrador" }}',
+                    userTiendaId: {{ auth()->user()->tienda_id ?? 'null' }}
                 }
             },
             computed: {
+                tiendasOrigen() {
+                    if (this.userRole === 'cajero' && this.userTiendaId) {
+                        return this.tiendas.filter(t => t.id !== this.userTiendaId);
+                    }
+                    return this.tiendas;
+                },
+                tiendasDestino() {
+                    if (this.userRole === 'cajero' && this.userTiendaId) {
+                        return this.tiendas.filter(t => t.id === this.userTiendaId);
+                    }
+                    return this.tiendas;
+                },
                 productoSeleccionadoDetalle() {
                     if (!this.form.productoId) return null;
                     return this.productos.find(p => p.id === this.form.productoId);
@@ -523,6 +542,12 @@
                             params: { fecha: this.filtroFecha }
                         });
                         this.tiendas = response.data.tiendas;
+
+                        // Auto-seleccionar tienda destino si es cajero
+                        if (this.userRole === 'cajero' && this.userTiendaId && !this.form.tiendaDestinoId) {
+                            this.form.tiendaDestinoId = this.userTiendaId;
+                            // No llamamos a seleccionarTiendaDestino aún hasta que tenga origen
+                        }
 
                         // --- FUSIÓN DE DATOS (BD + LOCAL) ---
                         const confirmados = (response.data.confirmados || []).map(c => ({ ...c, confirmado: true }));
