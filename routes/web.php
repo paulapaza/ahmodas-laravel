@@ -12,6 +12,7 @@ use App\Http\Controllers\Inventario\SalidaProductoController;
 use App\Http\Controllers\Inventario\StockController;
 use App\Http\Controllers\Inventario\TiendaController;
 use App\Http\Controllers\Inventario\TrasladoAlmacenController;
+use App\Http\Controllers\AiReportController;
 
 use App\Http\Controllers\Pos\PosOrderController;
 use App\Http\Controllers\Pos\DevolucionController;
@@ -230,6 +231,10 @@ Route::middleware([
 
     // ruta de impresion de ticket
     Route::get('/pos/imprimir-recibo/{id}', [PosOrderController::class, 'mostrarRecibo'])->name('posorder.imprimirRecibo');
+
+    // Reportes Inteligentes con IA (Gemini)
+    Route::get('/ai-reports', [AiReportController::class, 'index'])->name('ai-reports.index');
+    Route::post('/ai-reports/generate', [AiReportController::class, 'generate'])->name('ai-reports.generate');
 
 });
 
