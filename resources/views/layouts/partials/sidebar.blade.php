@@ -81,6 +81,16 @@
           @endcan
           @can('ver-configuracion')
           <li class="nav-item">
+            <a href="{{ route('ai-reports.index') }}" class="nav-link text-light">
+              <i class="nav-icon fa-solid fa-brain"></i>
+              <p>
+                Reportes con IA
+              </p>
+            </a>
+          </li>
+          @endcan
+          @can('ver-configuracion')
+          <li class="nav-item">
             
             <a href="{{ route('configuracion.main') }}" class="nav-link text-light">
              
