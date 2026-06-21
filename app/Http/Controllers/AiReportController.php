@@ -3,12 +3,27 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use App\Services\OpenAiService;
 use Exception;
 
 class AiReportController extends Controller
 {
+    /**
+     * @var OpenAiService
+     */
+    protected $openAi;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param OpenAiService $openAi
+     */
+    public function __construct(OpenAiService $openAi)
+    {
+        $this->openAi = $openAi;
+    }
+
     public function index()
     {
         return view('modules.ai-reports.index');
@@ -21,21 +36,24 @@ class AiReportController extends Controller
         ]);
 
         $userPrompt = $request->input('prompt');
-        $apiKey = env('GEMINI_API_KEY');
-
-        if (!$apiKey) {
-            return response()->json(['error' => 'API Key de Gemini no configurada en .env (GEMINI_API_KEY).'], 500);
-        }
 
         try {
-            // PASO 1: Pedir a Gemini que genere el SQL
-            $sqlPrompt = $this->getSqlPrompt($userPrompt);
-            $sqlResponse = $this->callGemini($sqlPrompt, $apiKey);
+            // PASO 1: Pedir a OpenAI que genere el SQL basado en el esquema de Ahmodas
+            $sqlRaw = $this->openAi->generateAhmodasSql($userPrompt);
             
-            $sql = $this->extractSql($sqlResponse);
+            $responseObj = json_decode($sqlRaw, true);
+            if (json_last_error() === JSON_ERROR_NONE && isset($responseObj['sql'])) {
+                $sql = $responseObj['sql'];
+                $interpretedTitle = $responseObj['title'] ?? $userPrompt;
+                $groupByKey = $responseObj['group_by_key'] ?? null;
+            } else {
+                $sql = $this->extractSql($sqlRaw);
+                $interpretedTitle = $userPrompt;
+                $groupByKey = null;
+            }
             
             if (!$sql) {
-                return response()->json(['error' => 'La IA no pudo generar una consulta SQL válida.', 'details' => $sqlResponse], 500);
+                return response()->json(['error' => 'La IA no pudo generar una consulta SQL válida.', 'details' => $sqlRaw], 500);
             }
 
             // Ejecutar SQL (Modo solo lectura)
@@ -46,134 +64,582 @@ class AiReportController extends Controller
 
             $data = DB::select($sql);
 
-            // PASO 2: Pedir a Gemini que genere el Chart
-            $chartPrompt = $this->getChartPrompt($userPrompt, $data);
-            $chartResponse = $this->callGemini($chartPrompt, $apiKey);
+            // Si no hay datos, retornamos inmediatamente
+            if (empty($data)) {
+                return response()->json([
+                    'html' => '<div style="padding: 20px; text-align: center; color: #666; font-family: sans-serif;">No se encontraron registros para mostrar con los criterios indicados.</div>',
+                    'sql' => $sql,
+                    'data' => [],
+                    'title' => $interpretedTitle
+                ]);
+            }
 
-            $html = $this->extractHtml($chartResponse);
+            // PASO 2: Renderizar el gráfico de forma instantánea usando una plantilla HTML/CSS nativa optimizada (Ahorra 3+ segundos)
+            $html = $this->renderHtmlTemplate($interpretedTitle, $data, $groupByKey);
 
-            return response()->json(['html' => $html, 'sql' => $sql, 'data' => $data]);
+            return response()->json([
+                'html' => $html,
+                'sql' => $sql,
+                'data' => $data,
+                'title' => $interpretedTitle
+            ]);
 
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    private function callGemini($text, $apiKey, $retry = 0)
-    {
-        // Usaremos gemini-2.0-flash que suele ser muy estable, o lo que pongas en tu .env
-        $model = env('GEMINI_MODEL', 'gemini-flash-latest');
-        
-        $response = Http::timeout(60)->withHeaders([
-            'Content-Type' => 'application/json',
-            'X-goog-api-key' => $apiKey,
-        ])->post("https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent", [
-            'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $text]
-                    ]
-                ]
-            ],
-            'generationConfig' => [
-                'temperature' => 0.1,
-            ]
-        ]);
-
-        if (!$response->successful()) {
-            // Si hay un pico de demanda (503), intentamos hasta 3 veces automáticamente
-            if ($response->status() == 503 && $retry < 3) {
-                sleep(2); // Esperamos 2 segundos
-                return $this->callGemini($text, $apiKey, $retry + 1);
-            }
-            throw new Exception('Error al comunicarse con Gemini: ' . $response->body());
-        }
-
-        $json = $response->json();
-        return $json['candidates'][0]['content']['parts'][0]['text'] ?? '';
-    }
-
-    private function getSqlPrompt($userPrompt)
-    {
-        return "
-Eres un experto en bases de datos MySQL para el sistema ERP/POS Ahmodas.
-Tu única tarea es generar una consulta SQL de solo lectura (SELECT) válida y eficiente que responda a la petición del usuario.
-Devuelve ÚNICAMENTE el código SQL envuelto en bloques de código markdown: ```sql [consulta] ```. No agregues explicaciones, introducciones ni despedidas.
-
-Estructura de la Base de Datos:
-1. Catálogo e Inventario:
-   - productos(id, nombre, precio_unitario, precio_minimo, precio_x_mayor, costo_unitario, categoria_id, marca_id, estado)
-   - categorias(id, nombre)
-   - marcas(id, nombre)
-   - tiendas(id, nombre, es_almacen, estado)
-   - producto_tienda(producto_id, tienda_id, stock) [Stock de cada producto por tienda]
-
-2. Ventas y Clientes:
-   - pos_orders(id, sale_token, order_number, serie, tipo_comprobante, order_date, total_amount, cliente_id, user_id, tienda_id, estado) [Nota: Para formar el correlativo completo o número de comprobante, puedes concatenar la serie y el correlativo, por ejemplo: CONCAT(serie, '-', order_number)]
-   - pos_order_lines(id, pos_order_id, producto_id, quantity, price, subtotal)
-   - pos_order_payments(id, pos_order_id, payment_method, amount)
-   - clientes(id, nombre, numero_documento_identidad)
-   - users(id, name, tienda_id)
-
-3. Traslados y Devoluciones:
-   - almacen_traslados (id, almacen_id, tienda_id, producto_id, cantidad, fecha)
-   - tiendas_traslados (id, tienda_id, almacen_id, producto_id, cantidad, fecha)
-   - inter_tiendas_traslados (id, tienda_origen_id, tienda_destino_id, producto_id, cantidad, fecha)
-   - pos_devoluciones(id, tienda_id, user_id, tipo_movimiento, monto_devolucion)
-   - pos_devolucion_detalles(pos_devolucion_id, producto_id, cantidad, precio_unitario, subtotal)
-
-Reglas de Negocio Críticas:
-- Solo considera ventas válidas y completadas usando: `pos_orders.estado = 'completed'`.
-- Tipos de Comprobante (`pos_orders.tipo_comprobante`):
-  - `'01'`: Factura
-  - `'03'`: Boleta
-  - `'12'`: Ticket/Nota de venta
-- Métodos de Pago (`pos_order_payments`):
-  - Una venta puede pagarse de forma mixta (combinando métodos).
-  - Los métodos registrados son: `'efectivo'`, `'tarjeta'`, `'yape'`, y `'transferencia'`. El monto pagado en cada método está en `pos_order_payments.amount`.
-- Para obtener las ventas totales en dinero, utiliza `SUM(pos_orders.total_amount)` o el campo `total_amount`.
-- Si piden 'stock' o 'inventario disponible', consulta en `producto_tienda` sumando el campo `stock` y cruzando con `productos` y `tiendas`.
-- Los traslados de mercadería se dividen por su dirección (almacen_traslados, tiendas_traslados, inter_tiendas_traslados).
-
-Consulta del usuario a responder: \"$userPrompt\"
-";
-    }
-
-    private function getChartPrompt($userPrompt, $data)
+    /**
+     * Renderiza una plantilla HTML premium con un gráfico de barras horizontales nativo.
+     * 
+     * @param string $userPrompt
+     * @param array $data
+     * @param string|null $groupByKey
+     * @return string
+     */
+    private function renderHtmlTemplate($userPrompt, $data, $groupByKey = null)
     {
         $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE);
-        return "
-Eres un experto desarrollador Frontend y analista de datos.
-Se te proporcionará la consulta original de un usuario y los resultados en formato JSON obtenidos de la base de datos.
-Tu tarea es generar un código HTML completo y autocontenido (con CSS inline y Javascript) que utilice la librería Chart.js (vía CDN: https://cdn.jsdelivr.net/npm/chart.js) para visualizar estos datos de la mejor manera (barras, pastel, líneas, o tabla si los datos no se prestan para graficar).
-El resultado debe verse profesional, moderno, con colores agradables (como azul, indigo, cyan) y ser 100% funcional. 
-Asegúrate de ponerle un height y width razonable al canvas del gráfico, por ejemplo height de 400px.
-NO devuelvas ninguna explicación, SOLO el código HTML envuelto en ```html ... ```.
+        $title = mb_convert_case($userPrompt, MB_CASE_TITLE, "UTF-8");
+        $title = str_replace(['"', "'"], '', $title);
 
-Consulta original: \"$userPrompt\"
-Datos obtenidos de la BD (JSON):
-$jsonData
+        return "
+<div class=\"ai-report-container\">
+    <style>
+        .ai-report-container {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary-grad: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --negative-grad: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            --border-color: #e5e7eb;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .ai-report-container h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .ai-report-container .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .ai-report-container .chartWrapper {
+            height: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            width: 100%;
+            position: relative;
+            padding-right: 8px;
+            box-sizing: border-box;
+        }
+
+        /* Custom scrollbar */
+        .ai-report-container .chartWrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ai-report-container .chartWrapper::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .ai-report-container .chartWrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .ai-report-container .chartWrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .ai-report-container .chart-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            position: relative;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .ai-report-container .chart-row:hover {
+            background-color: #f1f5f9;
+        }
+
+        .ai-report-container .chart-label {
+            width: 250px;
+            min-width: 250px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 16px;
+            box-sizing: border-box;
+            color: #334155;
+            cursor: help;
+        }
+
+        .ai-report-container .chart-bar-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-left: 10px;
+        }
+
+        .ai-report-container .chart-bar {
+            height: 24px;
+            border-radius: 6px;
+            background: var(--primary-grad);
+            min-width: 4px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .ai-report-container .chart-bar.negative {
+            background: var(--negative-grad);
+        }
+
+        .ai-report-container .chart-row:hover .chart-bar {
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            transform: scaleY(1.03);
+        }
+
+        .ai-report-container .chart-row:hover .chart-bar.negative {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .ai-report-container .chart-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 12px;
+            color: var(--text-main);
+            min-width: 50px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* Tooltip style - scoped and set to fixed positioning to prevent document flow issues */
+        .ai-report-container .tooltip {
+            background: #0f172a;
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.8125rem;
+            line-height: 1.4;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            position: fixed;
+            display: none;
+            z-index: 9999;
+            max-width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ai-report-container .tooltip-title {
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            color: #f8fafc;
+        }
+
+        .ai-report-container .tooltip-total {
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+
+        .ai-report-container .tooltip-detail-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            color: #cbd5e1;
+            margin: 3px 0;
+        }
+
+        .ai-report-container .tooltip-detail-val {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        /* Modal Styles */
+        .ai-report-container .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .ai-report-container .modal-backdrop.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .ai-report-container .modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .ai-report-container .modal-backdrop.active .modal-content {
+            transform: scale(1);
+        }
+
+        .ai-report-container .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-report-container .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .ai-report-container .modal-close-btn {
+            background: #f1f5f9;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .ai-report-container .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .ai-report-container .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* Modal Table Styles */
+        .ai-report-container .modal-table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .ai-report-container .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+
+        .ai-report-container .modal-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-report-container .modal-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .ai-report-container .modal-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ai-report-container .modal-table tr:hover td {
+            background-color: #f8fafc;
+        }
+    </style>
+
+    <h1>{$title}</h1>
+    <div class=\"subtitle\">Reporte visual de datos en tiempo real</div>
+
+    <div class=\"chartWrapper\" id=\"chartContainer\"></div>
+
+    <div class=\"tooltip\" id=\"tooltip\"></div>
+
+    <!-- Modal para detalle de fila -->
+    <div id=\"detailModal\" class=\"modal-backdrop\">
+        <div class=\"modal-content\">
+            <div class=\"modal-header\">
+                <h2 id=\"modalTitle\">Detalle</h2>
+                <button class=\"modal-close-btn\" id=\"modalClose\">&times;</button>
+            </div>
+            <div class=\"modal-body\" id=\"modalBody\"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const data = {$jsonData};
+            const groupByKeyFromAi = '{$groupByKey}';
+
+        if (data && data.length > 0) {
+            // 1. Detectar claves dinámicamente
+            const sampleItem = data[0] || {};
+            let metricKey = '';
+            let mainEntityKey = '';
+            let breakdownKey = '';
+            let isCountMetric = false;
+
+            // Encontrar claves numéricas
+            const numKeys = Object.keys(sampleItem).filter(k => typeof sampleItem[k] === 'number' || (!isNaN(parseFloat(sampleItem[k])) && isFinite(sampleItem[k])));
+            
+            // Buscar una métrica real para sumar (stock, total, amount, cantidad, etc.)
+            let realMetricKey = numKeys.find(k => {
+                const name = k.toLowerCase();
+                return name.includes('stock') || name.includes('total') || name.includes('amount') || name.includes('cantidad') || name.includes('monto') || name.includes('precio') || name.includes('subtotal') || name.includes('quantity') || name.includes('price') || name.includes('costo') || name.includes('cost');
+            });
+
+            if (realMetricKey) {
+                metricKey = realMetricKey;
+                isCountMetric = false;
+            } else {
+                // Si las únicas numéricas son identificadores o códigos, contamos la cantidad de registros
+                isCountMetric = true;
+                metricKey = 'cantidad_registros';
+            }
+
+            const stringKeys = Object.keys(sampleItem).filter(k => typeof sampleItem[k] === 'string' && k !== metricKey);
+            
+            // Usar el group_by_key enviado por OpenAI si existe en las columnas devueltas
+            if (groupByKeyFromAi && sampleItem.hasOwnProperty(groupByKeyFromAi)) {
+                mainEntityKey = groupByKeyFromAi;
+            } else {
+                mainEntityKey = stringKeys.find(k => k.includes('producto') || k.includes('alias') || k.includes('nombre') || k.includes('name') || k.includes('cliente') || k.includes('categoria')) || stringKeys[0] || '';
+            }
+            breakdownKey = stringKeys.find(k => k !== mainEntityKey && (k.includes('tienda') || k.includes('sucursal') || k.includes('metodo') || k.includes('pago') || k.includes('payment') || k.includes('fecha') || k.includes('date')));
+
+            // 2. Agrupar datos por la entidad principal
+            const grouped = {};
+            data.forEach(item => {
+                const rawVal = item[mainEntityKey] || 'Otros';
+                const key = rawVal.toString();
+                if (!grouped[key]) {
+                    grouped[key] = { 
+                        label: key,
+                        totalValue: 0,
+                        rawItems: [] 
+                    };
+                }
+                
+                if (isCountMetric) {
+                    grouped[key].totalValue += 1;
+                } else {
+                    grouped[key].totalValue += Number(item[metricKey] || 0);
+                }
+                grouped[key].rawItems.push(item);
+            });
+
+            const groupedArray = Object.values(grouped);
+            const maxVal = Math.max(...groupedArray.map(g => Math.abs(g.totalValue)), 1);
+
+            // 3. Renderizar y añadir eventos
+            const container = document.getElementById('chartContainer');
+            const tooltip = document.getElementById('tooltip');
+
+            groupedArray.forEach(group => {
+                const row = document.createElement('div');
+                row.className = 'chart-row';
+
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'chart-label';
+                labelDiv.textContent = group.label;
+                labelDiv.title = group.label;
+                row.appendChild(labelDiv);
+
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'chart-bar-wrapper';
+
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                if (group.totalValue < 0) {
+                    bar.classList.add('negative');
+                    bar.style.background = 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)';
+                } else {
+                    bar.style.background = 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)';
+                }
+                const pct = Math.max(2, (Math.abs(group.totalValue) / maxVal) * 100);
+                bar.style.width = '0%';
+                barWrapper.appendChild(bar);
+
+                const valDiv = document.createElement('div');
+                valDiv.className = 'chart-value';
+                valDiv.textContent = group.totalValue;
+                barWrapper.appendChild(valDiv);
+
+                row.appendChild(barWrapper);
+
+                row.addEventListener('mouseenter', function(e) {
+                    let html = '<div class=\"tooltip-title\">' + group.label + '</div>';
+                    html += '<div class=\"tooltip-total\">' + (isCountMetric ? 'Cantidad' : 'Total') + ': ' + group.totalValue + '</div>';
+                    group.rawItems.forEach(item => {
+                        if (breakdownKey && item[breakdownKey] !== undefined) {
+                            html += '<div class=\"tooltip-detail-item\"><span>' + item[breakdownKey] + '</span><span class=\"tooltip-detail-val\">' + (isCountMetric ? '1' : item[metricKey]) + '</span></div>';
+                        } else {
+                            Object.keys(item).forEach(k => {
+                                if (k !== mainEntityKey && k !== metricKey && k !== 'cantidad_registros') {
+                                    html += '<div class=\"tooltip-detail-item\"><span>' + k + '</span><span class=\"tooltip-detail-val\">' + item[k] + '</span></div>';
+                                }
+                            });
+                        }
+                    });
+                    tooltip.innerHTML = html;
+                    tooltip.style.display = 'block';
+                });
+
+                row.addEventListener('mousemove', function(e) {
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                });
+
+                row.addEventListener('mouseleave', function() {
+                    tooltip.style.display = 'none';
+                });
+
+                // Abrir Modal de detalle al hacer click en la fila
+                row.style.cursor = 'pointer';
+                row.addEventListener('click', function() {
+                    const modal = document.getElementById('detailModal');
+                    const modalTitle = document.getElementById('modalTitle');
+                    const modalBody = document.getElementById('modalBody');
+
+                    modalTitle.textContent = group.label;
+                    
+                    let html = '';
+                    if (group.rawItems && group.rawItems.length > 0) {
+                        html += '<div class=\"modal-table-wrapper\">';
+                        html += '<table class=\"modal-table\">';
+                        
+                        // Encabezados
+                        html += '<thead><tr>';
+                        const keys = Object.keys(group.rawItems[0]);
+                        keys.forEach(k => {
+                            let headerText = k.replace(/_/g, ' ').toUpperCase();
+                            html += '<th>' + headerText + '</th>';
+                        });
+                        html += '</tr></thead>';
+
+                        // Cuerpo
+                        html += '<tbody>';
+                        group.rawItems.forEach(item => {
+                            html += '<tr>';
+                            keys.forEach(k => {
+                                let val = item[k];
+                                if (val === null || val === undefined) {
+                                    val = '<span style=\"color:#94a3b8; font-style:italic;\">-</span>';
+                                }
+                                html += '<td>' + val + '</td>';
+                            });
+                            html += '</tr>';
+                        });
+                        html += '</tbody></table></div>';
+                    } else {
+                        html = '<p style=\"color:#64748b; text-align:center;\">No hay registros detallados.</p>';
+                    }
+
+                    modalBody.innerHTML = html;
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                });
+
+                container.appendChild(row);
+
+                setTimeout(() => {
+                    bar.style.width = pct + '%';
+                }, 50);
+            });
+
+            // Eventos para cerrar el modal
+            const modal = document.getElementById('detailModal');
+            const modalClose = document.getElementById('modalClose');
+            
+            function closeModal() {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        } else {
+            document.getElementById('chartContainer').innerHTML = '<div style=\"padding: 20px; text-align: center; color: #666;\">No hay registros para mostrar.</div>';
+        }
+    })();
+    </script>
+</div>
 ";
     }
 
     private function extractSql($text)
     {
-        if (preg_match('/```sql\s*(.*?)\s*```/is', $text, $matches)) {
-            return trim($matches[1]);
-        }
-        // Fallback: tratar de encontrar algo que empiece con SELECT
-        if (preg_match('/(SELECT.*?;)/is', $text, $matches)) {
-            return trim($matches[1]);
-        }
-        return null;
+        $text = trim($text);
+        $text = preg_replace('/^```sql\s+/i', '', $text);
+        $text = preg_replace('/\s*```$/', '', $text);
+        return trim($text);
     }
 
     private function extractHtml($text)
     {
-        if (preg_match('/```html\s*(.*?)\s*```/is', $text, $matches)) {
-            return trim($matches[1]);
-        }
-        // Fallback: tratar de extraer de <html> a </html> o todo
+        $text = trim($text);
+        $text = preg_replace('/^```html\s+/i', '', $text);
+        $text = preg_replace('/\s*```$/', '', $text);
         return trim($text);
     }
 }

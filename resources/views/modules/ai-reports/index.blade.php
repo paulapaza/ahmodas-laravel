@@ -17,7 +17,7 @@
 
                     <!-- Formulario -->
                     <div class="form-group mb-4">
-                        <textarea id="prompt" rows="4" class="form-control form-control-lg" placeholder="Escribe aquí tu solicitud... (ej: Top 5 productos más vendidos)"></textarea>
+                        <textarea id="prompt" rows="3" class="form-control form-control-lg" placeholder="Escribe aquí tu solicitud... (ej: Top 5 productos más vendidos)"></textarea>
                         
                         <div class="mt-3 d-flex justify-content-between align-items-center">
                             <button id="btn-generate" class="btn btn-primary btn-lg px-4 shadow-sm">
@@ -37,15 +37,21 @@
                         <span id="error-message"></span>
                     </div>
 
-                    <!-- Resultado de SQL (Solo para debug/info) -->
-                    <div id="sql-result-container" class="alert alert-light border d-none mb-4">
-                        <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-code text-secondary mr-2"></i>Consulta SQL Generada por la IA:</h6>
-                        <pre class="m-0 bg-dark p-3 rounded"><code id="sql-code" class="text-success"></code></pre>
+                    <!-- Interpretación de la IA -->
+                    <div id="interpretation-container" class="alert alert-info border-0 d-none mb-4" style="background: linear-gradient(135deg, #e0e7ff 0%, #e0f2fe 100%); color: #3730a3; border-left: 5px solid #6366f1; border-radius: 8px;">
+                        <h6 class="font-weight-bold mb-1" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #4f46e5;"><i class="fas fa-brain mr-2"></i>La IA interpretó tu consulta como:</h6>
+                        <p id="interpretation-text" class="m-0 font-weight-bold" style="font-size: 1.1rem; color: #1e1b4b;"></p>
                     </div>
 
-                    <!-- Contenedor del Iframe -->
-                    <div id="result-container" class="border rounded bg-light d-none" style="height: 600px; overflow: hidden;">
-                        <iframe id="chart-frame" class="w-100 h-100 border-0" sandbox="allow-scripts allow-same-origin"></iframe>
+                    {{-- Resultado de SQL (comentado para producción) --}}
+                    {{-- <div id="sql-result-container" class="alert alert-light border d-none mb-4">
+                        <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-code text-secondary mr-2"></i>Consulta SQL Generada por la IA:</h6>
+                        <pre class="m-0 bg-dark p-3 rounded"><code id="sql-code" class="text-success"></code></pre>
+                    </div> --}}
+
+                    <!-- Contenedor del Gráfico Directo -->
+                    <div id="result-container" class="border-0 bg-transparent d-none">
+                        <div id="chart-container-target"></div>
                     </div>
 
                 </div>
@@ -62,9 +68,11 @@
             const errorAlert = document.getElementById('error-alert');
             const errorMessage = document.getElementById('error-message');
             const resultContainer = document.getElementById('result-container');
-            const chartFrame = document.getElementById('chart-frame');
+            const chartContainerTarget = document.getElementById('chart-container-target');
             const sqlContainer = document.getElementById('sql-result-container');
             const sqlCode = document.getElementById('sql-code');
+            const interpretationContainer = document.getElementById('interpretation-container');
+            const interpretationText = document.getElementById('interpretation-text');
 
             btnGenerate.addEventListener('click', async function() {
                 const prompt = promptInput.value.trim();
@@ -79,8 +87,9 @@
                 loadingIndicator.classList.remove('d-none');
                 errorAlert.classList.add('d-none');
                 resultContainer.classList.add('d-none');
-                sqlContainer.classList.add('d-none');
-                chartFrame.srcdoc = '';
+                // sqlContainer.classList.add('d-none'); // SQL oculto
+                interpretationContainer.classList.add('d-none');
+                chartContainerTarget.innerHTML = '';
 
                 try {
                     const response = await fetch('{{ route("ai-reports.generate") }}', {
@@ -99,15 +108,53 @@
                         throw new Error(data.error || 'Ocurrió un error inesperado al comunicarse con el servidor.');
                     }
 
-                    // Mostrar SQL
-                  //   if (data.sql) {
-                  //       sqlCode.textContent = data.sql;
-                  //       sqlContainer.classList.remove('d-none');
-                  //   }
+                    // Mostrar Interpretación
+                    if (data.title) {
+                        interpretationText.textContent = data.title;
+                        interpretationContainer.classList.remove('d-none');
+                    }
 
-                    // Inyectar HTML en iframe
+                    // Mostrar SQL (comentado para producción)
+                    // if (data.sql) {
+                    //     sqlCode.textContent = data.sql;
+                    //     sqlContainer.classList.remove('d-none');
+                    // }
+
+                    // Inyectar HTML directamente en la página
                     if (data.html) {
-                        chartFrame.srcdoc = data.html;
+                        // 1. Limpiar completamente el contenedor anterior
+                        chartContainerTarget.innerHTML = '';
+
+                        // 2. Parsear el HTML recibido en un div temporal (SIN ejecutar scripts)
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.html;
+
+                        // 3. Extraer y guardar el contenido de los scripts ANTES de moverlos al DOM
+                        const scriptContents = [];
+                        tempDiv.querySelectorAll('script').forEach(s => {
+                            scriptContents.push(s.textContent);
+                            s.remove(); // quitar del HTML para no duplicar ejecución
+                        });
+
+                        // 4. Mover TODOS los nodos hijo al contenedor real (soporta múltiples nodos raíz)
+                        while (tempDiv.firstChild) {
+                            chartContainerTarget.appendChild(tempDiv.firstChild);
+                        }
+
+                        // 5. Ejecutar cada script en el siguiente ciclo del event loop,
+                        //    después de que el browser haya pintado el HTML en pantalla.
+                        setTimeout(function() {
+                            scriptContents.forEach(function(scriptText) {
+                                try {
+                                    // Ejecutar el script en el scope global
+                                    // eslint-disable-next-line no-new-func
+                                    (new Function(scriptText))();
+                                } catch(e) {
+                                    console.error('Error al ejecutar script del gráfico:', e);
+                                }
+                            });
+                        }, 10);
+
                         resultContainer.classList.remove('d-none');
                     } else {
                         throw new Error('La IA no devolvió un código HTML válido.');
