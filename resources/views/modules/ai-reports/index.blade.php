@@ -17,7 +17,7 @@
 
                     <!-- Formulario -->
                     <div class="form-group mb-4">
-                        <textarea id="prompt" rows="3" class="form-control form-control-lg" placeholder="Escribe aquí tu solicitud... (ej: Top 5 productos más vendidos)"></textarea>
+                        <input type="text" id="prompt" class="form-control form-control-lg" placeholder="Escribe aquí tu solicitud... (ej: Top 5 productos más vendidos)" autocomplete="off">
                         
                         <div class="mt-3 d-flex justify-content-between align-items-center">
                             <button id="btn-generate" class="btn btn-primary btn-lg px-4 shadow-sm">
@@ -73,6 +73,13 @@
             const sqlCode = document.getElementById('sql-code');
             const interpretationContainer = document.getElementById('interpretation-container');
             const interpretationText = document.getElementById('interpretation-text');
+
+            // Presionar Enter en el input dispara el botón
+            promptInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !btnGenerate.disabled) {
+                    btnGenerate.click();
+                }
+            });
 
             btnGenerate.addEventListener('click', async function() {
                 const prompt = promptInput.value.trim();

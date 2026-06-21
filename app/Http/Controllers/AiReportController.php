@@ -46,10 +46,12 @@ class AiReportController extends Controller
                 $sql = $responseObj['sql'];
                 $interpretedTitle = $responseObj['title'] ?? $userPrompt;
                 $groupByKey = $responseObj['group_by_key'] ?? null;
+                $chartType = $responseObj['chart_type'] ?? 'horizontal';
             } else {
                 $sql = $this->extractSql($sqlRaw);
                 $interpretedTitle = $userPrompt;
                 $groupByKey = null;
+                $chartType = 'horizontal';
             }
             
             if (!$sql) {
@@ -77,8 +79,8 @@ class AiReportController extends Controller
                 ]);
             }
 
-            // PASO 2: Renderizar el gráfico de forma instantánea usando una plantilla HTML/CSS nativa optimizada (Ahorra 3+ segundos)
-            $html = $this->renderHtmlTemplate($interpretedTitle, $data, $groupByKey);
+            // PASO 2: Renderizar el gráfico de forma instantánea usando una plantilla HTML/CSS nativa optimizada
+            $html = $this->renderHtmlTemplate($interpretedTitle, $data, $groupByKey, $chartType);
 
             return response()->json([
                 'html' => $html,
@@ -183,11 +185,12 @@ class AiReportController extends Controller
      * @param string|null $groupByKey
      * @return string
      */
-    private function renderHtmlTemplate($userPrompt, $data, $groupByKey = null)
+    private function renderHtmlTemplate($userPrompt, $data, $groupByKey = null, $chartType = 'horizontal')
     {
         $jsonData = json_encode($data, JSON_UNESCAPED_UNICODE);
         $title = mb_convert_case($userPrompt, MB_CASE_TITLE, "UTF-8");
         $title = str_replace(['"', "'"], '', $title);
+        $chartType = in_array($chartType, ['horizontal', 'vertical']) ? $chartType : 'horizontal';
 
         return "
 <div class=\"ai-report-container\">
@@ -484,6 +487,68 @@ class AiReportController extends Controller
         .ai-report-container .modal-table tr:hover td {
             background-color: #f8fafc;
         }
+        /* === BARRAS VERTICALES === */
+        .ai-report-container .chartWrapper.vertical {
+            height: 380px;
+            max-height: 380px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 0;
+            padding-right: 0;
+            gap: 0;
+        }
+
+        .ai-report-container .chart-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 60px;
+            flex: 1;
+            cursor: pointer;
+            padding: 0 6px;
+            transition: filter 0.2s;
+        }
+
+        .ai-report-container .chart-col:hover {
+            filter: brightness(1.08);
+        }
+
+        .ai-report-container .chart-col-value {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+
+        .ai-report-container .chart-col-bar {
+            width: 100%;
+            border-radius: 6px 6px 0 0;
+            background: linear-gradient(180deg, #6366f1 0%, #06b6d4 100%);
+            transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            min-height: 4px;
+        }
+
+        .ai-report-container .chart-col-bar.negative {
+            background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+        }
+
+        .ai-report-container .chart-col-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #64748b;
+            text-align: center;
+            padding: 6px 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+            border-top: 2px solid #e2e8f0;
+            width: 100%;
+        }
     </style>
 
     <h1>{$title}</h1>
@@ -508,6 +573,7 @@ class AiReportController extends Controller
         (function() {
             const data = {$jsonData};
             const groupByKeyFromAi = '{$groupByKey}';
+            const chartType = '{$chartType}';
 
         if (data && data.length > 0) {
             // 1. Detectar claves dinámicamente
@@ -573,48 +639,103 @@ class AiReportController extends Controller
             const container = document.getElementById('chartContainer');
             const tooltip = document.getElementById('tooltip');
 
-            groupedArray.forEach(group => {
-                const row = document.createElement('div');
-                row.className = 'chart-row';
+            // =========================================================
+            // RENDER HORIZONTAL
+            // =========================================================
+            function renderHorizontal() {
+                groupedArray.forEach(group => {
+                    const row = document.createElement('div');
+                    row.className = 'chart-row';
 
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'chart-label';
-                labelDiv.textContent = group.label;
-                labelDiv.title = group.label;
-                row.appendChild(labelDiv);
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'chart-label';
+                    labelDiv.textContent = group.label;
+                    labelDiv.title = group.label;
+                    row.appendChild(labelDiv);
 
-                const barWrapper = document.createElement('div');
-                barWrapper.className = 'chart-bar-wrapper';
+                    const barWrapper = document.createElement('div');
+                    barWrapper.className = 'chart-bar-wrapper';
 
-                const bar = document.createElement('div');
-                bar.className = 'chart-bar';
-                if (group.totalValue < 0) {
-                    bar.classList.add('negative');
-                    bar.style.background = 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)';
-                } else {
-                    bar.style.background = 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)';
-                }
-                const pct = Math.max(2, (Math.abs(group.totalValue) / maxVal) * 100);
-                bar.style.width = '0%';
-                barWrapper.appendChild(bar);
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    if (group.totalValue < 0) {
+                        bar.classList.add('negative');
+                        bar.style.background = 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)';
+                    } else {
+                        bar.style.background = 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)';
+                    }
+                    const pct = Math.max(2, (Math.abs(group.totalValue) / maxVal) * 100);
+                    bar.style.width = '0%';
+                    barWrapper.appendChild(bar);
 
-                const valDiv = document.createElement('div');
-                valDiv.className = 'chart-value';
-                valDiv.textContent = group.totalValue;
-                barWrapper.appendChild(valDiv);
+                    const valDiv = document.createElement('div');
+                    valDiv.className = 'chart-value';
+                    valDiv.textContent = group.totalValue;
+                    barWrapper.appendChild(valDiv);
 
-                row.appendChild(barWrapper);
+                    row.appendChild(barWrapper);
+                    attachEvents(row, group, tooltip);
+                    container.appendChild(row);
 
-                row.addEventListener('mouseenter', function(e) {
-                    let html = '<div class=\"tooltip-title\">' + group.label + '</div>';
-                    html += '<div class=\"tooltip-total\">' + (isCountMetric ? 'Cantidad' : 'Total') + ': ' + group.totalValue + '</div>';
+                    setTimeout(() => { bar.style.width = pct + '%'; }, 50);
+                });
+            }
+
+            // =========================================================
+            // RENDER VERTICAL
+            // =========================================================
+            function renderVertical() {
+                container.classList.add('vertical');
+                const containerH = 300; // px disponibles para las barras
+
+                groupedArray.forEach(group => {
+                    const col = document.createElement('div');
+                    col.className = 'chart-col';
+
+                    // Valor encima de la barra
+                    const valDiv = document.createElement('div');
+                    valDiv.className = 'chart-col-value';
+                    valDiv.textContent = group.totalValue;
+                    col.appendChild(valDiv);
+
+                    // Barra vertical
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-col-bar';
+                    if (group.totalValue < 0) bar.classList.add('negative');
+                    const pctH = Math.max(4, (Math.abs(group.totalValue) / maxVal) * containerH);
+                    bar.style.height = '0px';
+                    col.appendChild(bar);
+
+                    // Etiqueta debajo
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'chart-col-label';
+                    labelDiv.textContent = group.label;
+                    labelDiv.title = group.label;
+                    col.appendChild(labelDiv);
+
+                    attachEvents(col, group, tooltip);
+                    container.appendChild(col);
+
+                    setTimeout(() => { bar.style.height = pctH + 'px'; }, 50);
+                });
+            }
+
+            // =========================================================
+            // EVENTOS COMPARTIDOS (tooltip + modal)
+            // =========================================================
+            function attachEvents(el, group, tooltip) {
+                el.style.cursor = 'pointer';
+
+                el.addEventListener('mouseenter', function(e) {
+                    let html = '<div class=\\\"tooltip-title\\\">' + group.label + '</div>';
+                    html += '<div class=\\\"tooltip-total\\\">' + (isCountMetric ? 'Cantidad' : 'Total') + ': ' + group.totalValue + '</div>';
                     group.rawItems.forEach(item => {
                         if (breakdownKey && item[breakdownKey] !== undefined) {
-                            html += '<div class=\"tooltip-detail-item\"><span>' + item[breakdownKey] + '</span><span class=\"tooltip-detail-val\">' + (isCountMetric ? '1' : item[metricKey]) + '</span></div>';
+                            html += '<div class=\\\"tooltip-detail-item\\\"><span>' + item[breakdownKey] + '</span><span class=\\\"tooltip-detail-val\\\">' + (isCountMetric ? '1' : item[metricKey]) + '</span></div>';
                         } else {
                             Object.keys(item).forEach(k => {
                                 if (k !== mainEntityKey && k !== metricKey && k !== 'cantidad_registros') {
-                                    html += '<div class=\"tooltip-detail-item\"><span>' + k + '</span><span class=\"tooltip-detail-val\">' + item[k] + '</span></div>';
+                                    html += '<div class=\\\"tooltip-detail-item\\\"><span>' + k + '</span><span class=\\\"tooltip-detail-val\\\">' + item[k] + '</span></div>';
                                 }
                             });
                         }
@@ -623,89 +744,74 @@ class AiReportController extends Controller
                     tooltip.style.display = 'block';
                 });
 
-                row.addEventListener('mousemove', function(e) {
+                el.addEventListener('mousemove', function(e) {
                     tooltip.style.left = (e.clientX + 15) + 'px';
                     tooltip.style.top = (e.clientY + 15) + 'px';
                 });
 
-                row.addEventListener('mouseleave', function() {
+                el.addEventListener('mouseleave', function() {
                     tooltip.style.display = 'none';
                 });
 
-                // Abrir Modal de detalle al hacer click en la fila
-                row.style.cursor = 'pointer';
-                row.addEventListener('click', function() {
+                el.addEventListener('click', function() {
                     const modal = document.getElementById('detailModal');
                     const modalTitle = document.getElementById('modalTitle');
                     const modalBody = document.getElementById('modalBody');
 
                     modalTitle.textContent = group.label;
-                    
+
                     let html = '';
                     if (group.rawItems && group.rawItems.length > 0) {
-                        html += '<div class=\"modal-table-wrapper\">';
-                        html += '<table class=\"modal-table\">';
-                        
-                        // Encabezados
+                        html += '<div class=\\\"modal-table-wrapper\\\">';
+                        html += '<table class=\\\"modal-table\\\">';
                         html += '<thead><tr>';
                         const keys = Object.keys(group.rawItems[0]);
                         keys.forEach(k => {
-                            let headerText = k.replace(/_/g, ' ').toUpperCase();
-                            html += '<th>' + headerText + '</th>';
+                            html += '<th>' + k.replace(/_/g, ' ').toUpperCase() + '</th>';
                         });
-                        html += '</tr></thead>';
-
-                        // Cuerpo
-                        html += '<tbody>';
+                        html += '</tr></thead><tbody>';
                         group.rawItems.forEach(item => {
                             html += '<tr>';
                             keys.forEach(k => {
                                 let val = item[k];
-                                if (val === null || val === undefined) {
-                                    val = '<span style=\"color:#94a3b8; font-style:italic;\">-</span>';
-                                }
+                                if (val === null || val === undefined) val = '<span style=\\\"color:#94a3b8;font-style:italic\\\">-</span>';
                                 html += '<td>' + val + '</td>';
                             });
                             html += '</tr>';
                         });
                         html += '</tbody></table></div>';
                     } else {
-                        html = '<p style=\"color:#64748b; text-align:center;\">No hay registros detallados.</p>';
+                        html = '<p style=\\\"color:#64748b;text-align:center\\\">No hay registros detallados.</p>';
                     }
 
                     modalBody.innerHTML = html;
                     modal.style.display = 'flex';
-                    setTimeout(() => {
-                        modal.classList.add('active');
-                    }, 10);
+                    setTimeout(() => { modal.classList.add('active'); }, 10);
                 });
+            }
 
-                container.appendChild(row);
+            // Ejecutar el render correcto
+            if (chartType === 'vertical') {
+                renderVertical();
+            } else {
+                renderHorizontal();
+            }
 
-                setTimeout(() => {
-                    bar.style.width = pct + '%';
-                }, 50);
-            });
-
-            // Eventos para cerrar el modal
+            // Cerrar modal
             const modal = document.getElementById('detailModal');
             const modalClose = document.getElementById('modalClose');
-            
+
             function closeModal() {
                 modal.classList.remove('active');
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
+                setTimeout(() => { modal.style.display = 'none'; }, 300);
             }
 
             modalClose.addEventListener('click', closeModal);
             modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
+                if (e.target === modal) closeModal();
             });
         } else {
-            document.getElementById('chartContainer').innerHTML = '<div style=\"padding: 20px; text-align: center; color: #666;\">No hay registros para mostrar.</div>';
+            document.getElementById('chartContainer').innerHTML = '<div style=\\\"padding: 20px; text-align: center; color: #666;\\\">No hay registros para mostrar.</div>';
         }
     })();
     </script>
