@@ -265,20 +265,30 @@ class OpenAiService
                   - Ejemplo: `WHERE (users.username LIKE '%ventas03%' OR users.name LIKE '%ventas03%')`
                   - Ejemplo incorrecto: `WHERE productos.nombre = 'YOU PITILLO'`
                   - Ejemplo correcto: `WHERE COALESCE(NULLIF(productos.alias, ''), productos.nombre) LIKE '%YOU PITILLO%'`
-             4. **Estructura de Relaciones 1-a-N para Gráficos y Detalles (CRÍTICO)**:
-                - Cuando interpretes la petición del usuario, identifica las entidades/tablas involucradas y establece siempre una relación de \"Uno a Muchos\" (1 a N), incluso si conceptualmente es de muchos a muchos.
-                - El concepto \"Uno\" (ej: el cajero específico, la tienda específica, el cliente específico, el filtro principal) actúa como el filtro principal o agrupador principal.
-                - El concepto \"Muchos\" (ej: las boletas/facturas emitidas por ese cajero, los productos y sus stocks en esa tienda, etc.) debe listarse verticalmente como filas/barras en el eje Y (hacia abajo).
-                - **NO uses la cláusula GROUP BY ni funciones de agregación como SUM() o COUNT() en la consulta SQL** para totalizar por categoría, ya que el frontend requiere obligatoriamente que la consulta devuelva los registros detallados individuales (las filas individuales del 'Muchos') para poder mostrarlos en una tabla de detalle completa dentro del modal cuando el usuario haga clic en una barra del gráfico.
-                - La consulta SQL debe seleccionar:
-                  - Las columnas de detalle que son útiles para el usuario (ej: `productos.nombre`, `producto_tienda.stock`, `cpes.serie`, `cpes.numero`, `cpes.created_at`, etc.) para que se listen en el modal de detalle.
-                  - La columna de categoría por la cual se agrupará el gráfico en el frontend (ej: `tipo_comprobante`, `tienda_nombre`, `producto_nombre`), la cual debe ser indicada en el campo JSON \"group_by_key\".
-                - El cálculo de totales (sumas o conteos) se realiza automáticamente en el frontend sumando el valor de la columna métrica (ej: `stock`, `quantity`, `total`) o contando las filas de cada categoría.
-                - **Ejemplo Incorrecto (Con GROUP BY y SUM)**:
-                  `SELECT tiendas.nombre AS tienda_nombre, SUM(producto_tienda.stock) AS cantidad FROM producto_tienda JOIN tiendas ON ... GROUP BY tienda_nombre`
-                - **Ejemplo Correcto (Registros detallados sin GROUP BY ni SUM)**:
-                  `SELECT COALESCE(NULLIF(tiendas.alias, ''), tiendas.nombre) AS tienda_nombre, COALESCE(NULLIF(productos.alias, ''), productos.nombre) AS producto_nombre, producto_tienda.stock FROM producto_tienda JOIN productos ON producto_tienda.producto_id = productos.id JOIN tiendas ON producto_tienda.tienda_id = tiendas.id`
-                  Y el campo JSON \"group_by_key\" correspondiente debe ser: `\"tienda_nombre\"`.
+             4. **Estructura de Consultas: Detalle vs. Ranking/Top (CRÍTICO)**:
+                - Debes identificar el **tipo de petición** del usuario para elegir la estrategia SQL correcta:
+                
+                - **TIPO A - Consulta de Detalle (sin GROUP BY)**: Cuando el usuario quiere listar todos los registros de una relación (ej: \"Cantidad de boletas de ventas03\", \"Productos en stock por tienda\", \"Ventas del mes\").
+                  - **NO uses GROUP BY ni SUM/COUNT en el SQL**. Devuelve las filas individuales del 'Muchos'.
+                  - El frontend agrupa y totaliza automáticamente usando el campo `group_by_key`.
+                  - Ejemplo correcto: `SELECT tienda_nombre, producto_nombre, stock FROM producto_tienda JOIN ...` con `\"group_by_key\": \"tienda_nombre\"`.
+                
+                - **TIPO B - Consulta de Ranking/Top/Total (GROUP BY permitido)**: Cuando el usuario pregunta por el MÁS vendido, TOP N, o quiere un resumen/total por categoría (ej: \"Qué producto se vendió más\", \"Top 5 clientes\", \"Total de ventas por tienda\", \"Cuántas unidades se vendieron por producto\").
+                  - **SÍ puedes usar GROUP BY, SUM(), COUNT(), ORDER BY, LIMIT** en estos casos.
+                  - La consulta debe incluir: la columna de categoría (nombre del producto/tienda/etc.), la métrica agregada (total_vendido, total_ventas, cantidad, etc.), y columnas de detalle adicionales útiles.
+                  - Ejemplo correcto para \"producto más vendido en mayo\":
+                    `SELECT COALESCE(NULLIF(productos.alias, ''), productos.nombre) AS producto_nombre, SUM(pos_order_lines.quantity) AS total_vendido FROM pos_orders JOIN pos_order_lines ON pos_orders.id = pos_order_lines.pos_order_id JOIN productos ON pos_order_lines.producto_id = productos.id WHERE pos_orders.order_date >= '2026-05-01' AND pos_orders.order_date < '2026-06-01' GROUP BY productos.id, productos.nombre, productos.alias ORDER BY total_vendido DESC LIMIT 10`
+                  - El `group_by_key` debe ser la columna de categoría (ej: `\"producto_nombre\"`).
+
+             5. **JOINs Obligatorios (CRÍTICO - Nunca Omitir)**:
+                - **REGLA DE ORO**: Si en el `SELECT` o `WHERE` referencias columnas de una tabla (ej: `productos.alias`, `productos.nombre`, `tiendas.alias`, `users.username`), esa tabla DEBE aparecer en el `FROM` o en un `JOIN`. Nunca asumas que una columna existe en otra tabla.
+                - Para obtener el nombre/alias de un **producto** desde `pos_order_lines`, SIEMPRE incluye: `JOIN productos ON pos_order_lines.producto_id = productos.id`
+                - Para obtener el nombre/alias de una **tienda** desde `pos_orders`, SIEMPRE incluye: `JOIN tiendas ON pos_orders.tienda_id = tiendas.id`
+                - Para obtener datos del **usuario/cajero** desde `pos_orders`, SIEMPRE incluye: `JOIN users ON pos_orders.user_id = users.id`
+                - Para precios o subtotales de línea, usa `pos_order_lines.price` y `pos_order_lines.subtotal` directamente (no hagas JOIN a `productos` solo para esto).
+                - **Cuando uses GROUP BY con COALESCE/alias calculados**, agrupa por las columnas reales de la tabla, NO por el alias del SELECT:
+                  - Correcto: `GROUP BY productos.id, productos.nombre, productos.alias`
+                  - Incorrecto: `GROUP BY producto_nombre`
         ";
 
         // Usamos gpt-4o-mini con temperatura de 0 y forzamos JSON response format
