@@ -62,6 +62,9 @@ class AiReportController extends Controller
                 return response()->json(['error' => 'La consulta SQL generada contiene operaciones no permitidas.'], 400);
             }
 
+            // Corrección automática de JOINs que la IA suele olvidar
+            $sql = $this->fixSqlJoins($sql);
+
             $data = DB::select($sql);
 
             // Si no hay datos, retornamos inmediatamente
@@ -87,6 +90,89 @@ class AiReportController extends Controller
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Detecta y corrige automáticamente JOINs faltantes en el SQL generado por la IA.
+     * La IA frecuentemente referencia columnas de tablas (ej: productos.alias) sin incluir
+     * el JOIN correspondiente. Este método lo inserta en el lugar correcto.
+     *
+     * @param string $sql
+     * @return string
+     */
+    private function fixSqlJoins(string $sql): string
+    {
+        // Mapa: [tabla => [columna_clave_de_deteccion, join_a_insertar, tabla_origen_del_fk]]
+        // La lógica: si el SQL menciona `tabla.columna` pero NO tiene `JOIN tabla`, lo añadimos.
+        $joinRules = [
+            'productos' => [
+                'detect'     => '/\bproductos\.(alias|nombre|id|precio|codigo_barras)\b/i',
+                'from_table' => 'pos_order_lines',
+                'join'       => 'JOIN productos ON pos_order_lines.producto_id = productos.id',
+                'alt_from'   => [
+                    'producto_tienda' => 'JOIN productos ON producto_tienda.producto_id = productos.id',
+                    'pos_devolucion_detalles' => 'JOIN productos ON pos_devolucion_detalles.producto_id = productos.id',
+                    'almacen_traslados' => 'JOIN productos ON almacen_traslados.producto_id = productos.id',
+                    'inter_tiendas_traslados' => 'JOIN productos ON inter_tiendas_traslados.producto_id = productos.id',
+                    'tiendas_traslados' => 'JOIN productos ON tiendas_traslados.producto_id = productos.id',
+                ],
+            ],
+            'tiendas' => [
+                'detect'     => '/\btiendas\.(alias|nombre|id)\b/i',
+                'from_table' => 'pos_orders',
+                'join'       => 'JOIN tiendas ON pos_orders.tienda_id = tiendas.id',
+                'alt_from'   => [
+                    'producto_tienda' => 'JOIN tiendas ON producto_tienda.tienda_id = tiendas.id',
+                    'almacen_traslados' => 'JOIN tiendas ON almacen_traslados.tienda_id = tiendas.id',
+                    'inter_tiendas_traslados' => 'JOIN tiendas ON inter_tiendas_traslados.tienda_destino_id = tiendas.id',
+                    'tiendas_traslados' => 'JOIN tiendas ON tiendas_traslados.tienda_id = tiendas.id',
+                    'cpe_series' => 'JOIN tiendas ON cpe_series.tienda_id = tiendas.id',
+                ],
+            ],
+            'users' => [
+                'detect'     => '/\busers\.(username|name|id|email)\b/i',
+                'from_table' => 'pos_orders',
+                'join'       => 'JOIN users ON pos_orders.user_id = users.id',
+                'alt_from'   => [
+                    'pos_devoluciones' => 'JOIN users ON pos_devoluciones.user_id = users.id',
+                    'almacen_traslados' => 'JOIN users ON almacen_traslados.created_by = users.id',
+                ],
+            ],
+        ];
+
+        foreach ($joinRules as $table => $rule) {
+            // ¿El SQL menciona columnas de esta tabla?
+            if (!preg_match($rule['detect'], $sql)) {
+                continue;
+            }
+
+            // ¿Ya tiene el JOIN a esta tabla?
+            if (preg_match('/\bJOIN\s+' . preg_quote($table, '/') . '\b/i', $sql)) {
+                continue;
+            }
+
+            // Determinar qué JOIN usar según la tabla FROM principal del SQL
+            $joinToAdd = $rule['join']; // JOIN por defecto
+            foreach ($rule['alt_from'] as $fromTable => $altJoin) {
+                // Si la tabla alternativa está en el FROM o en algún JOIN, usar ese JOIN
+                if (preg_match('/\bFROM\s+' . preg_quote($fromTable, '/') . '\b/i', $sql) ||
+                    preg_match('/\bJOIN\s+' . preg_quote($fromTable, '/') . '\b/i', $sql)) {
+                    $joinToAdd = $altJoin;
+                    break;
+                }
+            }
+
+            // Insertar el JOIN: antes del WHERE, GROUP BY, ORDER BY, HAVING o LIMIT
+            // o al final de la sección de JOINs (antes de la primera cláusula post-JOIN)
+            $sql = preg_replace(
+                '/\b(WHERE|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT)\b/i',
+                $joinToAdd . ' $1',
+                $sql,
+                1
+            );
+        }
+
+        return $sql;
     }
 
     /**
