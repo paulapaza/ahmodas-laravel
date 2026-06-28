@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\OpenAiService;
+use App\Models\AiReportLog;
 use Exception;
 
 class AiReportController extends Controller
@@ -36,6 +37,8 @@ class AiReportController extends Controller
         ]);
 
         $userPrompt = $request->input('prompt');
+        $startTime = microtime(true);
+        $userId = $request->user()?->id;
 
         try {
             // PASO 1: Pedir a OpenAI que genere el SQL basado en el esquema de Ahmodas
@@ -55,12 +58,28 @@ class AiReportController extends Controller
             }
             
             if (!$sql) {
+                AiReportLog::create([
+                    'user_id' => $userId,
+                    'prompt' => $userPrompt,
+                    'generated_sql' => $sqlRaw,
+                    'is_successful' => false,
+                    'error_message' => 'La IA no pudo generar una consulta SQL válida.',
+                    'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
+                ]);
                 return response()->json(['error' => 'La IA no pudo generar una consulta SQL válida.', 'details' => $sqlRaw], 500);
             }
 
             // Ejecutar SQL (Modo solo lectura)
             // Seguridad básica: evitar DROP, DELETE, UPDATE, INSERT
             if (preg_match('/\b(DROP|DELETE|UPDATE|INSERT|ALTER|TRUNCATE|GRANT|REVOKE)\b/i', $sql)) {
+                AiReportLog::create([
+                    'user_id' => $userId,
+                    'prompt' => $userPrompt,
+                    'generated_sql' => $sql,
+                    'is_successful' => false,
+                    'error_message' => 'La consulta SQL generada contiene operaciones no permitidas.',
+                    'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
+                ]);
                 return response()->json(['error' => 'La consulta SQL generada contiene operaciones no permitidas.'], 400);
             }
 
@@ -82,6 +101,15 @@ class AiReportController extends Controller
             // PASO 2: Renderizar el gráfico de forma instantánea usando una plantilla HTML/CSS nativa optimizada
             $html = $this->renderHtmlTemplate($interpretedTitle, $data, $groupByKey, $chartType);
 
+            AiReportLog::create([
+                'user_id' => $userId,
+                'prompt' => $userPrompt,
+                'generated_sql' => $sql,
+                'is_successful' => true,
+                'error_message' => null,
+                'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
+            ]);
+
             return response()->json([
                 'html' => $html,
                 'sql' => $sql,
@@ -90,6 +118,14 @@ class AiReportController extends Controller
             ]);
 
         } catch (Exception $e) {
+            AiReportLog::create([
+                'user_id' => $userId ?? null,
+                'prompt' => $userPrompt ?? '',
+                'generated_sql' => $sql ?? null,
+                'is_successful' => false,
+                'error_message' => $e->getMessage(),
+                'execution_time_ms' => isset($startTime) ? round((microtime(true) - $startTime) * 1000) : null
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
