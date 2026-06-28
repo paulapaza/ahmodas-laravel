@@ -227,7 +227,7 @@ class OpenAiService
             1. \"sql\": La consulta SQL MySQL para resolver la petición.
             2. \"title\": El título limpio y corregido del reporte que describe exactamente qué entendiste de la petición del usuario (ej: \"Cantidad de boletas y facturas de ventas03\" o \"Ventas por tienda\").
             3. \"group_by_key\": El nombre exacto de la columna seleccionada en el SELECT de la consulta por la cual se debe agrupar/clasificar el gráfico (el campo que identifica a cada barra en la lista del eje Y, ej: \"tipo_comprobante\" o \"tienda_nombre\" o \"producto_nombre\").
-            4. \"chart_type\": El tipo de gráfico a usar. Valor \"horizontal\" (por defecto) o \"vertical\". Usa \"vertical\" solo cuando el usuario pida explícitamente un gráfico de barras verticales o de columnas. En todos los demás casos usa \"horizontal\".
+            4. \"chart_type\": El tipo de gráfico a usar. Valor \"horizontal\" (por defecto) o \"vertical\". Usa \"vertical\" solo cuando el usuario pida explícitamente un gráfico de barras verticales, gráfico de columnas, barras paradas, barras hacia arriba, o expresiones similares que den a entender una orientación vertical. En todos los demás casos usa \"horizontal\".
 
             IMPORTANTE: Devuelve únicamente el objeto JSON válido. No uses bloques de código markdown ni explicaciones externas.
 
