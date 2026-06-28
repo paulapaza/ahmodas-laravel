@@ -280,7 +280,6 @@ class AiReportController extends Controller
             padding-right: 16px;
             box-sizing: border-box;
             color: #334155;
-            cursor: help;
         }
 
         .ai-report-container .chart-bar-wrapper {
@@ -323,170 +322,105 @@ class AiReportController extends Controller
             white-space: nowrap;
         }
 
-        /* Tooltip style - scoped and set to fixed positioning to prevent document flow issues */
-        .ai-report-container .tooltip {
-            background: #0f172a;
+        /* Bootstrap Tooltip overrides */
+        .tooltip-inner.ai-report-bs-tooltip {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #ffffff;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 0 !important;
+            border-radius: 14px;
             font-size: 0.8125rem;
-            line-height: 1.4;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
-            position: fixed;
-            display: none;
-            z-index: 9999;
-            max-width: 320px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.5;
+            box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.3);
+            max-width: 320px !important;
+            min-width: 180px;
+            text-align: left;
+        }
+        .ai-report-container .bs-tooltip-top .arrow::before {
+            border-top-color: #1e293b;
+        }
+        .ai-report-container .bs-tooltip-right .arrow::before {
+            border-right-color: #0f172a;
+        }
+
+        .ai-report-container .tooltip-header {
+            background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            padding: 10px 14px 8px;
+            border-radius: 14px 14px 0 0;
         }
 
         .ai-report-container .tooltip-title {
             font-weight: 700;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding-bottom: 6px;
-            margin-bottom: 6px;
             font-size: 0.875rem;
-            color: #f8fafc;
+            color: #ffffff;
+            margin: 0 0 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 260px;
         }
 
-        .ai-report-container .tooltip-total {
-            font-weight: 600;
-            color: #38bdf8;
-            margin-bottom: 6px;
-        }
-
-        .ai-report-container .tooltip-detail-item {
-            display: flex;
-            justify-content: space-between;
-            gap: 24px;
-            color: #cbd5e1;
-            margin: 3px 0;
-        }
-
-        .ai-report-container .tooltip-detail-val {
-            font-weight: 600;
-            color: #f1f5f9;
-        }
-
-        /* Modal Styles */
-        .ai-report-container .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
+        .ai-report-container .tooltip-total-badge {
+            display: inline-flex;
             align-items: center;
-            z-index: 99999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .ai-report-container .modal-backdrop.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .ai-report-container .modal-content {
-            background: #ffffff;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 85%;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border-color);
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .ai-report-container .modal-backdrop.active .modal-content {
-            transform: scale(1);
-        }
-
-        .ai-report-container .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .ai-report-container .modal-header h2 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: var(--text-main);
+            gap: 5px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.78rem;
             font-weight: 700;
+            color: #fff;
         }
 
-        .ai-report-container .modal-close-btn {
-            background: #f1f5f9;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.5rem;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s;
+        .ai-report-container .tooltip-body {
+            padding: 10px 14px 12px;
         }
 
-        .ai-report-container .modal-close-btn:hover {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-
-        .ai-report-container .modal-body {
-            padding: 24px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        /* Modal Table Styles */
-        .ai-report-container .modal-table-wrapper {
-            overflow-x: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-        }
-
-        .ai-report-container .modal-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
-            text-align: left;
-        }
-
-        .ai-report-container .modal-table th {
-            background-color: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e2e8f0;
+        .ai-report-container .tooltip-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.75rem;
             letter-spacing: 0.5px;
+            color: #64748b;
+            margin: 8px 0 4px;
         }
 
-        .ai-report-container .modal-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
+        .ai-report-container .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .ai-report-container .modal-table tr:last-child td {
+        .ai-report-container .tooltip-row:last-child {
             border-bottom: none;
         }
 
-        .ai-report-container .modal-table tr:hover td {
-            background-color: #f8fafc;
+        .ai-report-container .tooltip-row-key {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            flex-shrink: 0;
         }
+
+        .ai-report-container .tooltip-row-val {
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 0.8rem;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .ai-report-container .tooltip-more {
+            font-size: 0.72rem;
+            color: #6366f1;
+            text-align: center;
+            padding-top: 6px;
+            font-style: italic;
+        }
+
+
+        /* CSS Modal Removido (usando Bootstrap) */
         /* === BARRAS VERTICALES === */
         .ai-report-container .chartWrapper.vertical {
             height: 380px;
@@ -507,7 +441,6 @@ class AiReportController extends Controller
             justify-content: flex-end;
             min-width: 60px;
             flex: 1;
-            cursor: pointer;
             padding: 0 6px;
             transition: filter 0.2s;
         }
@@ -530,6 +463,7 @@ class AiReportController extends Controller
             background: linear-gradient(180deg, #6366f1 0%, #06b6d4 100%);
             transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             min-height: 4px;
+            cursor: pointer;
         }
 
         .ai-report-container .chart-col-bar.negative {
@@ -549,6 +483,11 @@ class AiReportController extends Controller
             border-top: 2px solid #e2e8f0;
             width: 100%;
         }
+
+        /* Forzar Tooltip Opaco (Bootstrap override) */
+        .ai-report-container .tooltip.show {
+            opacity: 1 !important;
+        }
     </style>
 
     <h1>{$title}</h1>
@@ -556,18 +495,21 @@ class AiReportController extends Controller
 
     <div class=\"chartWrapper\" id=\"chartContainer\"></div>
 
-    <div class=\"tooltip\" id=\"tooltip\"></div>
-
-    <!-- Modal para detalle de fila -->
-    <div id=\"detailModal\" class=\"modal-backdrop\">
-        <div class=\"modal-content\">
-            <div class=\"modal-header\">
-                <h2 id=\"modalTitle\">Detalle</h2>
-                <button class=\"modal-close-btn\" id=\"modalClose\">&times;</button>
+    <!-- Modal Bootstrap 4 para detalle de fila -->
+    <div class=\"modal fade\" id=\"detailModal\" tabindex=\"-1\" role=\"dialog\" aria-hidden=\"true\">
+        <div class=\"modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable\" role=\"document\">
+            <div class=\"modal-content border-0 shadow-lg\" style=\"border-radius: 16px;\">
+                <div class=\"modal-header border-bottom-0\">
+                    <h5 class=\"modal-title font-weight-bold\" id=\"modalTitle\" style=\"color: #0f172a;\">Detalle</h5>
+                    <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">
+                        <span aria-hidden=\"true\">&times;</span>
+                    </button>
+                </div>
+                <div class=\"modal-body p-4\" id=\"modalBody\"></div>
             </div>
-            <div class=\"modal-body\" id=\"modalBody\"></div>
         </div>
     </div>
+
 
     <script>
         (function() {
@@ -637,7 +579,6 @@ class AiReportController extends Controller
 
             // 3. Renderizar y añadir eventos
             const container = document.getElementById('chartContainer');
-            const tooltip = document.getElementById('tooltip');
 
             // =========================================================
             // RENDER HORIZONTAL
@@ -650,7 +591,6 @@ class AiReportController extends Controller
                     const labelDiv = document.createElement('div');
                     labelDiv.className = 'chart-label';
                     labelDiv.textContent = group.label;
-                    labelDiv.title = group.label;
                     row.appendChild(labelDiv);
 
                     const barWrapper = document.createElement('div');
@@ -674,7 +614,7 @@ class AiReportController extends Controller
                     barWrapper.appendChild(valDiv);
 
                     row.appendChild(barWrapper);
-                    attachEvents(row, group, tooltip);
+                    attachEvents(row, group, bar); // Pasar la barra como target del tooltip
                     container.appendChild(row);
 
                     setTimeout(() => { bar.style.width = pct + '%'; }, 50);
@@ -710,10 +650,9 @@ class AiReportController extends Controller
                     const labelDiv = document.createElement('div');
                     labelDiv.className = 'chart-col-label';
                     labelDiv.textContent = group.label;
-                    labelDiv.title = group.label;
                     col.appendChild(labelDiv);
 
-                    attachEvents(col, group, tooltip);
+                    attachEvents(col, group, bar); // Pasar la barra como target del tooltip
                     container.appendChild(col);
 
                     setTimeout(() => { bar.style.height = pctH + 'px'; }, 50);
@@ -721,72 +660,119 @@ class AiReportController extends Controller
             }
 
             // =========================================================
-            // EVENTOS COMPARTIDOS (tooltip + modal)
+            // EVENTOS COMPARTIDOS (tooltip)
             // =========================================================
-            function attachEvents(el, group, tooltip) {
-                el.style.cursor = 'pointer';
+            function attachEvents(el, group, tooltipTarget) {
 
-                el.addEventListener('mouseenter', function(e) {
-                    let html = '<div class=\\\"tooltip-title\\\">' + group.label + '</div>';
-                    html += '<div class=\\\"tooltip-total\\\">' + (isCountMetric ? 'Cantidad' : 'Total') + ': ' + group.totalValue + '</div>';
-                    group.rawItems.forEach(item => {
-                        if (breakdownKey && item[breakdownKey] !== undefined) {
-                            html += '<div class=\\\"tooltip-detail-item\\\"><span>' + item[breakdownKey] + '</span><span class=\\\"tooltip-detail-val\\\">' + (isCountMetric ? '1' : item[metricKey]) + '</span></div>';
-                        } else {
-                            Object.keys(item).forEach(k => {
-                                if (k !== mainEntityKey && k !== metricKey && k !== 'cantidad_registros') {
-                                    html += '<div class=\\\"tooltip-detail-item\\\"><span>' + k + '</span><span class=\\\"tooltip-detail-val\\\">' + item[k] + '</span></div>';
-                                }
-                            });
+                // --- HTML DEL TOOLTIP ---
+                const metricLabel = isCountMetric ? 'Registros' : (metricKey || 'Total');
+                let html = '<div class=\"tooltip-header\">';
+                html += '<div class=\"tooltip-title\">' + group.label + '</div>';
+                html += '<span class=\"tooltip-total-badge\">&#9679; ' + metricLabel + ': ' + group.totalValue + '</span>';
+                html += '</div>';
+                html += '<div class=\"tooltip-body\">';
+
+                const sampleRow = group.rawItems[0] || {};
+                const allKeys = Object.keys(sampleRow).filter(k => k !== mainEntityKey);
+
+                const priorityPatterns = ['nombre', 'name', 'descripcion', 'tipo', 'serie', 'numero',
+                                          'fecha', 'date', 'total', 'amount', 'subtotal', 'precio',
+                                          'quantity', 'stock', 'cantidad', 'alias', 'tienda', 'cliente',
+                                          'cajero', 'comprobante', 'moneda', 'estado'];
+
+                const MAX_FIELDS = 5;
+
+                if (allKeys.length > 0) {
+                    const keysToShow = allKeys.slice(0, MAX_FIELDS);
+                    const itemsToShow = group.rawItems.slice(0, 5);
+                    let addedRows = false;
+                    
+                    let tempHtml = '';
+                    itemsToShow.forEach((item, index) => {
+                        let hasVal = false;
+                        let itemHtml = '';
+                        keysToShow.forEach(k => {
+                            const val = item[k];
+                            if (val === null || val === undefined || val === '') return;
+                            itemHtml += '<div class=\"tooltip-row\">';
+                            itemHtml += '<span class=\"tooltip-row-key\">' + k.replace(/_/g, ' ') + '</span>';
+                            itemHtml += '<span class=\"tooltip-row-val\">' + val + '</span>';
+                            itemHtml += '</div>';
+                            hasVal = true;
+                            addedRows = true;
+                        });
+                        
+                        if (hasVal) {
+                            if (index === 0) {
+                                tempHtml += '<div class=\"tooltip-section-label\">Detalle</div>';
+                            }
+                            tempHtml += itemHtml;
                         }
                     });
-                    tooltip.innerHTML = html;
-                    tooltip.style.display = 'block';
-                });
 
-                el.addEventListener('mousemove', function(e) {
-                    tooltip.style.left = (e.clientX + 15) + 'px';
-                    tooltip.style.top = (e.clientY + 15) + 'px';
-                });
+                    if (addedRows) {
+                        html += tempHtml;
+                    }
+                }
 
-                el.addEventListener('mouseleave', function() {
-                    tooltip.style.display = 'none';
-                });
+                if (group.rawItems.length > 5) {
+                    const remaining = group.rawItems.length - 5;
+                    html += '<div class=\"tooltip-more\">+ ' + remaining + ' registro' + (remaining > 1 ? 's' : '') + ' más (clic para ver tabla)</div>';
+                } else if (group.rawItems.length > 1) {
+                    html += '<div class=\"tooltip-more\">Clic para ver tabla completa</div>';
+                }
 
+                html += '</div>';
+
+                // Solo agregar atributos a la barrita (para que desaparezca al salir de ella)
+                if (tooltipTarget) {
+                    tooltipTarget.setAttribute('data-toggle', 'tooltip');
+                    tooltipTarget.setAttribute('data-html', 'true');
+                    tooltipTarget.setAttribute('title', html);
+                    tooltipTarget.setAttribute('data-placement', chartType === 'vertical' ? 'top' : 'right');
+                }
+
+                // Evento Click en toda la fila/columna: Abre modal de Bootstrap
                 el.addEventListener('click', function() {
-                    const modal = document.getElementById('detailModal');
+                    // Ocultar el tooltip si está visible al hacer click
+                    if (typeof window.$ !== 'undefined') {
+                        window.$('[data-toggle=\"tooltip\"]').tooltip('hide');
+                    }
+
                     const modalTitle = document.getElementById('modalTitle');
                     const modalBody = document.getElementById('modalBody');
 
                     modalTitle.textContent = group.label;
 
-                    let html = '';
+                    let htmlModal = '';
                     if (group.rawItems && group.rawItems.length > 0) {
-                        html += '<div class=\\\"modal-table-wrapper\\\">';
-                        html += '<table class=\\\"modal-table\\\">';
-                        html += '<thead><tr>';
+                        htmlModal += '<div class=\"table-responsive\">';
+                        htmlModal += '<table class=\"table table-hover table-striped table-bordered mb-0\">';
+                        htmlModal += '<thead class=\"thead-light\"><tr>';
                         const keys = Object.keys(group.rawItems[0]);
                         keys.forEach(k => {
-                            html += '<th>' + k.replace(/_/g, ' ').toUpperCase() + '</th>';
+                            htmlModal += '<th>' + k.replace(/_/g, ' ').toUpperCase() + '</th>';
                         });
-                        html += '</tr></thead><tbody>';
+                        htmlModal += '</tr></thead><tbody>';
                         group.rawItems.forEach(item => {
-                            html += '<tr>';
+                            htmlModal += '<tr>';
                             keys.forEach(k => {
                                 let val = item[k];
-                                if (val === null || val === undefined) val = '<span style=\\\"color:#94a3b8;font-style:italic\\\">-</span>';
-                                html += '<td>' + val + '</td>';
+                                if (val === null || val === undefined) val = '<span class=\"text-muted font-italic\">-</span>';
+                                htmlModal += '<td>' + val + '</td>';
                             });
-                            html += '</tr>';
+                            htmlModal += '</tr>';
                         });
-                        html += '</tbody></table></div>';
+                        htmlModal += '</tbody></table></div>';
                     } else {
-                        html = '<p style=\\\"color:#64748b;text-align:center\\\">No hay registros detallados.</p>';
+                        htmlModal = '<div class=\"alert alert-secondary text-center\">No hay registros detallados.</div>';
                     }
 
-                    modalBody.innerHTML = html;
-                    modal.style.display = 'flex';
-                    setTimeout(() => { modal.classList.add('active'); }, 10);
+                    modalBody.innerHTML = htmlModal;
+                    
+                    if (typeof window.$ !== 'undefined') {
+                        window.$('#detailModal').modal('show');
+                    }
                 });
             }
 
@@ -797,22 +783,24 @@ class AiReportController extends Controller
                 renderHorizontal();
             }
 
-            // Cerrar modal
-            const modal = document.getElementById('detailModal');
-            const modalClose = document.getElementById('modalClose');
-
-            function closeModal() {
-                modal.classList.remove('active');
-                setTimeout(() => { modal.style.display = 'none'; }, 300);
-            }
-
-            modalClose.addEventListener('click', closeModal);
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) closeModal();
-            });
         } else {
             document.getElementById('chartContainer').innerHTML = '<div style=\\\"padding: 20px; text-align: center; color: #666;\\\">No hay registros para mostrar.</div>';
         }
+
+        // Inicializar Tooltips de Bootstrap al final (cuando ya están en el DOM)
+        setTimeout(function() {
+            if (typeof window.$ !== 'undefined' && window.$.fn.tooltip) {
+                window.$('[data-toggle=\"tooltip\"]').tooltip({
+                    sanitize: false,
+                    boundary: 'window',
+                    container: '.ai-report-container',
+                    template: '<div class=\"tooltip\" role=\"tooltip\"><div class=\"arrow\"></div><div class=\"tooltip-inner ai-report-bs-tooltip\"></div></div>'
+                });
+            } else {
+                console.warn('Bootstrap 4 Tooltip no está disponible en window.$');
+            }
+        }, 100);
+
     })();
     </script>
 </div>
