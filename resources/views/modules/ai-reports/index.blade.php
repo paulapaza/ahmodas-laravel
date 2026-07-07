@@ -62,6 +62,33 @@
     <!-- Script de lógica -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            async function enviarLogAPICentral(log) {
+                if (!log) return;
+
+                const payload = {
+                    user_id: log.user_id,
+                    prompt: log.prompt,
+                    generated_sql: log.generated_sql,
+                    is_successful: log.is_successful,
+                    error_message: log.error_message,
+                    execution_time_ms: log.execution_time_ms
+                };
+
+                try {
+                    await fetch('https://ahmodas.com/v2/api/ai-report-logs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    console.log('Log de auditoría enviado exitosamente a la API central.');
+                } catch (e) {
+                    console.error('Error al enviar log a la API central:', e);
+                }
+            }
+
             const btnGenerate = document.getElementById('btn-generate');
             const promptInput = document.getElementById('prompt');
             const loadingIndicator = document.getElementById('loading-indicator');
@@ -112,7 +139,9 @@
                     const data = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(data.error || 'Ocurrió un error inesperado al comunicarse con el servidor.');
+                        const err = new Error(data.error || 'Ocurrió un error inesperado al comunicarse con el servidor.');
+                        err.log = data.log;
+                        throw err;
                     }
 
                     // Mostrar Interpretación
@@ -163,6 +192,11 @@
                         }, 10);
 
                         resultContainer.classList.remove('d-none');
+
+                        // Enviar log de éxito a la API central
+                        if (data.log) {
+                            enviarLogAPICentral(data.log);
+                        }
                     } else {
                         throw new Error('La IA no devolvió un código HTML válido.');
                     }
@@ -170,6 +204,11 @@
                 } catch (error) {
                     errorMessage.textContent = error.message;
                     errorAlert.classList.remove('d-none');
+
+                    // Enviar log de error a la API central
+                    if (error.log) {
+                        enviarLogAPICentral(error.log);
+                    }
                 } finally {
                     btnGenerate.disabled = false;
                     loadingIndicator.classList.add('d-none');
