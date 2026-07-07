@@ -58,29 +58,38 @@ class AiReportController extends Controller
             }
             
             if (!$sql) {
-                AiReportLog::create([
+                $payload = [
                     'user_id' => $userId,
                     'prompt' => $userPrompt,
                     'generated_sql' => $sqlRaw,
                     'is_successful' => false,
                     'error_message' => 'La IA no pudo generar una consulta SQL válida.',
                     'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
-                ]);
-                return response()->json(['error' => 'La IA no pudo generar una consulta SQL válida.', 'details' => $sqlRaw], 500);
+                ];
+                AiReportLog::create($payload);
+                return response()->json([
+                    'error' => 'La IA no pudo generar una consulta SQL válida.',
+                    'details' => $sqlRaw,
+                    'log' => $payload
+                ], 500);
             }
 
             // Ejecutar SQL (Modo solo lectura)
             // Seguridad básica: evitar DROP, DELETE, UPDATE, INSERT
             if (preg_match('/\b(DROP|DELETE|UPDATE|INSERT|ALTER|TRUNCATE|GRANT|REVOKE)\b/i', $sql)) {
-                AiReportLog::create([
+                $payload = [
                     'user_id' => $userId,
                     'prompt' => $userPrompt,
                     'generated_sql' => $sql,
                     'is_successful' => false,
                     'error_message' => 'La consulta SQL generada contiene operaciones no permitidas.',
                     'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
-                ]);
-                return response()->json(['error' => 'La consulta SQL generada contiene operaciones no permitidas.'], 400);
+                ];
+                AiReportLog::create($payload);
+                return response()->json([
+                    'error' => 'La consulta SQL generada contiene operaciones no permitidas.',
+                    'log' => $payload
+                ], 400);
             }
 
             // Corrección automática de JOINs que la IA suele olvidar
@@ -101,32 +110,38 @@ class AiReportController extends Controller
             // PASO 2: Renderizar el gráfico de forma instantánea usando una plantilla HTML/CSS nativa optimizada
             $html = $this->renderHtmlTemplate($interpretedTitle, $data, $groupByKey, $chartType);
 
-            AiReportLog::create([
+            $payload = [
                 'user_id' => $userId,
                 'prompt' => $userPrompt,
                 'generated_sql' => $sql,
                 'is_successful' => true,
                 'error_message' => null,
                 'execution_time_ms' => round((microtime(true) - $startTime) * 1000)
-            ]);
+            ];
+            AiReportLog::create($payload);
 
             return response()->json([
                 'html' => $html,
                 'sql' => $sql,
                 'data' => $data,
-                'title' => $interpretedTitle
+                'title' => $interpretedTitle,
+                'log' => $payload
             ]);
 
         } catch (Exception $e) {
-            AiReportLog::create([
+            $payload = [
                 'user_id' => $userId ?? null,
                 'prompt' => $userPrompt ?? '',
                 'generated_sql' => $sql ?? null,
                 'is_successful' => false,
                 'error_message' => $e->getMessage(),
                 'execution_time_ms' => isset($startTime) ? round((microtime(true) - $startTime) * 1000) : null
-            ]);
-            return response()->json(['error' => $e->getMessage()], 500);
+            ];
+            AiReportLog::create($payload);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'log' => $payload
+            ], 500);
         }
     }
 
@@ -184,8 +199,8 @@ class AiReportController extends Controller
                 continue;
             }
 
-            // ¿Ya tiene el JOIN a esta tabla?
-            if (preg_match('/\bJOIN\s+' . preg_quote($table, '/') . '\b/i', $sql)) {
+            // ¿Ya tiene el FROM o JOIN a esta tabla?
+            if (preg_match('/\b(FROM|JOIN)\s+' . preg_quote($table, '/') . '\b/i', $sql)) {
                 continue;
             }
 
