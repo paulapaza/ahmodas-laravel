@@ -244,10 +244,11 @@ class SalesProcessor {
         const orderId = saleData.pos_order.id;
         console.log('data-libre:', data);
 
-        // Realiza el envío original del navegador a la nube
+        // Realiza el envío original del navegador a la nube (con 15s de tolerancia)
         await POSUtils.makeAjaxRequest(
           'https://ahmodas.com/v2/api/sync/orders',
-          data
+          data,
+          { timeout: 15000 }
         )
         .then(async (res) => {
             console.log('respuesta', res);
