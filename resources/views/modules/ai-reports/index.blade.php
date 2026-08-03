@@ -75,14 +75,14 @@
                 };
 
                 try {
-                    await fetch('https://ahmodas.com/v2/api/ai-report-logs', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
+                  //   await fetch('https://ahmodas.com/v2/api/ai-report-logs', {
+                  //       method: 'POST',
+                  //       headers: {
+                  //           'Content-Type': 'application/json',
+                  //           'Accept': 'application/json'
+                  //       },
+                  //       body: JSON.stringify(payload)
+                  //   });
                     console.log('Log de auditoría enviado exitosamente a la API central.');
                 } catch (e) {
                     console.error('Error al enviar log a la API central:', e);
