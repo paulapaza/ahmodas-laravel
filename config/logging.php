@@ -162,6 +162,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'printer' => [
+            'driver'          => 'single',
+            'path'            => storage_path('logs/printer/printer-' . date('Y') . '.log'),
+            'level'           => 'debug',
+            'formatter'       => Monolog\Formatter\JsonFormatter::class,
+            'formatter_with'  => ['includeStacktraces' => false],
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

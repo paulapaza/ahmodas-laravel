@@ -40,11 +40,14 @@ class PrintService
                     throw new Exception("IP o puerto de impresora de red no configurados.");
                 }
                 try {
-
-                    $connector = new NetworkPrintConnector($user->printer_ip, 9100);
+                    $ipParts = explode(':', $user->printer_ip);
+                    $ip = $ipParts[0];
+                    $port = isset($ipParts[1]) ? (int)$ipParts[1] : 9100;
+                    
+                    // IMPORTANTE: Timeout de 5 segundos para que no congele el sistema si está apagada
+                    $connector = new NetworkPrintConnector($ip, $port, 5);
                 } catch (Exception $e) {
-
-                    throw new Exception("No se pudo conectar a la impresora de red: ");
+                    throw new Exception("No se pudo conectar a la impresora de red: " . $e->getMessage());
                 }
 
                 break;

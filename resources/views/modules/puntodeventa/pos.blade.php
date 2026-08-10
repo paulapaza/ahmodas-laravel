@@ -1018,11 +1018,17 @@
                         }
                     },
                     error: function(xhr, status, error) {
+                        let errorMsg = "El servidor no respondió correctamente (posible tiempo de espera agotado).";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            errorMsg = "Error del servidor (Timeout o caída).";
+                        }
+                        
                         Swal.fire({
                             icon: 'error',
-                            html: 'Error al procesar el pago: ' + xhr.responseJSON
-                                .message,
-                            footer: 'Intenta nuevamente! presione f5 para recargar la pagina    '
+                            html: 'Error al procesar el pago: ' + errorMsg,
+                            footer: 'Intenta nuevamente! presione f5 para recargar la pagina'
                         });
                         // Volver a activar los botones de pago
                         $('.procesar_venta').prop('disabled', false);

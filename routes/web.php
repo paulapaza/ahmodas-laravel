@@ -18,6 +18,10 @@ use App\Http\Controllers\Pos\PosOrderController;
 use App\Http\Controllers\Pos\DevolucionController;
 use App\Http\Controllers\Pos\SincronizacionController;
 use App\Models\Inventario\Tienda;
+use App\Services\Printer\PrinterDetectorService;
+use App\Services\Printer\PrinterRepositoryFactory;
+use App\Services\Printer\PrinterTypeResolver;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -49,10 +53,21 @@ Route::middleware([
         $tiendaActiva = $tiendas->firstWhere('id', $idTienda);
         $tiendaDelUsuario = $tiendaActiva ? ($tiendaActiva->alias ?: $tiendaActiva->nombre) : 'Sin tienda asignada';
 
+        // Detectar impresora y guardar configuracion en el usuario logueado
+        $detector    = new PrinterDetectorService(
+            repository: (new PrinterRepositoryFactory())->make(),
+            resolver:    new PrinterTypeResolver(),
+        );
+        $printerConfig = $detector->detect(
+            userId:   Auth::id(),
+            userName: Auth::user()?->name ?? 'Desconocido',
+        );
+        Auth::user()?->update($printerConfig->toArray());
+
         return view('modules.puntodeventa.pos1', [
-            'tiendas' => $tiendas,
-            'idTiendaUsuario' => $idTienda,
-            'tiendaDelUsuario' => $tiendaDelUsuario
+            'tiendas'          => $tiendas,
+            'idTiendaUsuario'  => $idTienda,
+            'tiendaDelUsuario' => $tiendaDelUsuario,
         ]);
     })->name('puntodeventa.pos');
 
