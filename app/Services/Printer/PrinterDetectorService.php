@@ -129,6 +129,7 @@ class PrinterDetectorService
                     'en_red'         => $p->enRed,
                     'ip_host'        => $p->ipHost,
                     'predeterminada' => $p->predeterminada,
+                    'es_tiquetera'   => $p->esTiquetera,
                 ],
                 $printers
             ),

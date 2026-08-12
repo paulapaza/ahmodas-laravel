@@ -10,6 +10,8 @@ namespace App\DTOs\Printer;
  */
 readonly class PrinterDTO
 {
+    public bool $esTiquetera;
+
     public function __construct(
         public string  $nombre,
         public string  $estado,
@@ -18,5 +20,15 @@ readonly class PrinterDTO
         public bool    $enRed,
         public ?string $ipHost,
         public bool    $predeterminada,
-    ) {}
+    ) {
+        $isTicket = false;
+        $keywords = ['POS', '4 Inch', 'Thermal', 'Receipt', 'Ticket', 'XP-', 'TM-', 'ZDesigner', 'Impresora de tickets'];
+        foreach ($keywords as $keyword) {
+            if (stripos($nombre, $keyword) !== false) {
+                $isTicket = true;
+                break;
+            }
+        }
+        $this->esTiquetera = $isTicket;
+    }
 }

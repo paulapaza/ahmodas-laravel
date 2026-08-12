@@ -46,10 +46,15 @@ class WindowsPrinterRepository implements PrinterRepositoryInterface
         foreach ($data as $imp) {
             $portName   = $imp['PortName'] ?? '';
             $compartida = (bool) ($imp['Shared'] ?? false);
-            $esUsb      = $this->isUsb($portName);
+            
+            $portInfo = $puertos[$portName] ?? null;
+            $portDesc = $portInfo['description'] ?? '';
+            $portIp   = $portInfo['ip'] ?? '';
+
+            $esUsb      = $this->isUsb($portName, $portDesc);
             $enRed      = $this->isEnRed($portName);
             $ipHost     = $enRed
-                ? ($puertos[$portName] ?? $this->extractIpFromPort($portName))
+                ? ($portIp ?: $this->extractIpFromPort($portName))
                 : null;
 
             $impresoras[] = new PrinterDTO(
@@ -72,7 +77,7 @@ class WindowsPrinterRepository implements PrinterRepositoryInterface
     private function getPuertos(): array
     {
         $output = shell_exec(
-            'powershell -NoProfile -Command "Get-PrinterPort | Select-Object Name,PrinterHostAddress | ConvertTo-Json"'
+            'powershell -NoProfile -Command "Get-PrinterPort | Select-Object Name,PrinterHostAddress,Description | ConvertTo-Json"'
         );
 
         if (empty($output)) return [];
@@ -84,9 +89,11 @@ class WindowsPrinterRepository implements PrinterRepositoryInterface
         $puertos = [];
         foreach ($data as $p) {
             $name = $p['Name'] ?? '';
-            $ip   = $p['PrinterHostAddress'] ?? '';
-            if ($name && $ip) {
-                $puertos[$name] = $ip;
+            if ($name) {
+                $puertos[$name] = [
+                    'ip' => $p['PrinterHostAddress'] ?? '',
+                    'description' => $p['Description'] ?? '',
+                ];
             }
         }
         return $puertos;
@@ -96,9 +103,11 @@ class WindowsPrinterRepository implements PrinterRepositoryInterface
      * Indica si el puerto es USB.
      * En Windows los puertos USB se llaman USB001, USB002, etc.
      */
-    private function isUsb(string $portName): bool
+    private function isUsb(string $portName, string $portDesc = ''): bool
     {
-        return (bool) preg_match('/^USB\d+$/i', $portName);
+        if (stripos($portName, 'USB') !== false) return true;
+        if (stripos($portDesc, 'USB') !== false) return true;
+        return false;
     }
 
     /**

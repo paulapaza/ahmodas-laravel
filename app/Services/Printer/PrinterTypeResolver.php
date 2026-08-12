@@ -26,29 +26,31 @@ class PrinterTypeResolver implements PrinterTypeResolverInterface
      */
     public function resolve(array $printers): PrinterConfigDTO
     {
-        // Prioridad 1: USB + compartida → local
-        foreach ($printers as $printer) {
-            if ($printer->usb && $printer->compartida) {
-                return new PrinterConfigDTO(
-                    printType:   'local',
-                    printerName: $printer->nombre,
-                    printerIp:   null,
-                );
-            }
+        // 1. Buscar impresoras que sean USB y estén Compartidas
+        $usbCompartidas = array_filter($printers, fn($p) => $p->usb && $p->compartida);
+        
+        if (!empty($usbCompartidas)) {
+            $elegida = $this->elegirTiqueteraOPrimera($usbCompartidas);
+            return new PrinterConfigDTO(
+                printType:   'local',
+                printerName: $elegida->nombre,
+                printerIp:   null,
+            );
         }
 
-        // Prioridad 2: En red → red
-        foreach ($printers as $printer) {
-            if ($printer->enRed) {
-                return new PrinterConfigDTO(
-                    printType:   'red',
-                    printerName: $printer->nombre,
-                    printerIp:   $printer->ipHost,
-                );
-            }
+        // 2. Si no hay, buscar impresoras que estén en Red y Compartidas
+        $redCompartidas = array_filter($printers, fn($p) => $p->enRed && $p->compartida);
+        
+        if (!empty($redCompartidas)) {
+            $elegida = $this->elegirTiqueteraOPrimera($redCompartidas);
+            return new PrinterConfigDTO(
+                printType:   'red',
+                printerName: $elegida->nombre,
+                printerIp:   $elegida->ipHost,
+            );
         }
 
-        // Prioridad 3: Cualquier otra impresora disponible → pdf
+        // 3. Fallback: Cualquier otra impresora disponible → pdf
         if (!empty($printers)) {
             return new PrinterConfigDTO(
                 printType:   'pdf',
@@ -63,5 +65,23 @@ class PrinterTypeResolver implements PrinterTypeResolverInterface
             printerName: null,
             printerIp:   null,
         );
+    }
+
+    /**
+     * Si hay varias impresoras que cumplen la regla, elige la tiquetera.
+     * Si ninguna es tiquetera, devuelve la primera normal.
+     * 
+     * @param PrinterDTO[] $candidatas
+     */
+    private function elegirTiqueteraOPrimera(array $candidatas): PrinterDTO
+    {
+        foreach ($candidatas as $printer) {
+            if ($printer->esTiquetera) {
+                return $printer;
+            }
+        }
+        
+        // Si no encontró ninguna tiquetera en las candidatas, devuelve la primera
+        return reset($candidatas);
     }
 }
