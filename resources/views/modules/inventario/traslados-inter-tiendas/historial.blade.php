@@ -57,26 +57,34 @@
                 </div>
             </div>
 
+
             <!-- Filtros -->
+            @php
+                $esCajero = auth()->check() && auth()->user()->hasRole('cajero');
+                $colOrigen = $esCajero ? 'col-md-3' : 'col-md-2';
+                $colDestino = $esCajero ? 'col-md-2 d-none' : 'col-md-2';
+                $colFecha = $esCajero ? 'col-md-3' : 'col-md-2';
+                $destinoId = $esCajero ? (auth()->user()->tienda_id ?? '') : '';
+            @endphp
             <div class="card shadow-sm border-0 mb-4 overflow-hidden">
                 <div class="card-body p-0">
                     <div class="filter-bar">
                         <div class="row align-items-end">
-                            <div class="col-md-2">
+                            <div class="{{ $colOrigen }}">
                                 <label class="small font-weight-bold text-muted uppercase">Origen:</label>
                                 <select class="form-control form-control-sm shadow-none" v-model="filtros.tienda_origen_id" @change="fetchHistorial">
                                     <option value="">Todos</option>
                                     <option v-for="t in tiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="{{ $colDestino }}">
                                 <label class="small font-weight-bold text-muted uppercase">Destino:</label>
                                 <select class="form-control form-control-sm shadow-none" v-model="filtros.tienda_destino_id" @change="fetchHistorial">
                                     <option value="">Todos</option>
                                     <option v-for="t in tiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="{{ $colFecha }}">
                                 <label class="small font-weight-bold text-muted uppercase">Fecha:</label>
                                 <input type="date" class="form-control form-control-sm shadow-none" v-model="filtros.fecha" @change="fetchHistorial">
                             </div>
@@ -181,7 +189,7 @@
                     traslados: [],
                     filtros: {
                         tienda_origen_id: '',
-                        tienda_destino_id: '',
+                        tienda_destino_id: '{{ $destinoId }}',
                         fecha: '{{ date('Y-m-d') }}',
                         search: ''
                     },
@@ -216,7 +224,7 @@
                     this.timeout = setTimeout(() => { this.fetchHistorial(); }, 500);
                 },
                 resetFiltros() {
-                    this.filtros = { tienda_origen_id: '', tienda_destino_id: '', fecha: '', search: '' };
+                    this.filtros = { tienda_origen_id: '', tienda_destino_id: '{{ $destinoId }}', fecha: '', search: '' };
                     this.fetchHistorial();
                 }
             }
