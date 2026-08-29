@@ -169,12 +169,24 @@
                                 </div>
                                 <div class="form-group mb-4">
                                     <label class="small font-weight-bold text-xprimary">3. CANTIDAD A TRASLADAR:</label>
-                                    <input type="number" 
-                                           class="form-control form-control-lg text-center font-weight-bold" 
-                                           v-model.number="form.cantidad" 
-                                           min="1"
-                                           :max="productoSeleccionadoDetalle ? productoSeleccionadoDetalle.stock : 1"
-                                           :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
+                                    <div class="input-group input-group-lg shadow-sm">
+                                        <div class="input-group-prepend">
+                                            <button class="btn btn-outline-secondary" type="button" @click="cambiarCantidad(-1)" :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <input type="number" 
+                                               class="form-control text-center font-weight-bold" 
+                                               v-model.number="form.cantidad" 
+                                               min="1"
+                                               :max="productoSeleccionadoDetalle ? productoSeleccionadoDetalle.stock : 1"
+                                               :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" @click="cambiarCantidad(1)" :disabled="!form.productoId || (productoSeleccionadoDetalle && productoSeleccionadoDetalle.stock <= 0)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="form-group mb-4">
@@ -713,6 +725,16 @@
                     this.form.cantidad = 1;
                     this.busquedaSelector = '';
                     this.dropdownAbierto = false;
+                },
+                cambiarCantidad(delta) {
+                    if (!this.productoSeleccionadoDetalle) return;
+                    
+                    let nueva = this.form.cantidad + delta;
+                    if (nueva < 1) nueva = 1;
+                    if (nueva > this.productoSeleccionadoDetalle.stock) {
+                        nueva = this.productoSeleccionadoDetalle.stock;
+                    }
+                    this.form.cantidad = nueva;
                 },
                 cerrarDropdownDespues() {
                     // Pequeño retraso para permitir que el @mousedown se registre
