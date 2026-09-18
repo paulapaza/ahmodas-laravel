@@ -158,6 +158,12 @@ class CartManager {
         this.table.rows().every(function () {
             const data = this.data();
             if (data.id === id) {
+                if (data.cantidad + 1 > data.total_stock) {
+                    POSUtils.showError(`No hay suficiente stock disponible. Stock actual: ${data.total_stock}`);
+                    productExists = true;
+                    return false; // Break loop
+                }
+                
                 data.cantidad++;
                 data.subtotal = POSUtils.formatCurrency(data.cantidad * parseFloat(data.precio_unitario));
                 this.data(data).draw();
@@ -181,7 +187,7 @@ class CartManager {
             precio_minimo: precio_minimo,
             subtotal: precio,
             id: id,
-            total_stock: total_stock,
+            total_stock: parseFloat(total_stock) || 0,
         };
 
         this.table.row.add(productData).draw();

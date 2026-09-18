@@ -127,11 +127,19 @@ class ProductSearch {
 
             if (response.length > 0) {
                 const product = response[0];
+                const stock = product.stock_actual !== undefined ? product.stock_actual : (product.total_stock || 0);
+
+                if (stock <= 0) {
+                    POSUtils.showError('No hay stock disponible para este producto');
+                    return;
+                }
+
                 this.cartManager.addProduct(
                     product.id,
                     product.alias,
                     product.precio_unitario,
-                    product.precio_minimo
+                    product.precio_minimo,
+                    stock
                 );
             } else {
                 POSUtils.showError('No se encontró el producto');
