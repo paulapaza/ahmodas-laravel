@@ -60,7 +60,7 @@
 <script src="{{ asset('js/bootstrap.bundle.min.js') }}" defer></script>
 
 <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
-<script src="{{ asset('js/larajax.js') }}" defer></script>
+<script src="{{ asset('js/larajax.js') }}?v={{ filemtime(public_path('js/larajax.js')) }}" defer></script>
 <script src="{{ asset('js/datatables.min.js') }}" defer></script>
 
 

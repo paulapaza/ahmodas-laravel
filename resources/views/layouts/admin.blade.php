@@ -116,7 +116,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     <!-- AdminLTE App -->
     <script src="{{ asset('js/adminlte.min.js') }}"></script>
-    <script src="{{ asset('js/larajax.js') }}"></script>
+    <script src="{{ asset('js/larajax.js') }}?v={{ filemtime(public_path('js/larajax.js')) }}"></script>
     <!-- DataTables -->
     <script src="{{ asset('js/datatables.min.js') }}"></script>
     {{-- <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.0.8/af-2.7.0/b-3.0.2/b-colvis-3.0.2/b-html5-3.0.2/b-print-3.0.2/r-3.0.2/datatables.min.js"></script>
