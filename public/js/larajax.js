@@ -826,7 +826,7 @@ async function  store_record(dataAjax, formData, table) {
         processData: false, // No procesar los datos
         contentType: false, // No establecer el tipo de contenido
         success: function (respuesta) {
-            return swal_message_response(respuesta) ? table.ajax.reload() : false;
+            return swal_message_response(respuesta) ? table.ajax.reload(null, false) : false;
         },
         error: function (error) {
             return show_validate_errors(error)? false : null;
@@ -847,7 +847,7 @@ function store_record_serialize(id, dataAjax, serializeData, table) {
         type: method,
         data: serializeData,
         success: function (respuesta) {
-            return swal_message_response(respuesta) ? table.ajax.reload() : false;
+            return swal_message_response(respuesta) ? table.ajax.reload(null, false) : false;
         },
         error: function (error) {
             show_validate_errors(error);
@@ -884,7 +884,7 @@ function store_record_serialize(id, dataAjax, serializeData, table) {
                 type: method,
                 data: formData,
                 success: function (respuesta) {
-                    swal_message_response(respuesta) ? table.ajax.reload() : null;
+                    swal_message_response(respuesta) ? table.ajax.reload(null, false) : null;
                 },
                 error: function (error) {
                     console.log(error);
@@ -930,7 +930,7 @@ function destroy_record(dataAjax, table, rowData) {
                 },
                 success: function (respuesta) {
                     swal_message_response(respuesta)
-                        ? table.ajax.reload()
+                        ? table.ajax.reload(null, false)
                         : null;
                 },
                 error: function (error) {
@@ -972,7 +972,7 @@ $('#table').on("click", ".btn-cancel", function () {
                 },
                 success: function (respuesta) {
                     swal_message_response(respuesta)
-                        ? table.ajax.reload()
+                        ? table.ajax.reload(null, false)
                         : null;
                 },
                 error: function (error) {
