@@ -244,19 +244,23 @@ class PosOrderController extends Controller
             $cpe_message = 'Error en el envío/programación: ' . $e->getMessage();
         }
 
-        $print_id = null;
         try {
-            if ($tipo_comprobante == 12) {
-                Log::channel('tickets')->info("Registrando venta de Ticket (Orden ID: {$pos_order->id}). Total: {$pos_order->total_amount}");
-                // Si la IP es la registrada para esta PC, forzamos impresión remota
-                if ($user->device_ip && $user->device_ip == request()->ip()) {
-                    $print_id = $pos_order->id;
-                    Log::channel('tickets')->info('Impresión remota forzada: ' . $print_id);
-                } else if ($user->print_type == 'red' || $user->print_type == 'local') {
-                    // Si no, intentamos la tradicional (Red o Local del Servidor)
+            if (in_array($tipo_comprobante, [12, '03', '01'])) {
+                Log::channel('tickets')->info("Registrando venta para impresión (Tipo: {$tipo_comprobante}, Orden ID: {$pos_order->id}). Total: {$pos_order->total_amount}");
+                
+                if ($user->print_type == 'red' || $user->print_type == 'local') {
+                    // Impresión tradicional (Red o Local del Servidor)
                     $printService = new \App\Services\PrintService();
-                    $printService->imprimirTicket($pos_order);
-                    Log::channel('tickets')->info('Impresión tradicional completada para Orden: ' . $pos_order->id);
+                    
+                    if (in_array($tipo_comprobante, ['01', '03'])) {
+                        // Para Boletas y Facturas: Formato oficial con QR e impuestos
+                        $printService->imprimirComprobanteOficial($pos_order, $cpe_response);
+                        Log::channel('tickets')->info('Impresión oficial completada para Orden: ' . $pos_order->id);
+                    } else {
+                        // Para Tickets (12) u otros: Formato simple original
+                        $printService->imprimirTicket($pos_order);
+                        Log::channel('tickets')->info('Impresión de ticket simple completada para Orden: ' . $pos_order->id);
+                    }
                 } else {
                     Log::channel('tickets')->info('Impresión tradicional omitida (tipo de impresión no configurado) para Orden: ' . $pos_order->id);
                 }
@@ -276,7 +280,6 @@ class PosOrderController extends Controller
             'cpe_response' => $cpe_response,
             'cpe_message' => $cpe_message,
             'print_type' => $user->print_type,
-            'print_id' => $print_id,
             'tipo_comprobante' => $pos_order->tipo_comprobante,
             'user_device_ip' => $user->device_ip,
             'request_ip' => request()->ip(),
