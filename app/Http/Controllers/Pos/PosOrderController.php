@@ -283,6 +283,7 @@ class PosOrderController extends Controller
             'tipo_comprobante' => $pos_order->tipo_comprobante,
             'user_device_ip' => $user->device_ip,
             'request_ip' => request()->ip(),
+            'print_id' => $pos_order->id,
         ]);
     }
 
