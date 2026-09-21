@@ -161,7 +161,7 @@ class PrintService
         $printer->setEmphasis(false);
 
         $printer->setJustification(Printer::JUSTIFY_LEFT);
-        $lineasNombre = $this->dividirEnLineas($posOrder->cliente->nombre, 30);
+        $lineasNombre = $this->dividirEnLineas($posOrder->cliente?->nombre ?? 'PUBLICO EN GENERAL', 30);
 
         $printer->text(sprintf("%-9s %-32s\n", "Cliente:", $lineasNombre[0], ""));
         for ($i = 1; $i < count($lineasNombre); $i++) {
@@ -303,14 +303,14 @@ class PrintService
         $printer->feed(1);
 
         $printer->setJustification(Printer::JUSTIFY_LEFT);
-        $lineasNombre = $this->dividirEnLineas($posOrder->cliente->nombre, 30);
+        $lineasNombre = $this->dividirEnLineas($posOrder->cliente?->nombre ?? 'PUBLICO EN GENERAL', 30);
 
         $printer->text(sprintf("%-9s %-32s\n", "Cliente:", $lineasNombre[0], ""));
         for ($i = 1; $i < count($lineasNombre); $i++) {
             $printer->text(sprintf("%-9s %-32s\n", "", $lineasNombre[$i], ""));
         }
         
-        $numDoc = $posOrder->cliente->numero_documento ?? "-";
+        $numDoc = $posOrder->cliente?->numero_documento ?? "-";
         $printer->text(sprintf("%-9s %-30s\n", "Doc/RUC:", $numDoc, ""));
         $printer->text(sprintf("%-9s %-30s\n", "Fecha:", $posOrder->order_date));
     }
