@@ -46,7 +46,22 @@
                         <div>
                             <hr>
                             <h3 class="text-center mb-0">{{ $tiendaDelUsuario }}</h3>
-                            <h5 class="text-muted text-center">{{ Auth::user()->name }}</h5>
+                            
+                            <!-- Nombre y Selector de Impresora juntos -->
+                            <div class="d-flex justify-content-center align-items-center mt-2">
+                                <h5 class="text-muted mb-0 mr-3">{{ Auth::user()->name }}</h5>
+                                <select id="pos-printer-selector" class="form-control form-control-sm w-auto text-center font-weight-bold shadow-sm">
+                                    <option value="local" {{ Auth::user()->print_type == 'local' ? 'selected' : '' }}>
+                                        🖨️ USB ({{ Auth::user()->printer_name ?? 'Ninguna' }})
+                                    </option>
+                                    <option value="red" {{ Auth::user()->print_type == 'red' ? 'selected' : '' }}>
+                                        📡 Wi-Fi ({{ Auth::user()->printer_ip ?? 'Sin IP' }})
+                                    </option>
+                                    <option value="pdf" {{ Auth::user()->print_type == 'pdf' ? 'selected' : '' }}>
+                                        📄 Generar PDF
+                                    </option>
+                                </select>
+                            </div>
                             <hr>
                         </div>
                     </div>
@@ -315,3 +330,26 @@
 <script src="{{ asset('js/pos/sales-processor.js') }}?v={{ filemtime(public_path('js/pos/sales-processor.js')) }}"></script>
 <script src="{{ asset('js/pos/pos-main.js') }}"></script>
 <script src="{{ asset('js/pos/devoluciones.js') }}?v={{ filemtime(public_path('js/pos/devoluciones.js')) }}"></script>
+
+<script>
+$(document).ready(function() {
+    $('#pos-printer-selector').change(function() {
+        let printType = $(this).val();
+        $.ajax({
+            url: '/punto-de-venta/set-printer',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                print_type: printType
+            },
+            success: function(response) {
+                if(window.AuthUser) window.AuthUser.print_type = printType;
+                if(typeof toastr !== 'undefined') toastr.success('Modo de impresión actualizado');
+            },
+            error: function() {
+                if(typeof toastr !== 'undefined') toastr.error('Error al actualizar modo de impresión');
+            }
+        });
+    });
+});
+</script>

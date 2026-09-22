@@ -22,10 +22,20 @@ readonly class PrinterConfigDTO
      */
     public function toArray(): array
     {
-        return [
+        $data = [
             'print_type'   => $this->printType,
-            'printer_name' => $this->printerName,
-            'printer_ip'   => $this->printerIp,
         ];
+
+        // Solo actualizar el nombre si no es nulo (así no borramos el anterior si no se detectó nada)
+        if ($this->printerName !== null) {
+            $data['printer_name'] = $this->printerName;
+        }
+
+        // Solo actualizar la IP si no es nula (así conservamos la IP guardada en BD)
+        if ($this->printerIp !== null) {
+            $data['printer_ip'] = $this->printerIp;
+        }
+
+        return $data;
     }
 }

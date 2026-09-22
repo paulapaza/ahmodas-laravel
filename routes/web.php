@@ -62,7 +62,14 @@ Route::middleware([
             userId:   Auth::id(),
             userName: Auth::user()?->name ?? 'Desconocido',
         );
-        Auth::user()?->update($printerConfig->toArray());
+
+        $user = Auth::user();
+        if ($user) {
+            // Si el usuario configuró 'red', NO sobreescribimos.
+            if ($user->print_type !== 'red') {
+                $user->update($printerConfig->toArray());
+            }
+        }
 
         return view('modules.puntodeventa.pos1', [
             'tiendas'          => $tiendas,
@@ -70,6 +77,14 @@ Route::middleware([
             'tiendaDelUsuario' => $tiendaDelUsuario,
         ]);
     })->name('puntodeventa.pos');
+
+    // Cambiar tipo de impresora desde el POS
+    Route::post('/punto-de-venta/set-printer', function (\Illuminate\Http\Request $request) {
+        if (Auth::user()) {
+            Auth::user()->update(['print_type' => $request->print_type]);
+        }
+        return response()->json(['success' => true]);
+    })->name('puntodeventa.setPrinter');
 
     //venta
     Route::post('/punto-de-venta/venta', [PosOrderController::class, 'store'])->name('puntodeventa.venta.store');
