@@ -484,6 +484,13 @@
                 <p class="small text-muted mb-4">
                     Sube un archivo Excel (.xlsx, .xls o .csv) con las columnas <b>productid</b> (Código de Barras) y <b>count</b> (Cantidad a sumar).
                 </p>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-bold small text-secondary">Seleccionar Tienda / Almacén Destino:</label>
+                    <select v-model="tiendaImportacionId" class="form-control form-control-sm" :disabled="cargandoImportacion">
+                        <option v-for="t in todasLasTiendas" :key="t.id" :value="t.id">@{{ t.nombre }}</option>
+                    </select>
+                </div>
                 
                 <div class="form-group border p-4 rounded bg-light text-center">
                     <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
@@ -548,6 +555,8 @@
                     // Datos Maestros (API)
                     listaProductos: [],
                     tiendas: [],
+                    todasLasTiendas: [],
+                    tiendaImportacionId: null,
                     stockMap: {},
                     cargando: true,
                     
@@ -855,6 +864,10 @@
                         this.listaProductos = response.data.productos;
                         this.stockMap = response.data.stockMap;
                         this.tiendas = response.data.tiendas;
+                        this.todasLasTiendas = response.data.todasLasTiendas;
+                        if (!this.tiendaImportacionId) {
+                            this.tiendaImportacionId = response.data.almacenId;
+                        }
 
                         // --- FUSIÓN DE DATOS (BD + LOCAL) ---
                         const confirmados = response.data.confirmados || [];
@@ -1097,6 +1110,7 @@
 
                     const formData = new FormData();
                     formData.append('archivo', fileInput.files[0]);
+                    formData.append('tienda_id', this.tiendaImportacionId);
 
                     this.cargandoImportacion = true;
                     const endpoint = this.chancarStock ? '/api/inventario/traslados/importar-excel-chancar' : '/api/inventario/traslados/importar-excel';

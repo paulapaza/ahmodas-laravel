@@ -83,11 +83,19 @@ class TrasladoAlmacenController extends Controller
             return $t;
          });
 
+      $todasLasTiendas = DB::table('tiendas')
+         ->where('estado', 1)
+         ->select('id', 'nombre')
+         ->orderBy('nombre')
+         ->get();
+
       return response()->json([
          'productos' => $productos,
          'stockMap' => $stockMap,
          'tiendas' => $tiendas,
-         'confirmados' => $confirmadosHoy
+         'confirmados' => $confirmadosHoy,
+         'todasLasTiendas' => $todasLasTiendas,
+         'almacenId' => $almacenId
       ]);
    }
 
@@ -597,9 +605,13 @@ class TrasladoAlmacenController extends Controller
             throw new \Exception("No se encontraron las columnas obligatorias 'productid' (Código de Barras) o 'count' (Cantidad).");
          }
 
-         $warehouseId = DB::table('tiendas')->where('es_almacen', 1)->value('id');
+         $warehouseId = $request->input('tienda_id');
          if (!$warehouseId) {
-            throw new \Exception("No se ha configurado ninguna tienda como Almacén Principal.");
+            $warehouseId = DB::table('tiendas')->where('es_almacen', 1)->value('id');
+         }
+         
+         if (!$warehouseId) {
+            throw new \Exception("No se ha seleccionado ninguna tienda y no hay Almacén Principal configurado.");
          }
 
          $successCount = 0;
@@ -690,9 +702,13 @@ class TrasladoAlmacenController extends Controller
             throw new \Exception("No se encontraron las columnas obligatorias 'productid' (Código de Barras) o 'count' (Cantidad).");
          }
 
-         $warehouseId = DB::table('tiendas')->where('es_almacen', 1)->value('id');
+         $warehouseId = $request->input('tienda_id');
          if (!$warehouseId) {
-            throw new \Exception("No se ha configurado ninguna tienda como Almacén Principal.");
+            $warehouseId = DB::table('tiendas')->where('es_almacen', 1)->value('id');
+         }
+         
+         if (!$warehouseId) {
+            throw new \Exception("No se ha seleccionado ninguna tienda y no hay Almacén Principal configurado.");
          }
 
          $successCount = 0;
