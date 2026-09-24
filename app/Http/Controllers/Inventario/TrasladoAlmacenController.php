@@ -715,6 +715,7 @@ class TrasladoAlmacenController extends Controller
          $errors = [];
          $codigosFaltantes = [];
          $hoy = now();
+         $procesadosIds = [];
 
          DB::beginTransaction();
          foreach ($rows as $index => $row) {
@@ -733,6 +734,8 @@ class TrasladoAlmacenController extends Controller
                }
                continue;
             }
+
+            $procesadosIds[] = $producto->id;
 
             // Upsert stock en el almacén (chancar: reemplazar)
             $pt = DB::table('producto_tienda')
@@ -758,6 +761,20 @@ class TrasladoAlmacenController extends Controller
 
             $successCount++;
          }
+
+         // Todos los productos de la tienda que no estaban en el excel se setean a 0
+         if (count($procesadosIds) > 0) {
+            DB::table('producto_tienda')
+               ->where('tienda_id', $warehouseId)
+               ->whereNotIn('producto_id', $procesadosIds)
+               ->update(['stock' => 0, 'updated_at' => $hoy]);
+         } else {
+            // Si el excel no contenía ningún producto válido, entonces todo se pone a 0
+            DB::table('producto_tienda')
+               ->where('tienda_id', $warehouseId)
+               ->update(['stock' => 0, 'updated_at' => $hoy]);
+         }
+
          DB::commit();
 
          return response()->json([
