@@ -33,9 +33,9 @@
         <li><a href="{{route('inventario.kardex.index')}}" class="dropdown-item">Movimientos (Kardex)</a></li>
         <li><a href="{{route('inventario.transacciones.index')}}" class="dropdown-item">Gestión de Stock</a></li>
         @endunless
-        <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_almacen.historial') : route('inventario.traslados_almacen.index') }}" class="dropdown-item">Traslados desde Almacén</a></li>
-        <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_tiendas.historial') : route('inventario.traslados_tiendas.index') }}" class="dropdown-item">Traslados hacia Almacén</a></li>
-        <li><a href="{{ auth()->user()->hasRole('cajero') ? route('inventario.traslados_inter_tiendas.historial') : route('inventario.traslados_inter_tiendas.index') }}" class="dropdown-item">Traslados entre Tiendas</a></li>
+        <li><a href="{{ route('inventario.traslados_almacen.index') }}" class="dropdown-item">Traslados desde Almacén</a></li>
+        <li><a href="{{ route('inventario.traslados_tiendas.index') }}" class="dropdown-item">Traslados hacia Almacén</a></li>
+        <li><a href="{{ route('inventario.traslados_inter_tiendas.index') }}" class="dropdown-item">Traslados entre Tiendas</a></li>
     </ul>
 </li>
 
