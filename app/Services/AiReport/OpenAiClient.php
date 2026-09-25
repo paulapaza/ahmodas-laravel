@@ -9,13 +9,13 @@ use Exception;
 class OpenAiClient
 {
     protected string $apiKey;
-    protected string $apiUrl = 'https://api.openai.com/v1/chat/completions';
+    protected string $apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key') ?? env('OPENAI_API_KEY') ?? '';
+        $this->apiKey = config('services.groq.api_key') ?? env('GROQ_API_KEY') ?? '';
         if (empty($this->apiKey)) {
-            $this->logError('Falta la clave API de OpenAI en la configuración.');
+            $this->logError('Falta la clave API de Groq en la configuración.');
         }
     }
 

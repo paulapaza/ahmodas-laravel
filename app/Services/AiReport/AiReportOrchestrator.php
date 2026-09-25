@@ -38,8 +38,9 @@ class AiReportOrchestrator
         $schemaContext = file_get_contents($schemaPath);
 
         // PASO 1: Pedir a OpenAI que genere el SQL
+        $model = config('services.groq.model') ?? env('GROQ_MODEL') ?? 'openai/gpt-oss-120b';
         $sqlMessages = $this->promptBuilder->buildSqlPrompt($userPrompt, $schemaContext);
-        $sqlResponse = $this->openAiClient->chat('gpt-4o-mini', $sqlMessages, 0.0, [
+        $sqlResponse = $this->openAiClient->chat($model, $sqlMessages, 0.0, [
             'response_format' => ['type' => 'json_object'],
             'max_tokens' => 2000
         ]);
@@ -96,7 +97,7 @@ class AiReportOrchestrator
 
         // PASO 2: Solicitar a la IA que interprete los datos (con límite de muestras)
         $nlMessages = $this->promptBuilder->buildNaturalLanguagePrompt($userPrompt, $sql, $data, $displayType);
-        $nlResponse = $this->openAiClient->chat('gpt-4o-mini', $nlMessages, 0.2, [
+        $nlResponse = $this->openAiClient->chat($model, $nlMessages, 0.2, [
             'max_tokens' => 1500
         ]);
 
