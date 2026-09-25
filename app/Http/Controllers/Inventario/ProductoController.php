@@ -243,6 +243,7 @@ class ProductoController extends Controller
       ->where('pt.tienda_id', $tiendaId)
       ->select(
         'p.id',
+        'p.codigo_barras',
         'p.nombre',
         'p.alias',
         'p.precio_unitario',
@@ -250,7 +251,7 @@ class ProductoController extends Controller
         'p.precio_x_mayor',
         DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
       )
-      ->groupBy('p.id', 'p.nombre', 'p.alias', 'p.precio_unitario', 'p.precio_minimo', 'p.precio_x_mayor')
+      ->groupBy('p.id', 'p.codigo_barras', 'p.nombre', 'p.alias', 'p.precio_unitario', 'p.precio_minimo', 'p.precio_x_mayor')
       ->get();
 
     return response()->json($productos, 200);

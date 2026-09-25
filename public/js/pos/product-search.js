@@ -25,7 +25,7 @@ class ProductSearch {
                 data: 'id',
                 visible: false,
             },
-            /*   { data: 'codigo_barras' }, */
+            { data: 'codigo_barras', defaultContent: '' },
             { data: 'nombre' },
             { data: 'alias' },
             { data: 'total_stock' },

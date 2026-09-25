@@ -71,7 +71,7 @@
                             <thead class="bg-primary">
                                 <tr>
                                     <th>id</th>
-                                    {{-- <th>Barcode</th> --}}
+                                    <th>Código</th>
                                     <th>Productos</th>
                                     <th>Alias</th>
                                     <th>Stock</th>
