@@ -80,6 +80,7 @@ class SalidaProductoController extends Controller
   public function index(Request $request)
   {
     $tiendaId = $request->input('tienda_id');
+    $ocultarCero = $request->input('ocultar_cero', 1); // Por defecto en 1 (true) para mayor seguridad
 
     // Obtener todas las tiendas o solo la filtrada
     $tiendasQuery = DB::table('tiendas')
@@ -144,6 +145,27 @@ class SalidaProductoController extends Controller
       }
     }
     unset($tienda);
+
+    if ($ocultarCero) {
+      $result = array_filter($result, function ($prod) use ($tiendaId) {
+        if ($tiendaId) {
+          $stockEnTienda = 0;
+          foreach ($prod['tiendas'] as $t) {
+            if ($t['id'] == $tiendaId) {
+              $stockEnTienda = $t['stock'];
+              break;
+            }
+          }
+          return $stockEnTienda > 0;
+        } else {
+          $totalStock = array_reduce($prod['tiendas'], function ($carry, $t) {
+            return $carry + $t['stock'];
+          }, 0);
+          return $totalStock > 0;
+        }
+      });
+    }
+
     $result = array_values($result);
 
     // Convertir a DataTable

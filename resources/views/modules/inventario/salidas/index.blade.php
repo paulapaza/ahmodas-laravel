@@ -15,6 +15,11 @@
                         <b-form-select id="filtro-tienda" v-model="tiendaSeleccionada" :options="opcionesTiendas"
                             @change="actualizarTabla" size="sm" class="shadow-sm border-0"></b-form-select>
                     </div>
+                    <div class="col-md-4 mt-3 mt-md-0 pt-md-4">
+                        <b-form-checkbox v-model="ocultarCero" @change="actualizarTabla" name="check-button" switch>
+                            Ocultar productos sin stock
+                        </b-form-checkbox>
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,6 +103,7 @@
                 variacion: 'REDUCIR', // 'AUMENTAR' o 'REDUCIR'
                 tiendaSeleccionada: null,
                 tiendas: [],
+                ocultarCero: true,
             }
         },
         computed: {
@@ -157,6 +163,7 @@
                         url: '{{ route('inventario.salidas.listado') }}',
                         data: function (d) {
                             d.tienda_id = self.tiendaSeleccionada;
+                            d.ocultar_cero = self.ocultarCero ? 1 : 0;
                         }
                     },
                     order: [[0, 'desc']],
