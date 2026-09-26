@@ -102,6 +102,7 @@ class SalidaProductoController extends Controller
         'p.codigo_barras',
         'p.alias as producto_alias',
         'p.nombre as producto_nombre',
+        'p.created_at as producto_created_at',
         't.id as tienda_id',
         't.nombre as tienda_nombre',
         DB::raw('COALESCE(pt.stock, 0) as stock')
@@ -128,7 +129,8 @@ class SalidaProductoController extends Controller
           'id' => $id,
           'codigo_barras' => $row->codigo_barras,
           'nombre' => $row->producto_nombre,
-          'alias' => $row->producto_alias,
+          'alias' => (!empty(trim($row->producto_alias ?? ''))) ? $row->producto_alias : $row->producto_nombre,
+          'fecha_registro' => !empty($row->producto_created_at) ? \Carbon\Carbon::parse($row->producto_created_at)->format('d/m/Y, h:i A') : '',
           'tiendas' => $tiendas->map(fn($t) => [
             'id' => $t->id,
             'nombre' => $t->nombre,

@@ -30,8 +30,8 @@
                 <tr>
                     <th>id</th>
                     <th>Código de barras</th>
-                    <th>Nombre</th>
-                    <th>Alias</th>
+                    <th>Producto</th>
+                    <th>Fecha de registro</th>
                     <th>Stock por tienda</th>
                     <th>Acciones</th>
                 </tr>
@@ -176,12 +176,16 @@
                         name: 'codigo_barras'
                     },
                     {
-                        data: 'nombre',
-                        name: 'nombre'
+                        data: 'alias',
+                        name: 'alias',
+                        render: function (data, type, row) {
+                            return (data && data.trim() !== '') ? data : row.nombre;
+                        }
                     },
                     {
-                        data: 'alias',
-                        name: 'alias'
+                        data: 'fecha_registro',
+                        name: 'fecha_registro',
+                        orderable: true
                     },
                     {
                         data: 'tiendas',
@@ -207,18 +211,7 @@
                                 `;
                         },
                     }
-                    ],
-                    layout: {
-                        topStart: {
-                            buttons: [
-                                "pageLength",
-                                "copy",
-                                "excel",
-                                "print",
-                                "colvis"
-                            ]
-                        }
-                    }
+                    ]
                 }, this);
 
                 this.table = table;
