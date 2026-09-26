@@ -26,8 +26,14 @@ class ProductSearch {
                 visible: false,
             },
             { data: 'codigo_barras', defaultContent: '' },
-            { data: 'nombre' },
-            { data: 'alias' },
+            {
+                data: 'nombre',
+                render: function (data, type, row) {
+                    let display_text = (row.alias && row.alias.trim() !== '') ? row.alias : data;
+                    return display_text;
+                }
+            },
+            { data: 'alias', visible: false },
             { data: 'total_stock' },
             { data: 'precio_unitario' },
             { data: 'precio_minimo', visible: false }
@@ -60,7 +66,7 @@ class ProductSearch {
             ],
         });
         window.productSearchTableProductos = this.tableProductos;
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#table-Productos_wrapper .dt-buttons button').hide();
             $('#table-Productos_wrapper .dt-buttons .btn-selector-tienda').show();
         });
@@ -70,7 +76,7 @@ class ProductSearch {
      * Vincula los eventos de búsqueda
      */
     bindEvents() {
-       
+
         $("#search-box").on('keydown', (e) => {
             // AL PRESIONAR ENTER O TAB
             if (e.which === 13 || e.which === 9) {
