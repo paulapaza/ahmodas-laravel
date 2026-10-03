@@ -166,6 +166,24 @@
                             d.ocultar_cero = self.ocultarCero ? 1 : 0;
                         }
                     },
+                    layout: {
+                        topStart: {
+                            buttons: [
+                                "pageLength",
+                                "copy",
+                                {
+                                    text: 'Excel',
+                                    className: 'btn btn-secondary', // Match DataTables default button styles
+                                    action: function ( e, dt, node, config ) {
+                                        self.descargarExcel();
+                                    }
+                                },
+                                "csv",
+                                "print",
+                                "colvis"
+                            ]
+                        }
+                    },
                     order: [[0, 'desc']],
                     columns: [{
                         data: 'id',
@@ -232,6 +250,16 @@
                 if (this.table) {
                     this.table.ajax.reload();
                 }
+            },
+            descargarExcel() {
+                const baseUrl = '{{ route("inventario.salidas.exportar_excel") }}';
+                let url = baseUrl;
+                if (this.tiendaSeleccionada) {
+                    url += '?tienda_id=' + this.tiendaSeleccionada;
+                }
+                
+                // Redirigir para iniciar la descarga
+                window.location.href = url;
             },
             editProduct(row) {
                 this.producto = {

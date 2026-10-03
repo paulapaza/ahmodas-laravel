@@ -8,6 +8,7 @@ use App\Services\SalidaProductoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use App\Services\Inventario\ExportStockService;
 
 class SalidaProductoController extends Controller
 {
@@ -69,6 +70,15 @@ class SalidaProductoController extends Controller
 
   //   return response()->json($result, 200);
   // }
+
+  /**
+   * Exportar el stock de una tienda a Excel (Solo productos con stock > 0)
+   */
+  public function exportarStockExcel(Request $request, ExportStockService $exportService)
+  {
+      $tiendaId = $request->input('tienda_id');
+      return $exportService->exportarStockPorTienda($tiendaId);
+  }
 
   protected $salidaProductoService;
 
