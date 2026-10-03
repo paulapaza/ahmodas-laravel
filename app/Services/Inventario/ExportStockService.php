@@ -139,7 +139,21 @@ class ExportStockService
      */
     private function generarRespuestaDescarga(Spreadsheet $spreadsheet, ?int $tiendaId): StreamedResponse
     {
-        $fileName = 'stock_tienda_' . ($tiendaId ?? 'todas') . '_' . now()->format('Ymd_His') . '.xlsx';
+        $nombreTiendaArchivo = 'todas_las_tiendas';
+
+        if ($tiendaId) {
+            $tienda = DB::table('tiendas')->where('id', $tiendaId)->first();
+            if ($tienda) {
+                $nombreTiendaArchivo = (!empty(trim($tienda->alias ?? ''))) ? $tienda->alias : $tienda->nombre;
+                // Sanitizar para que sea un nombre de archivo válido (reemplaza espacios y caracteres raros por _)
+                $nombreTiendaArchivo = preg_replace('/[^A-Za-z0-9]/', '_', $nombreTiendaArchivo);
+                // Evitar múltiples guiones bajos seguidos
+                $nombreTiendaArchivo = preg_replace('/_+/', '_', $nombreTiendaArchivo);
+                $nombreTiendaArchivo = trim($nombreTiendaArchivo, '_');
+            }
+        }
+
+        $fileName = 'stock_' . strtolower($nombreTiendaArchivo) . '_' . now()->format('Ymd_His') . '.xlsx';
         $writer = new Xlsx($spreadsheet);
 
         return new StreamedResponse(function () use ($writer) {
