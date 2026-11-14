@@ -17,6 +17,7 @@ class Larajax {
         printTextFooter = false,
         printSumaEnFooter = false,
         sumarcolumnafiltrada = false,
+        language = false,
 
         mydataSrc = "", // funcion con datos antes de contruir la tabla
     }) {
@@ -41,6 +42,7 @@ class Larajax {
         this.printTextFooter = printTextFooter;
         this.printSumaEnFooter = printSumaEnFooter;
         this.sumarcolumnafiltrada = sumarcolumnafiltrada;
+        this.language = language;
         //pro datatables
         this.mydataSrc = mydataSrc;
         this.renderDataTable();
@@ -55,10 +57,11 @@ class Larajax {
             ajax: this.dataAjax(),
             columns: this.columnsTable(),
             columnDefs: this.renderColumsDef(),
-            language: {
+            language: Object.assign({
+                thousands: ".",
                 lengthMenu: "Mostrar _MENU_ registros por página",
                 zeroRecords: "No se encontraron resultados",
-                info: "Mostrando la página _PAGE_ de _PAGES_",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
                 infoEmpty: "No hay registros disponibles",
                 emptyTable: "No hay registros disponibles",
                 infoFiltered: "(filtrado de _MAX_ registros totales)",
@@ -91,7 +94,7 @@ class Larajax {
                     pdf: "PDF",
                     print: "Imprimir",
                 },
-            },
+            }, this.language || {}),
             layout: {
                 topStart: {
                     buttons: [this.topButtonDefault(this.subject)],

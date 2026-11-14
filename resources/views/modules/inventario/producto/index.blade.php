@@ -4,6 +4,38 @@
     </x-slot>
     <x-slot name="pagetitle">Productos</x-slot>
 
+    <style>
+        .buttons-print {
+            display: none !important;
+        }
+    </style>
+
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body bg-light rounded py-2">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <label for="filtroTienda" class="form-label font-weight-bold text-muted small text-uppercase mb-1">
+                        <i class="fas fa-store mr-1"></i> Filtrar por Tienda
+                    </label>
+                    <select id="filtroTienda" class="form-control form-control-sm shadow-sm border-0">
+                        <option value="">Todas las Tiendas</option>
+                        @foreach(\Illuminate\Support\Facades\DB::table('tiendas')->select('id', 'nombre')->orderBy('id')->get() as $t)
+                            <option value="{{ $t->id }}">{{ $t->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4 mt-3 mt-md-0 pt-md-4">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="switchOcultarSinStock">
+                        <label class="custom-control-label font-weight-bold text-dark" for="switchOcultarSinStock" style="cursor: pointer;">
+                            Ocultar productos sin stock
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <x-table>
         <th>id</th>
         <th>Barcode</th>
@@ -17,6 +49,7 @@
         <th>categoria</th>
         <th>F.Creación</th>
         <th>estado</th>
+        <th>Stock por tienda</th>
         <th>acciones</th>
     </x-table>
 
@@ -187,9 +220,9 @@
                                         <td class="text-center align-middle">@{{ formatFecha(item.created_at) }}</td>
                                     </tr>
 
-                                    <tr v-if="historial.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            No hay registros de reducciones para este producto.
+                                    <tr v-if="filteredHistorial.length === 0">
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            No hay registros de movimientos para este producto.
                                         </td>
                                     </tr>
                                 </tbody>
@@ -199,6 +232,44 @@
                 </div>
             </div>
         </div>
+
+        <b-modal id="modal-reducir-stock" :title="stockModalTitle" ok-title="Guardar" @ok.prevent="guardarCambiosStock" size="lg"
+            header-class="bg-xprimary text-white" dialog-class="modal-lg">
+            <div v-if="productoStockModal">
+                <h5><strong v-text="productoStockModal.codigo_barras.label"></strong> <span v-text="productoStockModal.codigo_barras.value"></span></h5>
+                <h5><strong v-text="productoStockModal.nombre.label"></strong> <span v-text="productoStockModal.nombre.value"></span></h5>
+            </div>
+
+            <b-table :items="productoStockModal ? productoStockModal.tiendas : []" :fields="camposStock" bordered small responsive class="mt-3">
+                <!-- Nombre de la tienda -->
+                <template #cell(nombre)="data">
+                    @{{ data.item.nombre }}
+                </template>
+
+                <!-- Stock actual -->
+                <template #cell(stock_actual)="data">
+                    @{{ data.item.stock }}
+                </template>
+
+                <!-- Variación -->
+                <template #cell(variacion)="data">
+                    <b-form-input type="text" v-model="data.item.variacion" @input="soloNumerosPositivos(data.item)"
+                        @focus="$event.target.select()" size="sm"
+                        style="display: inline-block; width:70px; text-align:right;" placeholder="0" />
+                </template>
+
+                <!-- Stock resultante -->
+                <template #cell(stock_resultante)="data">
+                    @{{ data.item.stock_resultante }}
+                </template>
+
+                <!-- Comentario -->
+                <template #cell(comentario)="data">
+                    <b-form-input type="text" v-model="data.item.comentario" placeholder="Escribe un comentario..."
+                        size="sm" />
+                </template>
+            </b-table>
+        </b-modal>
     </div>
 
 </x-admin-layout>
@@ -216,22 +287,47 @@
         };
         let table = new Larajax({
             data: dataCrud,
+            order: [[1, "desc"], [0, "desc"]],
+            language: {
+                thousands: ".",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                infoFiltered: "(filtrado de _MAX_ registros totales)"
+            },
             columns: [{
                 data: 'id'
             },
             {
                 data: 'codigo_barras',
+                render: function (data, type, row) {
+                    if (type === 'sort' || type === 'type') {
+                        if (data && data.toString().trim() !== '') {
+                            return data.toString().trim();
+                        }
+                        return row.id ? row.id.toString() : '';
+                    }
+                    return data || '-';
+                }
             },
             {
                 data: 'nombre',
-                className: 'col-nombre-producto'
-
+                className: 'col-nombre-producto',
+                render: function (data, type, row) {
+                    if (row.alias && row.alias.trim() !== '') {
+                        return row.alias;
+                    }
+                    if (data && data.trim() !== '') {
+                        return data;
+                    }
+                    return '-';
+                }
             },
             {
-                data: 'alias'
+                data: 'alias',
+                visible: false
             },
             {
                 data: 'total_stock',
+                visible: false,
                 render: function (data, type, row) {
                     if (data === 0 || data === "0" || row.tiene_salida === 0) {
                         return data;
@@ -241,21 +337,24 @@
                 },
             },
             {
-                data: 'costo_unitario'
+                data: 'costo_unitario',
+                visible: false
             },
             {
                 data: 'precio_unitario'
             },
 
             {
-                data: 'precio_minimo'
+                data: 'precio_minimo',
+                visible: false
             },
             {
                 data: 'precio_x_mayor',
-                visible: window.currentUserPermissions?.includes('ver-precio-x-mayor') //
+                visible: false
             },
             {
                 data: 'categoria_id',
+                visible: false,
                 render: function (data, type, row) {
                     return row.categoria_nombre;
                 }
@@ -273,35 +372,148 @@
                         '<span class="badge bg-xsecondary text-white">Inactivo</span>'
                 }
             },
-
-            ],
-            actionsButtons: {
-                edit: true,
-                destroy: true
+            {
+                data: 'tiendas',
+                name: 'tiendas',
+                orderable: false,
+                searchable: false,
+                render: function (data, type, row) {
+                    let tiendaId = $('#filtroTienda').val();
+                    if (tiendaId) {
+                        let t = (row.tiendas || []).find(item => item.id == tiendaId);
+                        let stockVal = t ? t.stock : 0;
+                        if (type === 'sort' || type === 'type') {
+                            return stockVal;
+                        }
+                        return `<strong>${stockVal}</strong>`;
+                    }
+                    if (type === 'sort' || type === 'type') {
+                        return parseFloat(row.total_stock) || 0;
+                    }
+                    if (!data || !Array.isArray(data)) return '-';
+                    return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`).join('<br>');
+                }
             },
-            alingCenter: [1, 4, 5, 6, 7, 8, 10],
+            {
+                data: 'id',
+                name: 'acciones',
+                orderable: false,
+                searchable: false,
+                className: 'text-center d-print-none acciones',
+                render: function (data, type, row) {
+                    return `
+                        <div class="btn-group dropleft">
+                            <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Acciones
+                            </button>
+                            <div class="dropdown-menu shadow">
+                                <button type="button" class="dropdown-item btn-reducir-stock">
+                                    <i class="fas fa-arrow-down text-danger mr-2"></i> Reducir
+                                </button>
+                                <button type="button" class="dropdown-item btn-aumentar-stock">
+                                    <i class="fas fa-arrow-up text-success mr-2"></i> Aumentar
+                                </button>
+                                <a href="{{ route('inventario.kardex.index') }}?producto_id=${row.id}" class="dropdown-item">
+                                    <i class="fas fa-clipboard-list text-info mr-2"></i> Kardex
+                                </a>
+                                <button type="button" class="dropdown-item btn-historial-stock">
+                                    <i class="fas fa-history text-secondary mr-2"></i> Historial stock
+                                </button>
+                                <button type="button" class="dropdown-item btn-edit">
+                                    <i class="fas fa-edit text-warning mr-2"></i> Editar
+                                </button>
+                                <div class="dropdown-divider"></div>
+                                <button type="button" class="dropdown-item btn-destroy text-danger">
+                                    <i class="fas fa-trash-alt mr-2"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            ],
+            actionsButtons: false,
+            alingCenter: [1, 6, 10, 11],
 
-        })
+        });
+
+        // Eliminar botón Imprimir
+        if (table.buttons) {
+            try {
+                table.buttons('.buttons-print').remove();
+            } catch (e) {
+                $('.buttons-print').remove();
+            }
+        }
+
+        // Helper para obtener rowData de forma segura incluso en dropdowns o responsive child rows
+        function getRowDataFromBtn(btn) {
+            let tr = $(btn).closest('tr');
+            if (tr.hasClass('child')) {
+                return table.row(tr.prev('tr')).data();
+            }
+            return table.row(tr).data();
+        }
+
+        // Cargar tiendas en el select si no vinieron renderizadas desde Blade
+        if ($('#filtroTienda option').length <= 1) {
+            $.ajax({
+                url: '/inventario/salidas/tiendas/listado',
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    let list = Array.isArray(res) ? res : (res && Array.isArray(res.data) ? res.data : []);
+                    let options = '<option value="">Todas las Tiendas</option>';
+                    list.forEach(function (tienda) {
+                        options += `<option value="${tienda.id}">${tienda.nombre}</option>`;
+                    });
+                    $('#filtroTienda').html(options);
+                }
+            });
+        }
+
+        // Filtro personalizado para ocultar productos sin stock y/o por tienda
+        let ocultarSinStock = false;
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex, rowData) {
+            if (settings.sTableId !== 'table') {
+                return true;
+            }
+            const row = rowData || (window.productosIndexTable ? window.productosIndexTable.row(dataIndex).data() : null);
+            if (!row) {
+                return true;
+            }
+            const tiendaId = $('#filtroTienda').val();
+            if (ocultarSinStock) {
+                if (tiendaId) {
+                    const t = (row.tiendas || []).find(item => item.id == tiendaId);
+                    const stockEnTienda = t ? parseFloat(t.stock) || 0 : 0;
+                    return stockEnTienda > 0;
+                } else {
+                    const totalStock = parseFloat(row.total_stock) || 0;
+                    return totalStock > 0;
+                }
+            }
+            return true;
+        });
+
+        $('#filtroTienda').on('change', function () {
+            if (window.productosIndexTable) {
+                window.productosIndexTable.rows().invalidate('data').draw(false);
+            }
+        });
+
+        $('#switchOcultarSinStock').on('change', function () {
+            ocultarSinStock = $(this).is(':checked');
+            if (window.productosIndexTable) {
+                window.productosIndexTable.rows().invalidate('data').draw(false);
+            }
+        });
 
         cargarStocks(); // sin parámetro
-        // edit record
 
-        /*  $('#table').on('click', '.btn-edit', function() {
-             let rowData = ($(this).parents('tr').hasClass('child')) ?
-                 table.row($(this).parents().prev('tr')).data() :
-                 table.row($(this).parents('tr')).data();
-             await cargarStocks(rowData.id);
-
-             edit_record(rowData, table, $(this));
-         
-         }); */
         $('#table').on('click', '.btn-edit', async function () {
-            let rowData = ($(this).parents('tr').hasClass('child')) ?
-                table.row($(this).parents().prev('tr')).data() :
-                table.row($(this).parents('tr')).data();
-
-            await cargarStocks(rowData.id); // ✅ ahora sí puedes usar await aquí
-
+            let rowData = getRowDataFromBtn(this);
+            await cargarStocks(rowData.id);
             edit_record(rowData, table, $(this));
         });
 
@@ -316,7 +528,6 @@
                 return;
             }
             let formData = new FormData(form);
-            // console.log(formData);
 
             // agrega ulid a la data
             const uid = ULID.ulid();
@@ -328,13 +539,32 @@
 
         // destroy record
         $('#table').on("click", ".btn-destroy", function () {
-            console.log('destroy')
+            let rowData = getRowDataFromBtn(this);
+            destroy_record(dataCrud, table, rowData);
+        });
 
-            let rowData = ($(this).parents('tr').hasClass('child')) ?
-                table.row($(this).parents().prev('tr')).data() :
-                table.row($(this).parents('tr')).data();
+        // reducir stock
+        $('#table').on('click', '.btn-reducir-stock', function () {
+            let rowData = getRowDataFromBtn(this);
+            if (window.productosVue) {
+                window.productosVue.abrirModalStock(rowData, 'REDUCIR');
+            }
+        });
 
-            destroy_record(dataCrud, table, rowData)
+        // aumentar stock
+        $('#table').on('click', '.btn-aumentar-stock', function () {
+            let rowData = getRowDataFromBtn(this);
+            if (window.productosVue) {
+                window.productosVue.abrirModalStock(rowData, 'AUMENTAR');
+            }
+        });
+
+        // historial stock
+        $('#table').on('click', '.btn-historial-stock', function () {
+            let rowData = getRowDataFromBtn(this);
+            if (window.productosVue) {
+                window.productosVue.abrirHistorial(rowData);
+            }
         });
 
         //cargar select de categorias
@@ -457,6 +687,13 @@
                 ],
                 selectedTienda: null,
                 tiendas: [],
+                productoStockModal: {
+                    id: null,
+                    codigo_barras: { label: '', value: '' },
+                    nombre: { label: '', value: '' },
+                    tiendas: []
+                },
+                variacion: 'REDUCIR',
             }
         },
         computed: {
@@ -466,8 +703,28 @@
                 }
                 return this.historial.filter(item => item.tienda_id === this.selectedTienda);
             },
+            stockModalTitle() {
+                return this.variacion === 'AUMENTAR'
+                    ? 'Aumentar Stock de Producto'
+                    : 'Reducir Stock de Producto';
+            },
+            camposStock() {
+                return [
+                    { key: "nombre", label: "Tienda", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    { key: "stock_actual", label: "Stock Actual", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    {
+                        key: 'variacion',
+                        label: this.variacion === 'AUMENTAR' ? 'Aumentar' : 'Reducir',
+                        thClass: `${this.variacion === 'AUMENTAR' ? 'bg-success' : 'bg-danger'} text-white text-center align-middle`,
+                        tdClass: 'text-center align-middle'
+                    },
+                    { key: "stock_resultante", label: "Stock Resultante", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                    { key: "comentario", label: "Comentario", thClass: 'text-center align-middle', tdClass: 'text-center align-middle' },
+                ];
+            },
         },
         mounted() {
+            window.productosVue = this;
             const vm = this;
             $('#table').on('click', '.edit-btn', function () {
                 const rowData = window.productosIndexTable.row($(this).closest('tr')).data();
@@ -481,6 +738,114 @@
                 this.cargarHistorial();
                 this.getTiendas();
                 $("#modal-historial-salidas").modal("show");
+            },
+            abrirModalStock(row, variacion = 'REDUCIR') {
+                this.variacion = variacion;
+                const nombreProd = (row.alias && row.alias.trim() !== '') ? row.alias : (row.nombre || '-');
+                this.productoStockModal = {
+                    id: row.id,
+                    codigo_barras: {
+                        label: 'Código de barras:',
+                        value: row.codigo_barras || '',
+                    },
+                    nombre: {
+                        label: 'Nombre:',
+                        value: nombreProd,
+                    },
+                    tiendas: Array.isArray(row.tiendas) ? JSON.parse(JSON.stringify(row.tiendas)) : [],
+                };
+                if (this.productoStockModal.tiendas.length > 0) {
+                    this.productoStockModal.tiendas.forEach((t) => {
+                        this.$set(t, "variacion", 0);
+                        this.$set(t, "stock_resultante", t.stock);
+                        this.$set(t, "comentario", "");
+                    });
+                    this.$bvModal.show("modal-reducir-stock");
+                } else {
+                    window.api.get(`/inventario/stock?producto_id=${row.id}`)
+                        .then(res => {
+                            const tiendasList = Array.isArray(res) ? res : (res.data || []);
+                            this.productoStockModal.tiendas = tiendasList.map(t => ({
+                                id: t.id,
+                                nombre: t.nombre,
+                                stock: t.stock || 0,
+                                variacion: 0,
+                                stock_resultante: t.stock || 0,
+                                comentario: ''
+                            }));
+                            this.$bvModal.show("modal-reducir-stock");
+                        })
+                        .catch(err => {
+                            console.error('Error cargando stock:', err);
+                            this.$bvToast.toast('No se pudo cargar el stock por tienda.', {
+                                title: 'Error',
+                                variant: 'danger',
+                                solid: true
+                            });
+                        });
+                }
+            },
+            soloNumerosPositivos(tienda) {
+                let valor = tienda.variacion != null ? tienda.variacion.toString() : "";
+                const soloNumeros = valor.replace(/[^0-9]/g, "");
+                if (soloNumeros === "") {
+                    tienda.variacion = "";
+                    tienda.stock_resultante = tienda.stock;
+                    return;
+                }
+                let numero = parseInt(soloNumeros, 10);
+                if (isNaN(numero) || numero < 0) {
+                    numero = 0;
+                }
+                tienda.stock_resultante = this.variacion === 'AUMENTAR'
+                    ? tienda.stock + numero
+                    : tienda.stock - numero;
+                tienda.variacion = numero;
+            },
+            guardarCambiosStock() {
+                if (!this.productoStockModal || !this.productoStockModal.tiendas) return;
+
+                const datos = this.productoStockModal.tiendas
+                    .filter(t => t.stock_resultante !== t.stock)
+                    .map((t) => ({
+                        producto_id: this.productoStockModal.id,
+                        tienda_id: t.id,
+                        stock_antes: t.stock,
+                        cantidad_reducida: t.variacion,
+                        stock_despues: t.stock_resultante,
+                        tipo: this.variacion === 'REDUCIR' ? 1 : 3,
+                        comentario: t.comentario,
+                    }));
+
+                if (datos.length === 0) {
+                    this.$bvModal.hide('modal-reducir-stock');
+                    return;
+                }
+
+                const msg = this.variacion === 'AUMENTAR'
+                    ? 'Stock aumentado correctamente.'
+                    : 'Stock reducido correctamente.';
+
+                window.api.post('/inventario/salidas/reducir', datos)
+                    .then(res => {
+                        this.$bvToast.toast(msg, {
+                            title: 'Éxito',
+                            variant: 'success',
+                            solid: true
+                        });
+                        this.$bvModal.hide('modal-reducir-stock');
+                        if (window.productosIndexTable) {
+                            window.productosIndexTable.ajax.reload(null, false);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('❌ Error al guardar:', err);
+                        this.$bvToast.toast('Hubo un error al guardar los cambios.', {
+                            title: 'Error',
+                            variant: 'danger',
+                            solid: true
+                        });
+                    });
             },
             async cargarHistorial() {
                 if (!this.productoIdHistorial) return;

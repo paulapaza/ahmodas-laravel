@@ -31,8 +31,8 @@
                     <th>id</th>
                     <th>Código de barras</th>
                     <th>Producto</th>
-                    <th>Fecha de registro</th>
                     <th>Stock por tienda</th>
+                    <th>Fecha de registro</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -201,19 +201,28 @@
                         }
                     },
                     {
-                        data: 'fecha_registro',
-                        name: 'fecha_registro',
-                        orderable: true
-                    },
-                    {
                         data: 'tiendas',
                         name: 'tiendas',
                         orderable: false,
                         searchable: false,
-                        render: function (data) {
+                        render: function (data, type, row) {
+                            if (!data || !Array.isArray(data)) return '-';
+                            if (self.tiendaSeleccionada) {
+                                const t = data.find(item => item.id == self.tiendaSeleccionada) || data[0];
+                                const stock = t ? t.stock : 0;
+                                if (type === 'sort' || type === 'type') {
+                                    return stock;
+                                }
+                                return `<strong>${stock}</strong>`;
+                            }
                             return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`)
                                 .join('<br>');
                         }
+                    },
+                    {
+                        data: 'fecha_registro',
+                        name: 'fecha_registro',
+                        orderable: true
                     },
                     {
                         data: null,

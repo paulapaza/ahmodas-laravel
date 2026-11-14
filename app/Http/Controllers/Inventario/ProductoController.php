@@ -16,6 +16,15 @@ class ProductoController extends Controller
 {
   public function index()
   {
+    $tiendas = DB::table('tiendas')->select('id', 'nombre')->orderBy('id')->get();
+    $stocksRaw = DB::table('producto_tienda')->select('producto_id', 'tienda_id', 'stock')->get();
+    $stocksMap = [];
+    foreach ($stocksRaw as $s) {
+      $stocksMap[$s->producto_id][$s->tienda_id] = (int)$s->stock;
+    }
+
+    $salidasMap = DB::table('salida_productos')->select('producto_id')->distinct()->pluck('producto_id')->flip();
+
     $productos = DB::table('productos as p')
       ->join('categorias as c', 'p.categoria_id', '=', 'c.id')
       ->join('marcas as m', 'p.marca_id', '=', 'm.id')
@@ -37,8 +46,7 @@ class ProductoController extends Controller
         'p.created_at',
         'c.nombre as categoria_nombre',
         'm.nombre as marca_nombre',
-        DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock'),
-        DB::raw("EXISTS (SELECT 1 FROM salida_productos sp WHERE sp.producto_id = p.id) as tiene_salida")
+        DB::raw('COALESCE(SUM(pt.stock), 0) as total_stock')
       )
       ->groupBy(
         'p.id',
@@ -58,8 +66,21 @@ class ProductoController extends Controller
         'c.nombre',
         'm.nombre'
       )
-      ->orderBy('p.nombre')
+      ->orderByRaw("COALESCE(NULLIF(TRIM(p.codigo_barras), ''), p.id) DESC")
       ->get();
+
+    foreach ($productos as $p) {
+      $p->tiene_salida = isset($salidasMap[$p->id]) ? 1 : 0;
+      $pTiendas = [];
+      foreach ($tiendas as $t) {
+        $pTiendas[] = [
+          'id' => $t->id,
+          'nombre' => $t->nombre,
+          'stock' => $stocksMap[$p->id][$t->id] ?? 0,
+        ];
+      }
+      $p->tiendas = $pTiendas;
+    }
 
     return response()->json($productos, 200);
   }
