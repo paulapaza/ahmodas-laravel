@@ -111,10 +111,11 @@ class ProductoController extends Controller
     $stocks = $request->input('stocks', []);
 
     foreach ($stocks as $tiendaId => $stock) {
-      //SI EL STOK ES NULL O VACIO, SE ASIGNA 0
-      if (is_null($stock) || $stock === '') {
+      // SI EL STOCK ES NULL O VACIO O NEGATIVO, SE ASIGNA 0
+      if (is_null($stock) || $stock === '' || $stock < 0) {
         $stock = 0;
       }
+      $stock = max(0, (int) $stock);
       $producto->tiendas()->attach($tiendaId, ['stock' => $stock]);
     }
 
@@ -148,6 +149,10 @@ class ProductoController extends Controller
     // Actualizar stocks
     $stocks = $request->input('stocks', []);
     foreach ($stocks as $tiendaId => $stock) {
+      if (is_null($stock) || $stock === '' || $stock < 0) {
+        $stock = 0;
+      }
+      $stock = max(0, (int) $stock);
       // Verificar si la tienda ya está asociada al producto
       if ($producto->tiendas()->where('tienda_id', $tiendaId)->exists()) {
         // Actualizar stock existente

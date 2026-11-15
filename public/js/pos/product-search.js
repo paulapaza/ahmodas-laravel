@@ -136,7 +136,10 @@ class ProductSearch {
                 const stock = product.stock_actual !== undefined ? product.stock_actual : (product.total_stock || 0);
 
                 if (stock <= 0) {
-                    POSUtils.showError('No hay stock disponible para este producto');
+                    const msg = stock < 0 
+                        ? `Alerta: El producto tiene stock negativo (${stock}). No se puede vender.` 
+                        : 'No hay stock disponible para este producto (Stock: 0)';
+                    POSUtils.showError(msg);
                     return;
                 }
 
@@ -178,8 +181,12 @@ class ProductSearch {
     handleProductTableClick(row) {
         const data = this.tableProductos.row(row).data();
 
-        if (data.total_stock <= 0) {
-            POSUtils.showError('No hay stock disponible para este producto');
+        const stock = data.total_stock !== undefined ? data.total_stock : (data.stock !== undefined ? data.stock : 0);
+        if (stock <= 0) {
+            const msg = stock < 0 
+                ? `Alerta: El producto tiene stock negativo (${stock}). No se puede vender.` 
+                : 'No hay stock disponible para este producto (Stock: 0)';
+            POSUtils.showError(msg);
             return;
         }
 

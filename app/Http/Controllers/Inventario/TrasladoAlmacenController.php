@@ -323,6 +323,17 @@ class TrasladoAlmacenController extends Controller
 
          $disponible = $traslado->stock_disponible;
 
+         // Verificar stock físico en tienda antes de restar
+         $stockTiendaActual = DB::table('producto_tienda')
+            ->where('producto_id', $traslado->producto_id)
+            ->where('tienda_id', $traslado->tienda_id)
+            ->lockForUpdate()
+            ->value('stock') ?? 0;
+
+         if ($disponible > 0 && $stockTiendaActual < $disponible) {
+            throw new \Exception("No se puede eliminar el traslado: la tienda solo cuenta con {$stockTiendaActual} unidad(es) física(s) y se intentarían restar {$disponible}. Es probable que ya hayan sido vendidas en el POS o trasladadas.");
+         }
+
          // 1. Devolver disponible al Almacén Principal
          DB::table('producto_tienda')
             ->where('producto_id', $traslado->producto_id)
@@ -369,16 +380,38 @@ class TrasladoAlmacenController extends Controller
 
          $delta = $nuevaVenta - $traslado->stock_vendido;
 
-         // Validar que el delta no supere lo disponible
+         // Validar que el delta no supere lo disponible en el traslado
          if ($traslado->stock_disponible < $delta) {
             throw new \Exception("No hay suficiente stock disponible en el traslado para marcar esta venta.");
          }
 
+         // Validar que la tienda tenga stock físico real si se está incrementando la venta (delta > 0)
+         if ($delta > 0) {
+            $stockTiendaActual = DB::table('producto_tienda')
+               ->where('producto_id', $traslado->producto_id)
+               ->where('tienda_id', $traslado->tienda_id)
+               ->lockForUpdate()
+               ->value('stock') ?? 0;
+
+            if ($stockTiendaActual < $delta) {
+               throw new \Exception("No se puede marcar la venta: la tienda solo cuenta con {$stockTiendaActual} unidad(es) física(s) en inventario y se intentan descontar {$delta}. Si esta venta ya fue registrada en el Punto de Venta (POS), el sistema ya la descontó automáticamente.");
+            }
+         }
+
          // 1. Ajustar Inventario Físico de la Tienda
-         DB::table('producto_tienda')
-            ->where('producto_id', $traslado->producto_id)
-            ->where('tienda_id', $traslado->tienda_id)
-            ->decrement('stock', $delta);
+         if ($delta != 0) {
+            if ($delta > 0) {
+               DB::table('producto_tienda')
+                  ->where('producto_id', $traslado->producto_id)
+                  ->where('tienda_id', $traslado->tienda_id)
+                  ->decrement('stock', $delta);
+            } else {
+               DB::table('producto_tienda')
+                  ->where('producto_id', $traslado->producto_id)
+                  ->where('tienda_id', $traslado->tienda_id)
+                  ->increment('stock', abs($delta));
+            }
+         }
 
          // 2. Actualizar Registro de Traslado
          $nuevoDisponible = $traslado->stock_disponible - $delta;
@@ -436,7 +469,18 @@ class TrasladoAlmacenController extends Controller
 
          // Validar que no se regrese más de lo disponible
          if ($traslado->stock_disponible < $cantidadRegresar) {
-            throw new \Exception("No puedes regresar más unidades de las que hay disponibles en tienda ({$traslado->stock_disponible}).");
+            throw new \Exception("No puedes regresar más unidades de las que hay disponibles en el registro del traslado ({$traslado->stock_disponible}).");
+         }
+
+         // Validar que la tienda tenga stock físico real para devolver al almacén
+         $stockTiendaActual = DB::table('producto_tienda')
+            ->where('producto_id', $traslado->producto_id)
+            ->where('tienda_id', $traslado->tienda_id)
+            ->lockForUpdate()
+            ->value('stock') ?? 0;
+
+         if ($stockTiendaActual < $cantidadRegresar) {
+            throw new \Exception("Stock físico insuficiente en tienda ({$stockTiendaActual} unidades disponibles). No se puede devolver {$cantidadRegresar} unidad(es) al almacén porque el producto ya no se encuentra físicamente en la tienda.");
          }
 
          // 1. Devolver al Almacén Principal

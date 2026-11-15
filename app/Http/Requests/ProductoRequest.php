@@ -40,7 +40,7 @@ class ProductoRequest extends FormRequest
             'marca_id' => 'required|exists:marcas,id',
             'categoria_id' => 'required|exists:categorias,id',
             'stocks' => 'required|array',
-            'stocks.*' => 'nullable|numeric'
+            'stocks.*' => 'nullable|numeric|min:0'
            
         ];
     }

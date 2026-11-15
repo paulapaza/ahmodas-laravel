@@ -385,13 +385,21 @@
                         if (type === 'sort' || type === 'type') {
                             return stockVal;
                         }
+                        if (stockVal < 0) {
+                            return `<span class="badge badge-danger" title="¡Stock Negativo! Requiere ajuste">⚠️ ${stockVal}</span>`;
+                        }
                         return `<strong>${stockVal}</strong>`;
                     }
                     if (type === 'sort' || type === 'type') {
                         return parseFloat(row.total_stock) || 0;
                     }
                     if (!data || !Array.isArray(data)) return '-';
-                    return data.map(t => `<strong>${t.nombre}:</strong> ${t.stock}`).join('<br>');
+                    return data.map(t => {
+                        let s = t.stock < 0 
+                            ? `<span class="badge badge-danger" title="¡Stock Negativo! Requiere ajuste">⚠️ ${t.stock}</span>` 
+                            : t.stock;
+                        return `<strong>${t.nombre}:</strong> ${s}`;
+                    }).join('<br>');
                 }
             },
             {

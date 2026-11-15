@@ -80,11 +80,12 @@ class PosServices
         $producto = Producto::find($producto_id);
         if ($producto) {
             $stock = $producto->stockEnTienda($tienda_id);
-            //if ($stock >= $cantidad) {
-            $producto->tiendas()->updateExistingPivot($tienda_id, ['stock' => $stock - $cantidad]);
-            //} else {
-            //    throw new \Exception('Stock insuficiente para la venta.');  
-            //} 
+            if ($stock >= $cantidad) {
+                $producto->tiendas()->updateExistingPivot($tienda_id, ['stock' => $stock - $cantidad]);
+            } else {
+                $nombre = $producto->nombre ?? "ID {$producto_id}";
+                throw new \Exception("Stock insuficiente para '{$nombre}' en la tienda (Stock disponible: {$stock}, solicitado: {$cantidad}).");  
+            } 
         } else {
             throw new Exception('Producto no encontrado.');
         }
@@ -251,8 +252,9 @@ class PosServices
                 $stockActual = $stockMap[$producto_id] ?? 0;
 
                 if ($stockActual < $cantidad) {
+                    $nombreProd = DB::table('productos')->where('id', $producto_id)->value('nombre') ?? "ID {$producto_id}";
                     throw new Exception(
-                        "Stock insuficiente para el producto ID {$producto_id}"
+                        "Stock insuficiente para '{$nombreProd}' en la tienda (Stock disponible: {$stockActual}, solicitado: {$cantidad})."
                     );
                 }
             }
