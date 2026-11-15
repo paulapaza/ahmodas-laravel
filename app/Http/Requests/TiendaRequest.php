@@ -26,6 +26,7 @@ class TiendaRequest extends FormRequest
       'nombre' => 'required|string|max:100',
       'mostrar_en_visor' => 'nullable|boolean',
       'es_almacen' => 'nullable|boolean',
+      'solo_codigo_barra' => 'nullable|integer',
     ];
   }
 }

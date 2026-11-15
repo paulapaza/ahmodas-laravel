@@ -20,6 +20,13 @@ class Tienda extends Model
         'mostrar_en_visor',
         'es_almacen',
         'minutos_retraso_facturacion',
+        'solo_codigo_barra',
+    ];
+
+    protected $casts = [
+        'solo_codigo_barra' => 'integer',
+        'es_almacen' => 'integer',
+        'mostrar_en_visor' => 'integer',
     ];
 
     public function productos()

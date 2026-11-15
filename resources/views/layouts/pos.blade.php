@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="{{ asset('plugins/fontawesome/css/all.min.css') }}">
  <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('css/adminlte.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ filemtime(public_path('css/custom.css')) }}">
   <!-- DataTables -->
    
   <link rel="stylesheet" href="{{ asset('css/datatables.min.css') }}">

@@ -15,6 +15,7 @@
         <th>Visor</th>
         <th>Almacén</th>
         <th>Retraso (min)</th>
+        <th>Búsqueda POS</th>
 
     </x-table>
 
@@ -107,6 +108,16 @@
                     </select>
                 </div>
             </div>
+
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="solo_codigo_barra">Búsqueda de productos en POS</label>
+                    <select class="form-control" id="solo_codigo_barra" name="solo_codigo_barra" required>
+                        <option value="0" selected>0 - Ambos (Código de barras / Escáner y Lista de productos)</option>
+                        <option value="1">1 - Solo Código de barras / Escáner (Oculta botón [+] de lista)</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
     </x-mymodal>
@@ -152,19 +163,27 @@
                 {
                     data: 'mostrar_en_visor',
                     render: function(data) {
-                        return (data == 1) ? '<span class="badge bg-xinfo">Sí</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
+                        return (data == 1) ? '<span class="badge badge-xinfo">Sí</span>' : '<span class="badge badge-xsecondary">No</span>'
                     }
                 },
                 {
                     data: 'es_almacen',
                     render: function(data) {
-                        return (data == 1) ? '<span class="badge bg-xprimary text-white">SÍ</span>' : '<span class="badge bg-xsecondary text-white">No</span>'
+                        return (data == 1) ? '<span class="badge badge-xprimary">SÍ</span>' : '<span class="badge badge-xsecondary">No</span>'
                     }
                 },
                 {
                     data: 'minutos_retraso_facturacion',
                     render: function(data) {
-                        return (data == 0) ? '<span class="badge bg-xsuccess">Inmediato</span>' : '<span class="badge bg-xwarning text-dark">' + data + ' min</span>'
+                        return (data == 0) ? '<span class="badge badge-xsuccess">Inmediato</span>' : '<span class="badge badge-xsuccess">' + data + ' min</span>'
+                    }
+                },
+                {
+                    data: 'solo_codigo_barra',
+                    render: function(data) {
+                        return (data == 1 || data === true || data === '1') 
+                            ? '<span class="badge badge-xsuccess">Solo Código</span>' 
+                            : '<span class="badge badge-xinfo">Ambos</span>';
                     }
                 },
                

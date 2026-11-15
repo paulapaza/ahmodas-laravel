@@ -36,6 +36,7 @@ class TiendaController extends Controller
         $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
         $tienda->es_almacen = $request->input('es_almacen', 0);
         $tienda->minutos_retraso_facturacion = $request->input('minutos_retraso_facturacion', 0);
+        $tienda->solo_codigo_barra = $request->input('solo_codigo_barra', 0);
         $tienda->save();
 
         if ($tienda->es_almacen == 1) {
@@ -65,6 +66,7 @@ class TiendaController extends Controller
         $tienda->mostrar_en_visor = $request->input('mostrar_en_visor', 1);
         $tienda->es_almacen = $request->input('es_almacen', 0);
         $tienda->minutos_retraso_facturacion = $request->input('minutos_retraso_facturacion', 0);
+        $tienda->solo_codigo_barra = $request->input('solo_codigo_barra', 0);
         $tienda->save();
 
         if ($tienda->es_almacen == 1) {

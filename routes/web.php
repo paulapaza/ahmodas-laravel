@@ -48,10 +48,11 @@ Route::middleware([
      Punto de Venta
      ************************/
     Route::get('/punto-de-venta', function () {
-        $tiendas = Tienda::select('id', 'nombre', 'alias')->get();
+        $tiendas = Tienda::select('id', 'nombre', 'alias', 'solo_codigo_barra')->get();
         $idTienda = Auth::user()->tienda_id ?? null;
         $tiendaActiva = $tiendas->firstWhere('id', $idTienda);
         $tiendaDelUsuario = $tiendaActiva ? ($tiendaActiva->alias ?: $tiendaActiva->nombre) : 'Sin tienda asignada';
+        $soloCodigoBarra = $tiendaActiva ? (int) $tiendaActiva->solo_codigo_barra : 0;
 
         // Detectar impresora y guardar configuracion en el usuario logueado
         $detector    = new PrinterDetectorService(
@@ -75,6 +76,7 @@ Route::middleware([
             'tiendas'          => $tiendas,
             'idTiendaUsuario'  => $idTienda,
             'tiendaDelUsuario' => $tiendaDelUsuario,
+            'soloCodigoBarra'  => $soloCodigoBarra,
         ]);
     })->name('puntodeventa.pos');
 

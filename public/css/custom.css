@@ -132,6 +132,12 @@ verde: #54C392
 .bg-xsuccess{
     background-color: #FFDC7F!important;
 }
+.bg-xwarning{
+    background-color: #FFDC7F!important;
+}
+.bg-xinfo{
+    background-color: #78b7d0!important;
+}
 .bg-xdanger{
     background-color: #ff7f7f!important;
 }

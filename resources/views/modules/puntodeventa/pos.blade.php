@@ -28,13 +28,14 @@
                                     <i class="fa-solid fa-exchange-alt"></i> Devoluciones
                                 </button>
                             </div>
+                            @if(empty($soloCodigoBarra))
                             <div class="col-1">
                                 <!-- BOTON toggle mostrar y ocultar productos-container -->
                                 <button class="btn btn-xsecondary wrap w-100" id="toggle-productos-container">
                                     <i class="fa-solid fa-plus-square"></i>
                                 </button>
-
                             </div>
+                            @endif
 
                         </div>
                     </div>

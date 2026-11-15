@@ -13,7 +13,7 @@
                             </div>
 
                             <!-- Input buscador -->
-                            <div class="col-6 col-sm-4 col-md-5 search-list">
+                            <div class="col-6 col-sm-4 {{ empty($soloCodigoBarra) ? 'col-md-5' : 'col-md-6' }} search-list">
                                 @csrf
                                 <input type="text" class="form-control" id="search-box"
                                     placeholder="Código de barras (F2)" autocomplete="off" inputmode="none">
@@ -37,11 +37,13 @@
                             </div>
 
                             <!-- Botón toggle -->
+                            @if(empty($soloCodigoBarra))
                             <div class="col-2 col-sm-3 col-md-1">
                                 <button class="btn btn-xsecondary wrap w-100" id="toggle-productos-container">
                                     <i class="fa-solid fa-plus-square"></i>
                                 </button>
                             </div>
+                            @endif
                         </div>
                         <div>
                             <hr>
@@ -317,6 +319,7 @@
     window.AuthUser = @json(Auth::user());
     window.tiendas = @json( $tiendas);
     window.idTiendaUsuario = @json( $idTiendaUsuario);
+    window.soloCodigoBarraPos = @json((bool)($soloCodigoBarra ?? false));
 </script>
 
 {{-- Scripts del sistema POS en orden de dependencia --}}
