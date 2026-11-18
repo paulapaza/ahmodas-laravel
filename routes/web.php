@@ -171,6 +171,7 @@ Route::middleware([
     =            ventas            =
     ==============================*/
 
+    Route::get('/inventario/productos/exportar-excel', [ProductoController::class, 'exportarExcelMatrizStock'])->name('inventario.productos.exportar_excel');
     Route::view('/inventario/productos', 'modules.inventario.producto.index')->name('inventario.productos.index');
     Route::resource('/inventario/producto', ProductoController::class);
     Route::post('/inventario/producto/buscar', [ProductoController::class, 'buscarProducto']);

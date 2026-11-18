@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Inventario;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductoRequest;
 use App\Models\Inventario\Producto;
+use App\Services\Inventario\ExportStockService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,9 @@ class ProductoController extends Controller
 {
   public function index()
   {
-    $tiendas = DB::table('tiendas')->select('id', 'nombre')->orderBy('id')->get();
+    $tiendas = DB::table('tiendas')->select('id', 'nombre', 'alias')
+      ->orderByRaw("CASE WHEN LOWER(TRIM(alias)) = 'tienda 2' OR nombre LIKE '%002%' OR id = 4 THEN 0 ELSE 1 END, id ASC")
+      ->get();
     $stocksRaw = DB::table('producto_tienda')->select('producto_id', 'tienda_id', 'stock')->get();
     $stocksMap = [];
     foreach ($stocksRaw as $s) {
@@ -90,6 +93,18 @@ class ProductoController extends Controller
     $producto = Producto::find($id);
 
     return response()->json($producto, 200);
+  }
+
+  /**
+   * Exportar el stock de productos en formato matriz a Excel
+   */
+  public function exportarExcelMatrizStock(Request $request, ExportStockService $exportService)
+  {
+    $tiendaId = $request->filled('tienda_id') ? (int) $request->input('tienda_id') : null;
+    $ocultarSinStock = $request->boolean('ocultar_sin_stock');
+    $search = $request->filled('search') ? trim($request->input('search')) : null;
+
+    return $exportService->exportarMatrizProductos($tiendaId, $ocultarSinStock, $search);
   }
   public function store(ProductoRequest $request)
   {

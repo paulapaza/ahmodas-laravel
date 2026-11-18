@@ -19,7 +19,7 @@
                     </label>
                     <select id="filtroTienda" class="form-control form-control-sm shadow-sm border-0">
                         <option value="">Todas las Tiendas</option>
-                        @foreach(\Illuminate\Support\Facades\DB::table('tiendas')->select('id', 'nombre')->orderBy('id')->get() as $t)
+                        @foreach(\Illuminate\Support\Facades\DB::table('tiendas')->select('id', 'nombre', 'alias')->orderByRaw("CASE WHEN LOWER(TRIM(alias)) = 'tienda 2' OR nombre LIKE '%002%' OR id = 4 THEN 0 ELSE 1 END, id ASC")->get() as $t)
                             <option value="{{ $t->id }}">{{ $t->nombre }}</option>
                         @endforeach
                     </select>
@@ -453,6 +453,122 @@
                 $('.buttons-print').remove();
             }
         }
+
+        // Descarga de Excel generada desde Backend en formato matriz de tiendas
+        let descargandoExcel = false;
+        async function descargarExcelProductos(dtBtn, node) {
+            if (descargandoExcel) return;
+            descargandoExcel = true;
+
+            const $btn = node ? $(node) : $('.buttons-excel');
+
+            // Deshabilitar botón y activar spinner oficial de DataTables
+            if (dtBtn && typeof dtBtn.enable === 'function') {
+                dtBtn.enable(false);
+            }
+            if (dtBtn && typeof dtBtn.processing === 'function') {
+                dtBtn.processing(true);
+            }
+            $btn.prop('disabled', true).addClass('disabled processing');
+
+            const tiendaId = $('#filtroTienda').val() || '';
+            const ocultarSinStock = $('#switchOcultarSinStock').is(':checked') ? 1 : 0;
+            const search = (window.productosIndexTable && typeof window.productosIndexTable.search === 'function')
+                ? window.productosIndexTable.search().trim()
+                : ($('#table_filter input').val() || '').trim();
+
+            let url = '{{ route("inventario.productos.exportar_excel") }}';
+            const params = new URLSearchParams();
+            if (tiendaId) params.append('tienda_id', tiendaId);
+            params.append('ocultar_sin_stock', ocultarSinStock);
+            if (search) params.append('search', search);
+
+            const queryString = params.toString();
+            if (queryString) {
+                url += '?' + queryString;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    let errMsg = 'Ocurrió un error al generar el archivo Excel.';
+                    try {
+                        const errJson = await response.json();
+                        if (errJson && errJson.message) errMsg = errJson.message;
+                    } catch (e) {
+                        const errText = await response.text();
+                        if (errText) errMsg = errText;
+                    }
+                    throw new Error(errMsg);
+                }
+
+                // Obtener nombre de archivo si vino en Content-Disposition
+                const disposition = response.headers.get('Content-Disposition');
+                let fileName = 'stock_productos.xlsx';
+                if (disposition && disposition.indexOf('filename=') !== -1) {
+                    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        fileName = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = downloadUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
+
+            } catch (error) {
+                console.error('Error al exportar Excel:', error);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de exportación',
+                        text: error.message || 'No se pudo generar el archivo Excel.'
+                    });
+                } else {
+                    alert('Error: ' + (error.message || 'No se pudo generar el archivo Excel.'));
+                }
+            } finally {
+                descargandoExcel = false;
+                // Restaurar botón y quitar spinner siempre
+                if (dtBtn && typeof dtBtn.processing === 'function') {
+                    try { dtBtn.processing(false); } catch(e) {}
+                }
+                if (dtBtn && typeof dtBtn.enable === 'function') {
+                    try { dtBtn.enable(true); } catch(e) {}
+                }
+                if (table && table.button && typeof table.button('.buttons-excel').processing === 'function') {
+                    try { table.button('.buttons-excel').processing(false); } catch(e) {}
+                    try { table.button('.buttons-excel').enable(true); } catch(e) {}
+                }
+                $btn.prop('disabled', false).removeClass('disabled processing');
+                $('.buttons-excel').removeClass('processing disabled').prop('disabled', false);
+            }
+        }
+
+        // Reemplazar la acción del botón Excel de DataTables por la exportación backend
+        if (table.button && table.button('.buttons-excel').length) {
+            table.button('.buttons-excel').action(function (e, dt, node, config) {
+                descargarExcelProductos(this, node);
+            });
+        }
+        $(document).off('click', '#table_wrapper .buttons-excel').on('click', '#table_wrapper .buttons-excel', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            descargarExcelProductos(null, this);
+        });
 
         // Helper para obtener rowData de forma segura incluso en dropdowns o responsive child rows
         function getRowDataFromBtn(btn) {
