@@ -26,18 +26,20 @@
                     <option value="1">1 columna</option>
                 </select>
             </div>
-            <div class="form-group d-inline-block mb-0 ml-2">
-                <select class="form-control" style="width: 135px;" id="usuario_id">
-                    <option value="">vendedores</option>
+            @if ($esAdmin)
+                <div class="form-group d-inline-block mb-0 ml-2">
+                    <select class="form-control" style="width: 135px;" id="usuario_id">
+                        <option value="">vendedores</option>
 
-                    @foreach ($usuarios as $u)
-                        <option value="{{ $u->id }}"
-                            {{ $vendedor_id == $u->id ? 'selected' : '' }}>
-                            {{ $u->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                        @foreach ($usuarios as $u)
+                            <option value="{{ $u->id }}"
+                                {{ $vendedor_id == $u->id ? 'selected' : '' }}>
+                                {{ $u->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
             <div class="form-check d-inline-block ml-2">
                 <input class="form-check-input" type="checkbox" id="playSound">
                 <label class="form-check-label" for="playSound">
@@ -50,10 +52,13 @@
         <x-modalFechasPanel />
     </div>
 
-    @php $numeracion = 1; @endphp
+    @php
+        $numeracion = 1;
+        $columnClass = 'col-12';
+    @endphp
 
     {{-- Asegurarse de que $tiendas esté definido --}}
-    @if ($alltiendas->count() > 1)
+    @if ($alltiendas->count() > 0)
         @php
             $totalTiendas = $alltiendas->count();
             // Calcular el ancho de cada columna basado en el número de tiendas
@@ -267,6 +272,10 @@
             @endforeach
         </div>
 
+    @else
+        <div class="alert alert-info mt-2">
+            <i class="fas fa-info-circle mr-1"></i> No tienes ventas ni devoluciones registradas en este rango de fechas.
+        </div>
     @endif
     <audio id="audioNuevaVenta" preload="auto">
         <source src="/audio/nueva-venta.wav" type="audio/wav">
@@ -319,6 +328,11 @@
                     console.log('Datos de la venta:', event.venta);
                     // SOLO QUIERO QUE SE RECARGE LA PAGINA CUANDO SE RECIBE UN EVENTO DE VENTA REALIZADA
                     if (event && event.venta) {
+                        const esAdmin = @json($esAdmin);
+                        const currentUserId = @json(auth()->id());
+                        if (!esAdmin && event.venta.user_id != currentUserId) {
+                            return;
+                        }
                         console.log('Recargando la página debido a una nueva venta realizada');
                         // mostrar un toaast de éxito
                         const Toast = Swal.mixin({

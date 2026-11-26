@@ -482,6 +482,13 @@ class PosOrderController extends Controller
     // postOrderBystore
     public function postOrderPanel($fecha_inicio = null, $fecha_fin = null, $user_id = null)
     {
+        /** @var User|null $authUser */
+        $authUser = Auth::user();
+        $esAdmin = $authUser instanceof User && $authUser->hasAnyRole(['Administrador', 'Super']);
+
+        if (!$esAdmin) {
+            $user_id = $authUser->id;
+        }
 
         $fecha_inicio = $fecha_inicio
             ? Carbon::parse($fecha_inicio)->startOfDay()  // Si existe, la parsea
@@ -544,13 +551,19 @@ class PosOrderController extends Controller
         ->orderByRaw("CAST(REGEXP_SUBSTR(nombre, '[0-9]+') AS UNSIGNED)")
         ->get();
 
-        $usuarios = User::select('id', 'name')->get();
+        if (!$esAdmin) {
+            $alltiendas = $alltiendas->filter(function ($tienda) {
+                return $tienda->posOrders->isNotEmpty() || $tienda->devoluciones->isNotEmpty();
+            })->values();
+        }
+
+        $usuarios = $esAdmin ? User::select('id', 'name')->get() : collect();
         $fecha_inicial = $fecha_inicio->format('Y-m-d');
         $fecha_final = $fecha_fin->format('Y-m-d');
         $vendedor_id = $user_id;
 
         // return $alltiendas->toArray();
-        return view('modules.ventas.posorder.posorderpanel', compact('alltiendas', 'usuarios', 'fecha_inicial', 'fecha_final', 'vendedor_id'));
+        return view('modules.ventas.posorder.posorderpanel', compact('alltiendas', 'usuarios', 'fecha_inicial', 'fecha_final', 'vendedor_id', 'esAdmin'));
     }
 
     public function postOrderLinePanel($fecha_inicio = null, $fecha_fin = null)
